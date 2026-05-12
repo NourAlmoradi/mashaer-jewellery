@@ -2,53 +2,86 @@
 
 > Technologies, database schema, API routes, and project structure for Hekaya Jewellery
 
+> **⚠️ MVP vs Production:** This document covers both the **current MVP** (frontend-only, mocked data in localStorage, no real backend or payments) and the **production target** (Supabase + Stripe + PayPal). Sections marked 🔜 describe the production goal, not the current build.
+
 ---
 
 ## 1. Technology Overview
 
-### Frontend
-| Technology | Version | Purpose | Cost |
-|------------|---------|---------|------|
-| **Next.js** | 16.2.4 (App Router) | Full-stack React framework | Free |
-| **React** | 19.2.4 | UI library | Free |
-| **TypeScript** | 5 | Language | Free |
-| **next-intl** | 4.x | **Bilingual Support (AR/EN)** | Free |
-| **Tailwind CSS v4** | 4.x | Styling (CSS-only config) | Free |
-| **Embla Carousel** | 8.x | Lightweight carousel | Free |
-| **React Hook Form / Zod** | 7.x / 4.x | Forms & Validation | Free |
-| **Lucide React** | 1.x | Icons | Free |
-| **Sonner** | 2.x | Toast Notifications | Free |
-| **qrcode** | 1.5.x | QR generation for Memory feature | Free |
-| **framer-motion** | 12.x | Subtle animations | Free |
-| **Zustand** | 5.x | Client state (cart, UI) | Free |
-| **TanStack React Query** | 5.x | Server state management | Free |
+### Frontend (Current MVP — Built)
 
-### Backend
-| Technology | Purpose | Cost |
-|------------|---------|------|
-| **Next.js API Routes** | Serverless backend | Free (Vercel) |
-| **Supabase** | Database + Auth | Free tier |
-| **Supabase Auth** | User authentication | Free |
-| **Supabase PostgreSQL** | All data | Free (500MB) |
-| **Supabase Storage** | Image storage (products + memories) | Free tier |
+| Technology          | Version              | Purpose                                                                                      | Cost |
+| ------------------- | -------------------- | -------------------------------------------------------------------------------------------- | ---- |
+| **Next.js**         | 15.5.15 (App Router) | Full-stack React framework                                                                   | Free |
+| **React**           | 19.1.0               | UI library                                                                                   | Free |
+| **TypeScript**      | 5                    | Language                                                                                     | Free |
+| **Tailwind CSS v4** | 4.x                  | Styling (CSS-only `@theme` in globals.css — no tailwind.config.ts)                           | Free |
+| **Zustand**         | 5.x                  | All client state: cart, locale, orders, memories, admin settings (with `persist` middleware) | Free |
+| **Custom i18n**     | —                    | Bilingual AR/EN via Zustand locale store + `src/lib/i18n.ts`. No `[locale]/` routing.        | Free |
+| **Lucide React**    | 1.x                  | Icons (brand social icons are hand-coded SVGs)                                               | Free |
+| **Sonner**          | 2.x                  | Toast Notifications                                                                          | Free |
+| **qrcode**          | 1.5.x                | QR PNG generation (gold `#c9a96e` colour default)                                            | Free |
+| **framer-motion**   | 12.x                 | Animations (whileInView, drawers, hero entrance)                                             | Free |
+| **recharts**        | 3.8.x                | Admin dashboard charts (Orders by Status bar chart, Revenue Trend area chart)                | Free |
 
-### Payment & Hosting
-| Technology | Purpose | Cost |
-|------------|---------|------|
-| **Stripe** | Apple Pay & Mastercard | 2.9% + 1 AED/tx |
-| **PayPal** | PayPal Checkout | ~3.9% + fixed AED/tx |
+### Frontend (Production Target 🔜 — Not yet integrated)
+
+| Technology                | Purpose                 |
+| ------------------------- | ----------------------- |
+| **Embla Carousel**        | Lightweight carousel    |
+| **React Hook Form / Zod** | Forms & Validation      |
+| **TanStack React Query**  | Server state management |
+
+### Backend — Current MVP (Mocked)
+
+| Technology                 | Purpose                                                                                        | Cost |
+| -------------------------- | ---------------------------------------------------------------------------------------------- | ---- |
+| **Zustand + localStorage** | All data persisted client-side via `persist` middleware and a `safeStorage` quota-safe wrapper | Free |
+| **No API routes**          | All data is mocked in-memory and in localStorage. No server-side logic yet.                    | —    |
+
+### Backend — Production Target 🔜
+
+| Technology              | Purpose                             | Cost          |
+| ----------------------- | ----------------------------------- | ------------- |
+| **Next.js API Routes**  | Serverless backend                  | Free (Vercel) |
+| **Supabase**            | Database + Auth                     | Free tier     |
+| **Supabase Auth**       | User authentication                 | Free          |
+| **Supabase PostgreSQL** | All data                            | Free (500MB)  |
+| **Supabase Storage**    | Image storage (products + memories) | Free tier     |
+
+### Payment — Current MVP (Mocked)
+
+| Method                        | Notes                                                                                                    |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Card / Apple Pay / PayPal** | UI radio buttons exist but no real processing. Clicking "Pay" always succeeds and creates a local order. |
+
+### Payment — Production Target 🔜
+
+| Technology | Purpose                | Cost                 |
+| ---------- | ---------------------- | -------------------- |
+| **Stripe** | Apple Pay & Mastercard | 2.9% + 1 AED/tx      |
+| **PayPal** | PayPal Checkout        | ~3.9% + fixed AED/tx |
+
+### Hosting
+
+| Technology | Purpose             | Cost      |
+| ---------- | ------------------- | --------- |
 | **Vercel** | Hosting + CDN + SSL | Free tier |
-| **GitHub** | Code repository | Free |
+| **GitHub** | Code repository     | Free      |
 
-> **Note:** We use Stripe exclusively to securely process Apple Pay and Mastercard, and PayPal to process PayPal balances.
+> **Note:** Real payment processing will use Stripe for Apple Pay/Mastercard and PayPal for PayPal balances. Prices will be strictly calculated server-side.
 
 ---
 
-## 2. Database Schema
+## 2. Database Schema 🔜 (Production Target)
+
+> **Current MVP:** No database. All data (orders, memories, cart) lives in `localStorage` via Zustand `persist`.
+> **Production target:** 10 Supabase PostgreSQL tables listed below.
 
 > **10 tables total** — kept simple and clean, no unnecessary complexity.
 
 ### `profiles` — User profiles (extends Supabase auth.users)
+
 ```sql
 CREATE TABLE profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -69,6 +102,7 @@ CREATE TABLE profiles (
 ```
 
 ### `categories` — Product categories
+
 ```sql
 CREATE TABLE categories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -87,6 +121,7 @@ CREATE TABLE categories (
 ```
 
 ### `products` — Product catalog
+
 ```sql
 CREATE TABLE products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -118,6 +153,7 @@ CREATE TABLE products (
 > **Note:** No `stock_quantity` — inventory tracking is not used.
 
 ### `product_variations` — Size/material options per product
+
 ```sql
 CREATE TABLE product_variations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -131,6 +167,7 @@ CREATE TABLE product_variations (
 ```
 
 ### `orders` — Customer orders
+
 ```sql
 CREATE TABLE orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -160,6 +197,7 @@ CREATE TABLE orders (
 > **Note:** `discount` column removed — no coupon system.
 
 ### `order_items` — Items within orders
+
 ```sql
 CREATE TABLE order_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -176,6 +214,7 @@ CREATE TABLE order_items (
 ```
 
 ### `qr_memories` — QR Memory pages (UNIQUE FEATURE)
+
 ```sql
 CREATE TABLE qr_memories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -196,6 +235,7 @@ CREATE TABLE qr_memories (
 > **Note:** Simplified from previous version. No child profile fields (name/birthdate/photo) — just title, message, PIN, and photos. Privacy is PIN-only (no public/private toggle).
 
 ### `memory_photos` — Photos for QR memories (max 3 per memory)
+
 ```sql
 CREATE TABLE memory_photos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -209,6 +249,7 @@ CREATE TABLE memory_photos (
 > **Note:** Renamed from `memory_media`. Photos only (no video/text types). Max 3 photos per memory enforced at API level.
 
 ### `wishlist` — User saved products
+
 ```sql
 CREATE TABLE wishlist (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -220,6 +261,7 @@ CREATE TABLE wishlist (
 ```
 
 ### `addresses` — User saved shipping addresses
+
 ```sql
 CREATE TABLE addresses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -240,7 +282,9 @@ CREATE TABLE addresses (
 
 ---
 
-## 3. API Routes
+## 3. API Routes 🔜 (Production Target)
+
+> **Current MVP:** No API routes exist. All operations are handled client-side with mocked data.
 
 ```
 src/app/api/
@@ -264,7 +308,9 @@ src/app/api/
 
 ---
 
-## 4. Environment Variables
+## 4. Environment Variables 🔜 (Production Target)
+
+> **Current MVP:** No environment variables required. The only active setting is `outputFileTracingRoot` in `next.config.ts` to silence a multiple-lockfiles warning.
 
 ```bash
 # .env.local
@@ -278,7 +324,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 STRIPE_WEBHOOK_SECRET=
 
 # PayPal
-NEXT_PUBLIC_PAYPAL_CLIENT_ID=       
+NEXT_PUBLIC_PAYPAL_CLIENT_ID=
 PAYPAL_CLIENT_SECRET=               # ⚠️ Server-only! No NEXT_PUBLIC_
 
 # Supabase Storage uses NEXT_PUBLIC_SUPABASE_URL
@@ -294,29 +340,20 @@ ADMIN_EMAIL=admin@hekaya-Jewellery.com
 
 ## 5. Key Dependencies
 
+### Currently Installed (MVP)
+
 ```json
 {
   "dependencies": {
-    "next": "^16.2.4",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "next-intl": "^4.0.0",
-    "@supabase/supabase-js": "^2.0.0",
-    "@supabase/ssr": "^0.5.0",
-    "@stripe/stripe-js": "^5.0.0",
-    "stripe": "^17.0.0",
-    "@paypal/react-paypal-js": "^8.0.0",
-
-    "embla-carousel-react": "^8.0.0",
+    "next": "^15.5.15",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "lucide-react": "^1.0.0",
     "sonner": "^2.0.0",
     "qrcode": "^1.5.0",
-    "sharp": "^0.34.0",
     "zustand": "^5.0.0",
-    "@tanstack/react-query": "^5.0.0",
-    "react-hook-form": "^7.0.0",
-    "zod": "^4.0.0",
     "framer-motion": "^12.0.0",
+    "recharts": "^3.8.1",
     "nanoid": "^5.0.0",
     "clsx": "^2.0.0",
     "tailwind-merge": "^3.0.0"
@@ -324,4 +361,21 @@ ADMIN_EMAIL=admin@hekaya-Jewellery.com
 }
 ```
 
+### To Add for Production 🔜
 
+```json
+{
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0",
+    "@supabase/ssr": "^0.5.0",
+    "@stripe/stripe-js": "^5.0.0",
+    "stripe": "^17.0.0",
+    "@paypal/react-paypal-js": "^8.0.0",
+    "embla-carousel-react": "^8.0.0",
+    "react-hook-form": "^7.0.0",
+    "zod": "^4.0.0",
+    "@tanstack/react-query": "^5.0.0",
+    "sharp": "^0.34.0"
+  }
+}
+```

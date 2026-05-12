@@ -2,14 +2,15 @@
 
 > **Brand Name:** Hekaya Jewellery / مجوهرات حكاية  
 > **Tagline:** "A Story in Every Piece" / "في كل قطعة… حكاية"  
-> **Domain:** hekaya-Jewellery.com  
+> **Domain:** hekaya-Jewellery.com
 
 ---
 
 ## 1. Executive Summary (The Core Idea)
-**Hekaya Jewellery** is a premium, bilingual (Arabic & English) e-commerce platform specializing in **children's fine Jewellery**. 
 
-While traditional Jewellery is valued purely for its material, Hekaya introduces a profound emotional layer: **The Dynamic QR Memory System**. Every piece of kids' Jewellery sold comes with a unique, dynamic QR code. When scanned, this code unlocks a private, parent-managed digital memory page dedicated to the child wearing the piece. 
+**Hekaya Jewellery** is a premium, bilingual (Arabic & English) e-commerce platform specializing in **children's fine Jewellery**.
+
+While traditional Jewellery is valued purely for its material, Hekaya introduces a profound emotional layer: **The Dynamic QR Memory System**. Every piece of kids' Jewellery sold comes with a unique, dynamic QR code. When scanned, this code unlocks a private, parent-managed digital memory page dedicated to the child wearing the piece.
 
 Hekaya transforms a simple piece of gold into a living, digital heirloom that captures a child's precious photos and heartfelt messages.
 
@@ -18,17 +19,21 @@ Hekaya transforms a simple piece of gold into a living, digital heirloom that ca
 ## 2. The Problem & The Solution
 
 ### The Market Problem
-When parents or grandparents buy Jewellery for children, the pieces are often outgrown, stored away, or passed down with the memories surrounding them forgotten. A gold bracelet bought for a 1st birthday is just a bracelet ten years later; the emotional context of *when* and *why* it was given is lost to time.
+
+When parents or grandparents buy Jewellery for children, the pieces are often outgrown, stored away, or passed down with the memories surrounding them forgotten. A gold bracelet bought for a 1st birthday is just a bracelet ten years later; the emotional context of _when_ and _why_ it was given is lost to time.
 
 ### The Hekaya Solution
+
 We digitize the emotional value of the Jewellery. By tying a physical, high-quality piece of Jewellery to a secure digital memory timeline, we ensure that the story outlives the moment. The Jewellery becomes a physical key to a digital vault of childhood memories.
 
 ---
 
 ## 3. The Star Feature: Dynamic QR Memory System
+
 This is the original, innovative idea that sets Hekaya apart from any other Jewellery brand in the market.
 
 **How it works (The User Journey):**
+
 1. **The Purchase:** A customer (parent, grandparent, friend) buys a piece of kids' Jewellery from the website.
 2. **The Generation:** The system automatically generates a unique, beautiful Warm Gold QR code tied specifically to that order.
 3. **The Setup:** The parent receives the Jewellery, scans the QR code with their phone, and is guided to upload up to 3 photos and write a heartfelt title and message.
@@ -55,6 +60,7 @@ All memory pages are **PIN-protected** — a 4-digit code is required to view th
 **Languages:** 100% Bilingual from Day 1. Users can seamlessly switch between Arabic (RTL) and English (LTR).
 
 **Target Customers:**
+
 1. **New Mothers:** Looking for meaningful keepsakes for their babies.
 2. **Grandparents/Relatives:** Looking for a unique, high-value gift that stands out from standard toys or clothes.
 3. **Fathers:** Looking for a memorable gift for their wives/daughters on special occasions (births, birthdays, Eid).
@@ -65,17 +71,19 @@ All memory pages are **PIN-protected** — a 4-digit code is required to view th
 
 The platform is built on a modern, enterprise-grade, yet cost-effective tech stack ensuring maximum speed, security, and scalability.
 
-- **Frontend framework:** Next.js 16.2.4 (React) - extremely fast, SEO optimized.
-- **Backend/Database:** Supabase (PostgreSQL) - secure, real-time database with Row Level Security (RLS) to protect user data and memories.
-- **Payments:** Apple Pay, Mastercard, and PayPal - processing securely via Stripe and PayPal integrations. Prices are strictly calculated on the server to prevent hacking.
-- **Hosting:** Vercel - providing global edge-network speeds (fast loading in the UAE) and free automatic SSL.
+- **Frontend framework:** Next.js 15.5 (React) — extremely fast, SEO optimized.
+- **i18n:** Custom bilingual AR/EN system using Zustand locale store + `src/lib/i18n.ts`. Full RTL/LTR support. No third-party i18n library.
+- **Current MVP data layer:** All data (cart, orders, memories) persisted client-side via Zustand + localStorage. No backend required for the MVP.
+- **Production backend (planned):** Supabase (PostgreSQL) — secure, real-time database with Row Level Security (RLS) to protect user data and memories.
+- **Payments (planned):** Apple Pay, Mastercard, and PayPal — processing securely via Stripe and PayPal integrations. Prices will be strictly calculated on the server to prevent hacking. Current MVP mocks payment success.
+- **Hosting:** Vercel — providing global edge-network speeds (fast loading in the UAE) and free automatic SSL.
 - **Cost Strategy:** Designed to launch at **~$12/year** (domain cost only) by utilizing generous free tiers of the best developer tools. The business only pays when it scales and generates high revenue.
 
 ---
 
 ## 7. Platform Structure (Simplified UI/UX)
 
-The website is designed to be highly intuitive, avoiding the complexity of massive e-commerce sites. 
+The website is designed to be highly intuitive, avoiding the complexity of massive e-commerce sites.
 
 - **Homepage:** 7 clean sections (Hero Image, Brand Story, Featured Collections, Memory Feature Explanation, Testimonials, Footer). No clutter.
 - **Product Pages:** High-quality imagery, clear pricing, and a prominent badge indicating "Includes QR Memory."
@@ -99,4 +107,5 @@ Introduce Buy-Now-Pay-Later (Tabby/Tamara) to increase conversion rates. Expand 
 ---
 
 ## 9. Summary Conclusion
+
 Hekaya Jewellery is not just an e-commerce store; it is a **memory-keeping platform disguised as a premium Jewellery brand**. By combining physical craftsmanship with digital innovation, it offers a product that increases in emotional value over time, ensuring high customer loyalty, strong word-of-mouth marketing, and a completely unique position in the GCC Jewellery market.

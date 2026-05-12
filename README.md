@@ -1,251 +1,145 @@
 # ✨ Hekaya Jewellery | مجوهرات حكاية
 
-> **Children's Jewellery with Dynamic QR Memory Codes**
+> **Children's Jewellery with Dynamic QR Memory Codes**  
 > _"A Story in Every Piece" / "في كل قطعة… حكاية"_
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.2.4-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
-[![React](https://img.shields.io/badge/React-19.2.4-61DAFB?style=for-the-badge&logo=react)](https://react.dev)
-[![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com)
-[![Vercel](https://img.shields.io/badge/Vercel-Hosted-black?style=for-the-badge&logo=vercel)](https://vercel.com)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript)](https://typescriptlang.org)
+A bilingual (Arabic-default, English-secondary), mobile-first, premium jewellery e-commerce experience for the UAE market — featuring a one-of-a-kind **QR Memory keepsake** system embedded into every piece.
 
----
+This repository contains:
 
-## 🎯 What is Hekaya Jewellery?
-
-Hekaya Jewellery is a **premium bilingual e-commerce store** specializing in children's Jewellery for the UAE market. Each eligible Jewellery piece comes with a **unique QR Memory code** that links to a private, PIN-protected digital memory page where parents can store up to 3 photos and a heartfelt message — creating a keepsake that lasts forever.
-
-### ✨ Core Features
-
-- 🛍️ **Full E-Commerce** — Browse, filter, cart, checkout, payment
-- 🔲 **Dynamic QR Memory Codes** — Unique QR per order or per piece (customer chooses at checkout)
-- 🔑 **PIN-Protected Memories** — 4-digit PIN required to view memory pages
-- 🌐 **Bilingual (AR/EN)** — Full RTL/LTR support from Day 1 via `next-intl`
-- 💎 **Quiet Luxury Aesthetic** — Clean, professional, minimal warm-gold design
-- 📱 **Mobile-First** — Fully responsive across all screen sizes
-- 💳 **Payments** — Apple Pay, Mastercard, and PayPal
-- 📐 **Product Variations** — Size and material options with price overrides
-- 📊 **Admin Dashboard** — Manage products, view/update orders
-
----
-
-## 🏗️ Tech Stack
-
-| Layer             | Technology            | Version     | Purpose                                   |
-| ----------------- | --------------------- | ----------- | ----------------------------------------- |
-| **Framework**     | Next.js (App Router)  | 16.2.4      | Pages, SSR, routing                       |
-| **UI Language**   | React                 | 19.2.4      | Component model                           |
-| **Language**      | TypeScript            | 5           | Type safety                               |
-| **i18n**          | next-intl             | 4.x         | Bilingual AR/EN, RTL/LTR                  |
-| **Styling**       | Tailwind CSS v4       | 4.x         | CSS-only config (`@theme` in globals.css) |
-| **Animations**    | framer-motion         | 12.x        | Minimal whileInView fade-ups only         |
-| **State**         | Zustand               | 5.x         | Cart + UI state (persisted)               |
-| **Data Fetching** | TanStack React Query  | 5.x         | Server state management                   |
-| **Forms**         | react-hook-form + zod | 7.x / 4.x   | Validated forms                           |
-| **Database**      | Supabase (PostgreSQL) | —           | Data storage, RLS security                |
-| **Auth**          | Supabase Auth         | —           | Email registration, login, reset          |
-| **Image Storage** | Supabase Storage      | —           | Product images, memory photos             |
-| **Payments**      | Stripe & PayPal       | —           | Apple Pay, Mastercard, and PayPal         |
-| **QR Codes**      | qrcode + nanoid       | 1.5.x / 5.x | Dynamic QR generation                     |
-| **Icons**         | Lucide React          | 1.x         | UI icons                                  |
-| **Carousels**     | Embla Carousel        | 8.x         | Product image gallery                     |
-| **Toasts**        | Sonner                | 2.x         | Notification toasts                       |
-| **Email**         | Resend                | 6.x         | Transactional emails                      |
-| **Image Opt**     | Sharp                 | 0.34.x      | Server-side image processing              |
-| **Hosting**       | Vercel                | —           | CDN, SSL, auto-deploy                     |
-
-> **Important:** Tailwind v4 uses a **CSS-only configuration** — there is no `tailwind.config.ts`. All design tokens live in the `@theme` block inside `src/app/globals.css`.
-
----
-
-## 📁 Project Structure
-
-```
-Hekaya_Jewerly/               ← workspace root
-├── docs/                     # 📖 Project documentation (all 10 files)
-├── hekaya/                   ← Next.js project (run all commands from here)
-│   ├── messages/
-│   │   ├── ar.json           #    Arabic translations (full)
-│   │   └── en.json           #    English translations (full)
-│   │
-│   ├── public/               # 🖼️ Static assets
-│   │
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── [locale]/     #    Bilingual routes (/ar/... and /en/...)
-│   │   │   │   ├── layout.tsx           # Locale shell: fonts, dir, NextIntlProvider
-│   │   │   │   ├── page.tsx             # Homepage
-│   │   │   │   ├── products/page.tsx    # Shop All (filterable)
-│   │   │   │   ├── product/[slug]/      # Product detail
-│   │   │   │   ├── login/page.tsx       # Sign in
-│   │   │   │   ├── register/page.tsx    # Create account
-│   │   │   │   ├── forgot-password/     # Password reset
-│   │   │   │   ├── checkout/page.tsx    # 3-step checkout
-│   │   │   │   ├── account/page.tsx     # User dashboard
-│   │   │   │   ├── memory/[token]/      # PIN-protected QR Memory page
-│   │   │   │   ├── about/page.tsx       # Brand story
-│   │   │   │   ├── contact/page.tsx     # Contact form
-│   │   │   │   └── policies/page.tsx    # Tabbed: Shipping/Returns/Privacy/Terms
-│   │   │   ├── layout.tsx    #    Root layout (minimal wrapper)
-│   │   │   ├── page.tsx      #    Root → redirect('/ar')
-│   │   │   └── globals.css   #    Tailwind v4 @theme + all CSS utilities
-│   │   │
-│   │   ├── components/
-│   │   │   ├── layout/       #    Header, Footer, MobileMenu, LanguageSwitcher
-│   │   │   ├── home/         #    HeroSection, BrandStoryStrip, CollectionShowcase,
-│   │   │   │                 #    QRMemoryBanner, TestimonialCards, TrustBadges
-│   │   │   ├── products/     #    ProductCard, ProductGrid, ProductDetail
-│   │   │   ├── cart/         #    CartDrawer
-│   │   │   └── ui/           #    Button, Badge, Input, Container, StarRating,
-│   │   │                     #    BackToTop, WhatsAppFloat
-│   │   │
-│   │   ├── data/
-│   │   │   └── products.ts   #    6 placeholder products (until Supabase is wired)
-│   │   │
-│   │   ├── i18n/
-│   │   │   ├── routing.ts    #    next-intl locale routing config
-│   │   │   └── request.ts    #    next-intl server request config
-│   │   │
-│   │   ├── lib/
-│   │   │   ├── supabase/     #    client.ts, server.ts, admin.ts
-│   │   │   ├── format.ts     #    formatPrice, formatDate, truncate
-│   │   │   └── utils.ts      #    cn() — clsx + tailwind-merge
-│   │   │
-│   │   ├── stores/
-│   │   │   └── cart.store.ts #    Zustand cart (persisted, addItem/removeItem/etc.)
-│   │   │
-│   │   ├── types/
-│   │   │   └── index.ts      #    Product, Order, QRMemory, CartItem, Profile, etc.
-│   │   │
-│   │   └── proxy.ts          #    next-intl middleware (renamed for Next.js 16)
-│   │
-│   ├── next.config.ts
-│   ├── .env.local            # 🔒 Env vars (NEVER commit)
-│   └── package.json
-│
-├── PROJECT_WORKFLOW.md        # 📋 Business flow doc (for co-founder approval)
-├── README.md                  # 👈 You are here
-└── BUILD_GUIDE.md
-```
-
----
-
-## 🚦 Build Status
-
-| Area                    | Status     | Notes                                                                    |
-| ----------------------- | ---------- | ------------------------------------------------------------------------ |
-| Project setup & routing | ✅ Done    | Next.js 16 + next-intl v4, AR default                                    |
-| Design system           | ✅ Done    | Tailwind v4 `@theme`, all brand tokens                                   |
-| Layout shell            | ✅ Done    | Header (z-50, frosted on scroll), Footer, MobileMenu                     |
-| Cart system             | ✅ Done    | CartDrawer, Zustand store, persisted                                     |
-| Homepage                | ✅ Done    | 6 sections: Hero, BrandStory, Collections, QRBanner, Testimonials, Trust |
-| Product listing         | ✅ Done    | ProductCard + ProductGrid + filter by collection                         |
-| Product detail          | ✅ Done    | Gallery, qty stepper, Add to Cart, QR callout                            |
-| Placeholder data        | ✅ Done    | 6 products in `src/data/products.ts`                                     |
-| Auth pages (UI)         | ✅ Done    | Login, Register, Forgot Password                                         |
-| Checkout (UI)           | ✅ Done    | 3-step stepper: Shipping → Review → Payment                              |
-| Static pages            | ✅ Done    | About, Contact, Policies (tabbed)                                        |
-| Account page (shell)    | ✅ Done    | Login prompt / menu skeleton                                             |
-| QR Memory page (shell)  | ✅ Done    | Memory viewer at `/memory/[token]`                                       |
-| Supabase DB schema      | ❌ Pending | SQL not yet run in Supabase console                                      |
-| Product variations      | ❌ Pending | Size/material options per product                                        |
-| Real auth (Supabase)    | ❌ Pending | Forms built; `signIn`/`signUp` TODOs remain                              |
-| Payment integration     | ❌ Pending | Stripe (Apple Pay/Mastercard) + PayPal integration                       |
-| QR generation logic     | ❌ Pending | `src/lib/qr.ts` not created yet                                          |
-| QR PIN system           | ❌ Pending | 4-digit PIN for memory page access                                       |
-| Supabase Storage setup  | ❌ Pending | Image storage bucket not configured                                      |
-| API routes              | ❌ Pending | `/api/checkout`, `/api/webhook`, `/api/qr`                               |
-| Admin dashboard         | ❌ Pending | `/admin` not started                                                     |
-| Account sub-pages       | ❌ Pending | Orders, Wishlist, Addresses                                              |
-| My Memories editor      | ❌ Pending | Upload/edit interface for memory pages                                   |
-| Order confirmation      | ❌ Pending | `/order-confirmation/[id]` not started                                   |
+- 📚 Full project documentation in [`docs/`](./docs)
+- 💻 The Next.js application in [`hekaya/`](./hekaya)
 
 ---
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- Node.js 18+ installed
-- Git installed
-
-### 1. Clone & Install
-
 ```bash
-git clone https://github.com/YOUR_USERNAME/hekaya.git
-cd Hekaya_Jewerly/hekaya      # ← must be in the hekaya/ subfolder
-npm install
-```
-
-### 2. Set up Environment
-
-```bash
-# Copy and fill in your keys
-cp .env.local.example .env.local   # or edit .env.local directly
-```
-
-Required variables:
-
-```bash
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-STRIPE_SECRET_KEY=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-STRIPE_WEBHOOK_SECRET=
-NEXT_PUBLIC_PAYPAL_CLIENT_ID=
-PAYPAL_CLIENT_SECRET=
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-NEXT_PUBLIC_WHATSAPP_NUMBER=+971XXXXXXXXX
-ADMIN_EMAIL=admin@hekayaJewellery.com
-```
-
-### 3. Run Development Server
-
-```bash
-# Must run from inside the hekaya/ folder
 cd hekaya
-npm run dev
-# Open http://localhost:3000  →  auto-redirects to /ar
+npm install
+npm run dev          # → http://localhost:3000
+npm run build        # production build
 ```
 
-### 4. Deploy to Production
+> Default language is **Arabic (RTL)**. Toggle to English from the header.
 
-```bash
-git push origin main
-# Vercel auto-deploys from GitHub
+---
+
+## ✅ What's Built (Frontend MVP)
+
+The current build is a **frontend-only walkthrough** — backend / authentication / real payments are deliberately **mocked** so the entire flow can be demoed end-to-end without external services.
+
+### Pages
+
+| Path                       | Purpose                                                                                                                                                          |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                        | Hero, trust strip, collections, featured products, QR explainer, story, testimonials, **gold "Ready to Create a Memory?" CTA band**                              |
+| `/products`                | Filter + sort catalogue (sidebar + mobile drawer). Cards show category eyebrow tag.                                                                              |
+| `/product/[slug]`          | Detail with category eyebrow, **age + material chips**, gallery, variations, **Description / Shipping / Jewellery Care tabs**, related                           |
+| `/checkout`                | 3-step flow + **sticky Order Summary**. Shipping fee wired to `adminSettings.shipping` (per-emirate). Each QR token stores its product name for labeling.        |
+| `/order-confirmation/[id]` | Gold QR codes generated as PNG. Each card shows the product thumbnail + item name so customer and admin know which QR belongs to which piece. Download per card. |
+| `/memory/[token]`          | **The differentiator** — PIN-protected memory page (setup, unlock, view, edit). Uploads up to 3 photos as data-URLs (mock storage)                               |
+| `/account`                 | Mock-login dashboard with **Overview tab (4 stat tiles + recent orders + quick actions)**, Orders, Memories, Addresses, Wishlist                                 |
+| `/my-memories`             | Dedicated keepsakes page — reads real `data.store.memories`, renders gold QR PNG per card with masked PIN and View / Edit actions                                |
+| `/admin`                   | Dark luxury dashboard with 4 trend stat cards, Orders by Status bar chart, 12-month Revenue Trend area chart (recharts), recent orders table                     |
+| `/admin/products`          | Dark CRUD table with search, status toggle switch, add/edit modal (in-memory)                                                                                    |
+| `/admin/orders`            | Search + filter pills, inline status dropdown, dark detail drawer with QR token chips                                                                            |
+| `/admin/qr`                | QR Memories — 3 stat cards (Total Generated / Set Up / Pending), search, table of every generated token with status pill                                         |
+| `/admin/settings`          | 4 tabs: Store info / QR Memory config / Shipping rates / Email Notifications — persisted via Zustand                                                             |
+| `/qr`                      | Marketing/explainer page for QR Memory                                                                                                                           |
+| `/about`                   | Dark editorial hero ("More Than Jewellery. A Legacy.") + Our Values 4-card grid + gold "Be Part of the Story" CTA band                                           |
+| `/contact`                 | Topic dropdown, 0/500 character counter, **WhatsApp banner**, **Showroom card**, contact cards, **FAQ accordion** (4 Qs)                                         |
+| `/policies`                | Tabbed legal pages (Shipping / Returns / Privacy / Terms)                                                                                                        |
+
+### Tech
+
+- **Next.js 15.5** (App Router, TypeScript, no Turbopack)
+- **Tailwind CSS v4** — pure CSS `@theme` config, no `tailwind.config.ts`
+- **Zustand** with `persist` middleware (cart, locale, orders, memories). Custom `safeStorage` wrapper handles `localStorage` quota errors.
+- **framer-motion** for entrance + drawer animations
+- **lucide-react** + custom inline brand SVGs (no brand icons — Instagram/Facebook are hand-coded SVGs)
+- **qrcode** for real QR PNG generation (gold `#c9a96e` colour)
+- **sonner** for toasts
+- All product imagery via in-house `<PlaceholderJewel />` SVGs (no external assets)
+- Logo as scalable SVG (`<Logo />` in `hekaya/src/components/ui/Logo.tsx`)
+- `next.config.ts` sets `outputFileTracingRoot` to silence multiple-lockfile warning
+
+### i18n
+
+- Single set of routes (no `[locale]` folder)
+- Locale lives in a Zustand store (`hekaya-locale`), default `ar`
+- `<html dir>` is updated client-side via the `useT` hook
+- Bilingual translations centralised in [`hekaya/src/lib/i18n.ts`](./hekaya/src/lib/i18n.ts)
+
+### Mocked / Skipped (intentional)
+
+- ❌ No Supabase / database — orders + memories persist in `localStorage`
+- ❌ No real auth — Account page uses a "Sign in as demo user" button
+- ❌ No real payment — Stripe/PayPal/Apple Pay are visual choices only
+- ❌ No image upload to cloud — photos for memories are stored as data-URLs
+
+---
+
+## 📁 Repository Layout
+
 ```
+Hekaya_Jewerlley/
+├── docs/                       # Full design + architecture docs (10 files)
+├── hekaya/                     # Next.js application
+│   ├── src/
+│   │   ├── app/                # App Router routes
+│   │   ├── components/         # layout, home, products, cart, ui
+│   │   ├── data/products.ts    # Mock catalogue + mock orders
+│   │   ├── lib/                # i18n, qr, useT, utils
+│   │   ├── stores/             # Zustand stores (locale/cart/data)
+│   │   └── types/index.ts
+│   └── package.json
+├── BUILD_GUIDE.md
+├── PROJECT_WORKFLOW.md
+└── README.md                   # ← you are here
+```
+
+---
+
+## 🧪 Try the Full Flow (Demo Walkthrough)
+
+1. **Browse** → `/` then `/products`, filter by collection.
+2. **Add to cart** → drawer slides in.
+3. **Checkout** → fill shipping (any data), review, pick QR option (one for order / one per piece), pick a mocked payment.
+4. **Order confirmed** → QR cards appear, each labeled with its product name and thumbnail → click "Open Memory Page" on any card.
+5. **Memory setup** → upload up to 3 photos (auto-compressed), write a title + message, set a 4-digit PIN, save.
+6. **Re-open the QR link** → enter PIN to view; edit anytime.
+7. **Admin walkthrough**: visit `/admin`
+   - See stats + recent orders
+   - `/admin/orders` → update status of any order you placed
+   - `/admin/products` → add/edit/delete products in-memory
+   - `/admin/qr` → see every generated QR (yours + mock-data orders)
+   - `/admin/settings` → edit store info, QR config, shipping rates and email notifications
+8. **Keepsakes view**: visit `/my-memories` — every memory you set up appears as a card with a real gold QR PNG, masked PIN, View/Edit links and the linked product name.
+
+---
+
+## 🆕 Latest Additions
+
+These features were added in the most recent iteration to close the gap with the design reference:
+
+- **Final CTA band** on Home + About (`<FinalCtaBand />` shared component)
+- **Footer WhatsApp icon** wired to admin Settings (number lives in `adminSettings.store.whatsapp`)
+- **Product card category tag** + **PDP category eyebrow**
+- **PDP age + material chips** (driven by new `Product.ageRange` / `Product.material` fields)
+- **PDP Description / Shipping / Jewellery Care tabs**
+- **Contact**: topic dropdown, character counter, WhatsApp banner, showroom card, FAQ accordion
+- **About** restyle: dark editorial hero, Our Values 4-card grid, gold "Be Part of the Story" CTA band
+- **Checkout** sticky Order Summary; shipping fee comes from `adminSettings.shipping` per emirate
+- **Account Overview tab** (4 stat tiles + recent orders + quick actions) and tab reorder
+- **`/my-memories` route** — dedicated keepsakes page rendering real QR codes for every saved memory
 
 ---
 
 ## 📖 Documentation
 
-All detailed documentation lives in the `docs/` folder:
-
-| File                                                    | Contents                                     |
-| ------------------------------------------------------- | -------------------------------------------- |
-| [00_PROJECT_OVERVIEW.md](docs/00_PROJECT_OVERVIEW.md)   | Executive summary, concept, business roadmap |
-| [01_BRAND_DESIGN.md](docs/01_BRAND_DESIGN.md)           | Colors, fonts, values, aesthetic guide       |
-| [02_TECH_ARCHITECTURE.md](docs/02_TECH_ARCHITECTURE.md) | Database schema, API routes, full SQL        |
-| [03_PAGES_COMPONENTS.md](docs/03_PAGES_COMPONENTS.md)   | Every page & component mapped                |
-| [04_QR_MEMORY_SYSTEM.md](docs/04_QR_MEMORY_SYSTEM.md)   | QR feature specification & flow              |
-| [05_SECURITY_AUTH.md](docs/05_SECURITY_AUTH.md)         | Supabase Auth, RLS policies, security        |
-| [06_PAYMENT_CHECKOUT.md](docs/06_PAYMENT_CHECKOUT.md)   | Payment gateway integration guide            |
-| [07_DEPLOYMENT.md](docs/07_DEPLOYMENT.md)               | Vercel setup, domain, monitoring             |
-| [08_COST_BREAKDOWN.md](docs/08_COST_BREAKDOWN.md)       | Budget at every growth stage                 |
-| [09_BUILD_ROADMAP.md](docs/09_BUILD_ROADMAP.md)         | 8-week step-by-step build plan               |
-| [PROJECT_WORKFLOW.md](PROJECT_WORKFLOW.md)               | Business flow doc (for co-founder approval)  |
-
+See [`docs/`](./docs) for full design, architecture, and roadmap.
 
 ---
 
-## 📄 License
-
-This project is proprietary. All rights reserved.
-
----
-
-<p align="center">
-  Built with 💕 for Hekaya Jewellery<br>
-  <strong>hekaya-Jewellery.com</strong>
-</p>
+© Hekaya Jewellery. All rights reserved.

@@ -6,7 +6,28 @@
 
 ---
 
-## 📋 Table of Contents
+## � Current Status (Frontend MVP shipped)
+
+The Next.js application lives in [`hekaya/`](./hekaya). All UI/UX, navigation, cart, checkout, QR Memory creation/PIN flow, account, and the **complete admin panel** are implemented as a **frontend-only mocked walkthrough**:
+
+```bash
+cd hekaya
+npm install
+npm run dev          # → http://localhost:3000
+```
+
+Deliberately **mocked / skipped** for this milestone:
+
+- Supabase / database (orders + memories persist in `localStorage` via Zustand)
+- Authentication (Account uses a "demo user" sign-in)
+- Real payment (Stripe / Apple Pay / PayPal are visual choices only)
+- Cloud image upload (memory photos stored as data-URLs)
+
+These will be wired up in subsequent milestones following the sections below.
+
+---
+
+## �📋 Table of Contents
 
 1. [Before You Start — What You Need](#-step-0-before-you-start--what-you-need)
 2. [Create Free Accounts](#-step-1-create-free-accounts-cost-0)
@@ -682,14 +703,14 @@ if (profile?.role !== "admin") redirect("/");
 **First Year Total: ~$12 (domain only!) + payment processing fees.**
 Monthly recurring: $0 until you hit massive scale.
 
-| Service                      | Cost                          |
-| ---------------------------- | ----------------------------- |
-| Vercel Hobby                 | Free                          |
-| Supabase Free Tier           | Free                          |
-| GitHub                       | Free                          |
+| Service                        | Cost                          |
+| ------------------------------ | ----------------------------- |
+| Vercel Hobby                   | Free                          |
+| Supabase Free Tier             | Free                          |
+| GitHub                         | Free                          |
 | Domain (~hekaya-Jewellery.com) | ~$12/year                     |
-| Stripe (Apple Pay/Mastercard) | 2.9% + 1 AED per transaction  |
-| PayPal                       | ~3.9% + fixed per transaction |
+| Stripe (Apple Pay/Mastercard)  | 2.9% + 1 AED per transaction  |
+| PayPal                         | ~3.9% + fixed per transaction |
 
 ---
 
