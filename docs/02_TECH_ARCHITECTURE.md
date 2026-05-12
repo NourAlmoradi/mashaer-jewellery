@@ -10,27 +10,96 @@
 
 ### Frontend (Current MVP — Built)
 
-| Technology          | Version              | Purpose                                                                                      | Cost |
-| ------------------- | -------------------- | -------------------------------------------------------------------------------------------- | ---- |
-| **Next.js**         | 15.5.15 (App Router) | Full-stack React framework                                                                   | Free |
-| **React**           | 19.1.0               | UI library                                                                                   | Free |
-| **TypeScript**      | 5                    | Language                                                                                     | Free |
-| **Tailwind CSS v4** | 4.x                  | Styling (CSS-only `@theme` in globals.css — no tailwind.config.ts)                           | Free |
-| **Zustand**         | 5.x                  | All client state: cart, locale, orders, memories, admin settings (with `persist` middleware) | Free |
-| **Custom i18n**     | —                    | Bilingual AR/EN via Zustand locale store + `src/lib/i18n.ts`. No `[locale]/` routing.        | Free |
-| **Lucide React**    | 1.x                  | Icons (brand social icons are hand-coded SVGs)                                               | Free |
-| **Sonner**          | 2.x                  | Toast Notifications                                                                          | Free |
-| **qrcode**          | 1.5.x                | QR PNG generation (gold `#c9a96e` colour default)                                            | Free |
-| **framer-motion**   | 12.x                 | Animations (whileInView, drawers, hero entrance)                                             | Free |
-| **recharts**        | 3.8.x                | Admin dashboard charts (Orders by Status bar chart, Revenue Trend area chart)                | Free |
+| Technology          | Version              | Purpose                                                                                                                                                                                               | Cost |
+| ------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| **Next.js**         | 15.5.15 (App Router) | Full-stack React framework                                                                                                                                                                            | Free |
+| **React**           | 19.1.0               | UI library                                                                                                                                                                                            | Free |
+| **TypeScript**      | 5                    | Language                                                                                                                                                                                              | Free |
+| **Tailwind CSS v4** | 4.x                  | Styling (CSS-only `@theme` in globals.css — no tailwind.config.ts)                                                                                                                                    | Free |
+| **Zustand**         | 5.x                  | All client state: cart, locale, data (orders/memories/collections/product overrides/customs/hidden ids), admin settings, **wishlist**. Uses `persist` middleware with a custom `safeStorage` wrapper. | Free |
+| **Custom i18n**     | —                    | Bilingual AR/EN via Zustand locale store + `src/lib/i18n.ts` + `useT()` hook. No `[locale]/` routing, no `next-intl` middleware.                                                                      | Free |
+| **Lucide React**    | 1.x                  | Icons (brand social icons are hand-coded SVGs)                                                                                                                                                        | Free |
+| **Sonner**          | 2.x                  | Toast Notifications                                                                                                                                                                                   | Free |
+| **qrcode**          | 1.5.x                | QR PNG generation (gold `#c9a96e` colour default; size + bg colour pulled from admin settings)                                                                                                        | Free |
+| **framer-motion**   | 12.x                 | Animations (whileInView, drawers, hero entrance, checkout step transitions)                                                                                                                           | Free |
+| **recharts**        | 3.8.x                | Admin dashboard charts (Orders by Status bar chart, 12-month Revenue Trend area chart)                                                                                                                | Free |
+| **react-hook-form** | 7.x                  | Form state for selected forms (admin settings, address book)                                                                                                                                          | Free |
+| **zod**             | 4.x                  | Schema validation (companion to react-hook-form)                                                                                                                                                      | Free |
 
 ### Frontend (Production Target 🔜 — Not yet integrated)
 
-| Technology                | Purpose                 |
-| ------------------------- | ----------------------- |
-| **Embla Carousel**        | Lightweight carousel    |
-| **React Hook Form / Zod** | Forms & Validation      |
-| **TanStack React Query**  | Server state management |
+| Technology               | Purpose                                                                                                   |
+| ------------------------ | --------------------------------------------------------------------------------------------------------- |
+| **Embla Carousel**       | Lightweight carousel                                                                                      |
+| **TanStack React Query** | Server state management                                                                                   |
+| **next-intl**            | Locale-segmented routing (currently installed but **not wired** — candidate for removal until production) |
+
+---
+
+## 1.5 MVP Project Structure (as built)
+
+```
+hekaya/src/
+├── app/
+│   ├── layout.tsx              Root HTML/body, fonts, mounts <Providers />
+│   ├── page.tsx                Homepage → <HomeSections />
+│   ├── globals.css             Tailwind v4 @theme tokens (gold palette, btn/badge utilities)
+│   ├── about/                  Editorial story page
+│   ├── account/                Demo-login dashboard — 5 tabs (Overview / Orders / Memories / Addresses CRUD / Wishlist)
+│   ├── admin/                  Dark luxury admin shell
+│   │   ├── layout.tsx          Sidebar + mobile drawer
+│   │   ├── page.tsx            Dashboard (recharts trend + bar)
+│   │   ├── collections/        CRUD + reorder
+│   │   ├── orders/             Filter pills, status dropdown, detail drawer
+│   │   ├── products/           CRUD table + add/edit modal
+│   │   ├── qr/                 All generated tokens with status pill
+│   │   └── settings/           4 tabs: Store / QR / Shipping / Notifications
+│   ├── checkout/               3-step shipping → review → pay flow
+│   ├── contact/                Form, WhatsApp banner, FAQ
+│   ├── memory/[token]/         Public memory page (PIN setup / unlock / view / edit)
+│   ├── my-memories/            Customer keepsakes list with rendered QR PNGs
+│   ├── order-confirmation/[id] Per-token QR PNG cards
+│   ├── policies/               Tabbed legal pages
+│   ├── product/[slug]/         PDP with eyebrow, age/material chips, tabs, related
+│   ├── products/               Catalogue page (ProductsExplorer)
+│   └── qr/                     QR Memory marketing page
+├── components/
+│   ├── Providers.tsx           Locale init, <html lang/dir>, Sonner toaster
+│   ├── cart/CartDrawer.tsx     Slide-in cart with checkout CTA
+│   ├── home/HomeSections.tsx   All homepage sections in one composable file
+│   ├── layout/                 Header, Footer, MobileMenu, LanguageSwitcher, FloatingActions
+│   ├── products/               ProductCard, ProductDetail, ProductsExplorer
+│   └── ui/                     Logo, Eyebrow, FinalCtaBand, PlaceholderJewel
+├── data/products.ts            Seed catalogue + helpers (categories, collections, products, mock orders)
+├── lib/
+│   ├── i18n.ts                 Hand-rolled bilingual dictionary + t() lookup
+│   ├── qr.ts                   qrcode wrapper → gold-on-white data-URL PNGs + memoryUrlFor()
+│   ├── useCollections.ts       Hook — live (active, sorted) collections with one-time seed
+│   ├── useProducts.ts          Hook — customs + seed + admin overrides − hidden ids
+│   ├── useT.ts                 Hook — { t, tx, locale, dir, hydrated }; syncs <html lang/dir>
+│   └── utils.ts                cn, formatPrice, formatDate, generateOrderId, generateToken, whatsappUrl
+├── stores/                     Zustand stores (all persisted)
+│   ├── adminSettings.store.ts  store info + qr config + per-emirate shipping + notifications
+│   ├── cart.store.ts           items, qrChoice, drawer state, subtotal/count selectors
+│   ├── data.store.ts           orders + memories + collections + product overrides/customs/hidden ids; safeStorage wrapper drops memory photos on quota errors
+│   ├── locale.store.ts         current locale + cookie writer
+│   └── wishlist.store.ts       persisted ids[] with toggle / has / clear
+└── types/index.ts              Shared types (Locale, Product, Order, Memory, ShippingAddress, …)
+```
+
+### Zustand stores at a glance
+
+| Store           | localStorage key        | Notes                                                                                                                                                                 |
+| --------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cart`          | `hekaya-cart`           | Cart items + per-order/per-piece QR choice + drawer open state                                                                                                        |
+| `locale`        | `hekaya-locale`         | Current `Locale` (`ar` default), syncs to a cookie for SSR-friendly fallback                                                                                          |
+| `data`          | `hekaya-data`           | Orders (capped at 30), memories (by token), collections, product overrides/customs/hidden ids. **safeStorage** evicts memory photos on quota errors and retries once. |
+| `adminSettings` | `hekaya-admin-settings` | Store info, QR colour/limits, per-emirate shipping rates, notification toggles                                                                                        |
+| `wishlist`      | `hekaya-wishlist`       | Persisted `ids: string[]` with `toggle / has / clear`                                                                                                                 |
+
+### Address book (mock)
+
+Not a Zustand store — saved addresses live in `localStorage` directly under the key **`hekaya-mock-addresses`**, written by `account/page.tsx`. Demo login flag is **`hekaya-mock-user`**.
 
 ### Backend — Current MVP (Mocked)
 
@@ -354,12 +423,17 @@ ADMIN_EMAIL=admin@hekaya-Jewellery.com
     "zustand": "^5.0.0",
     "framer-motion": "^12.0.0",
     "recharts": "^3.8.1",
+    "react-hook-form": "^7.0.0",
+    "zod": "^4.0.0",
+    "@hookform/resolvers": "^5.0.0",
     "nanoid": "^5.0.0",
     "clsx": "^2.0.0",
     "tailwind-merge": "^3.0.0"
   }
 }
 ```
+
+> `next-intl` is also currently in `package.json` but **not wired** (no middleware, no `[locale]` segment). It is a candidate for removal until production locale-segmented routing is needed.
 
 ### To Add for Production 🔜
 

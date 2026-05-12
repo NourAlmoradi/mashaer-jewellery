@@ -1,0 +1,117 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Menu, ShoppingBag, User, Search } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { useT } from "@/lib/useT";
+import { useCartStore } from "@/stores/cart.store";
+import { cn } from "@/lib/utils";
+import { MobileMenu } from "./MobileMenu";
+
+export function Header() {
+  const { t } = useT();
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const setCartOpen = useCartStore((s) => s.setOpen);
+  const count = useCartStore((s) => s.items.reduce((sum, i) => sum + i.qty, 0));
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <>
+      <header
+        className={cn(
+          "fixed inset-x-0 top-0 z-5 transition-all duration-300 bg-white/85 shadow-[0_1px_0_rgba(0,0,0,0.05)] backdrop-blur-xl ",
+        )}
+      >
+        <div className="container-h flex h-[72px] items-center justify-between gap-4">
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="rounded-full p-2 text-[var(--color-ink)] transition hover:bg-[var(--color-bg-secondary)] lg:hidden"
+            aria-label={t("nav_menu")}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+
+          {/* Logo */}
+          <Link
+            href="/"
+            className="flex items-center transition hover:opacity-80"
+            aria-label="Hekaya"
+          >
+            <Logo />
+          </Link>
+
+          {/* Desktop nav */}
+          <nav className="hidden items-center gap-8 text-sm font-medium lg:flex">
+            <NavLink href="/">{t("nav_home")}</NavLink>
+            <NavLink href="/products">{t("nav_shop")}</NavLink>
+            <NavLink href="/products">{t("nav_collections")}</NavLink>
+            <NavLink href="/qr">{t("nav_qr")}</NavLink>
+            <NavLink href="/about">{t("nav_about")}</NavLink>
+            <NavLink href="/contact">{t("nav_contact")}</NavLink>
+          </nav>
+
+          {/* Right actions */}
+          <div className="flex items-center gap-1.5">
+            <LanguageSwitcher className="hidden sm:inline-flex" />
+            <Link
+              href="/products"
+              className="hidden rounded-full p-2 text-[var(--color-ink)] transition hover:bg-[var(--color-bg-secondary)] sm:inline-flex"
+              aria-label={t("nav_search")}
+            >
+              <Search className="h-5 w-5" />
+            </Link>
+            <Link
+              href="/account"
+              className="hidden rounded-full p-2 text-[var(--color-ink)] transition hover:bg-[var(--color-bg-secondary)] sm:inline-flex"
+              aria-label={t("nav_account")}
+            >
+              <User className="h-5 w-5" />
+            </Link>
+            <button
+              onClick={() => setCartOpen(true)}
+              className="relative rounded-full p-2 text-[var(--color-ink)] transition hover:bg-[var(--color-bg-secondary)]"
+              aria-label={t("nav_cart")}
+            >
+              <ShoppingBag className="h-5 w-5" />
+              {count > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[var(--color-primary)] px-1 text-[10px] font-bold text-white shadow">
+                  {count}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </header>
+      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <div className="h-[72px]" aria-hidden />
+    </>
+  );
+}
+
+function NavLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group relative inline-block py-1 text-[var(--color-ink-soft)] transition hover:text-[var(--color-primary-dark)]"
+    >
+      {children}
+      <span className="absolute inset-x-0 -bottom-0.5 h-px origin-center scale-x-0 bg-[var(--color-primary)] transition-transform duration-300 group-hover:scale-x-100" />
+    </Link>
+  );
+}

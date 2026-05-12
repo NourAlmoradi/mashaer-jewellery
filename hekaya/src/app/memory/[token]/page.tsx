@@ -1,0 +1,639 @@
+"use client";
+
+import { use, useEffect, useState } from "react";
+import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Lock,
+  Camera,
+  Heart,
+  Pencil,
+  Save,
+  X,
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { useT } from "@/lib/useT";
+import { useDataStore } from "@/stores/data.store";
+import { findProduct } from "@/data/products";
+import { Logo } from "@/components/ui/Logo";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+export default function MemoryPage({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}) {
+  const { token } = use(params);
+  const { t, tx, locale } = useT();
+  const { saveMemory } = useDataStore();
+  const memory = useDataStore((s) => s.memories[token]);
+
+  const [unlocked, setUnlocked] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [editing, setEditing] = useState(false);
+
+  // Form state
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [titleField, setTitleField] = useState("");
+  const [messageField, setMessageField] = useState("");
+  const [pinField, setPinField] = useState("");
+
+  useEffect(() => {
+    if (memory) {
+      setPhotos(memory.photos);
+      setTitleField(memory.title);
+      setMessageField(memory.message);
+    }
+  }, [memory]);
+
+  const handleUnlock = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (memory && pinInput === memory.pin) {
+      setUnlocked(true);
+      toast.success(t("welcome_back"));
+    } else {
+      toast.error(t("wrong_pin"));
+    }
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const arr = Array.from(files).slice(0, 3 - photos.length);
+    arr.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const raw = ev.target?.result as string;
+        if (!raw) return;
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 800;
+          const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas
+            .getContext("2d")!
+            .drawImage(img, 0, 0, canvas.width, canvas.height);
+          const compressed = canvas.toDataURL("image/jpeg", 0.7);
+
+          // Best-effort: try to upload to /api/upload so the photo is
+          // served as a real URL instead of bloating localStorage.
+          // Falls back to the inline data URL if the endpoint is unavailable
+          // (e.g. on Vercel where the dev stub returns 503).
+          (async () => {
+            try {
+              const blob = await (await fetch(compressed)).blob();
+              const fd = new FormData();
+              fd.append("file", blob, "memory.jpg");
+              const res = await fetch("/api/upload", {
+                method: "POST",
+                body: fd,
+              });
+              if (res.ok) {
+                const { url } = (await res.json()) as { url: string };
+                setPhotos((p) => [...p, url].slice(0, 3));
+                return;
+              }
+            } catch {
+              /* fall through to data URL */
+            }
+            setPhotos((p) => [...p, compressed].slice(0, 3));
+          })();
+        };
+        img.src = raw;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleSave = () => {
+    if (!titleField.trim() || !messageField.trim()) {
+      toast.error(
+        locale === "ar"
+          ? "العنوان والرسالة مطلوبان"
+          : "Title and message are required",
+      );
+      return;
+    }
+    if (
+      !memory &&
+      (!pinField || pinField.length !== 4 || !/^\d{4}$/.test(pinField))
+    ) {
+      toast.error(
+        locale === "ar" ? "أدخل PIN مكون من ٤ أرقام" : "Enter a 4-digit PIN",
+      );
+      return;
+    }
+    saveMemory({
+      token,
+      pin: memory?.pin ?? pinField,
+      title: titleField.trim(),
+      message: messageField.trim(),
+      photos,
+      createdAt: memory?.createdAt ?? new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    setEditing(false);
+    setUnlocked(true);
+    toast.success(t("memory_saved"));
+  };
+
+  // ── 1. No memory yet → setup
+  if (!memory) {
+    return (
+      <Wrapper>
+        <Header />
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-8"
+        >
+          <h1 className="text-center font-display text-3xl font-semibold sm:text-4xl">
+            {t("setup_memory_title")}
+          </h1>
+          <p className="mt-2 text-center text-[var(--color-ink-muted)]">
+            {t("setup_memory_d")}
+          </p>
+        </motion.div>
+        <MemoryForm
+          photos={photos}
+          setPhotos={setPhotos}
+          titleField={titleField}
+          setTitleField={setTitleField}
+          messageField={messageField}
+          setMessageField={setMessageField}
+          pinField={pinField}
+          setPinField={setPinField}
+          onPhotoUpload={handlePhotoUpload}
+          onSave={handleSave}
+          isNew
+        />
+      </Wrapper>
+    );
+  }
+
+  // ── 2. Memory exists, locked → PIN prompt
+  if (!unlocked && !editing) {
+    return (
+      <Wrapper>
+        <Header />
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-auto mt-10 max-w-sm rounded-xl bg-white p-8 text-center shadow-md ring-1 ring-[var(--color-border)]"
+        >
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary-dark)]">
+            <Lock className="h-7 w-7" />
+          </div>
+          <h2 className="mt-4 font-display text-2xl font-semibold">
+            {t("memory_pin_prompt")}
+          </h2>
+          <form onSubmit={handleUnlock} className="mt-6">
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              value={pinInput}
+              onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ""))}
+              placeholder="• • • •"
+              className="input text-center text-2xl tracking-[0.5em]"
+              autoFocus
+            />
+            <button type="submit" className="btn btn-gold btn-lg mt-4 w-full">
+              {t("unlock")}
+            </button>
+          </form>
+          <p className="mt-4 text-xs text-[var(--color-ink-faint)]">
+            {locale === "ar" ? "تلميح للتجربة:" : "Demo hint:"} {memory.pin}
+          </p>
+        </motion.div>
+      </Wrapper>
+    );
+  }
+
+  // ── 3. Editing
+  if (editing) {
+    return (
+      <Wrapper>
+        <Header />
+        <div className="mt-6 flex items-center justify-between">
+          <h1 className="font-display text-3xl font-semibold">
+            {t("edit_memory")}
+          </h1>
+          <button
+            onClick={() => setEditing(false)}
+            className="btn btn-ghost btn-sm"
+          >
+            <X className="h-4 w-4" /> {t("back")}
+          </button>
+        </div>
+        <MemoryForm
+          photos={photos}
+          setPhotos={setPhotos}
+          titleField={titleField}
+          setTitleField={setTitleField}
+          messageField={messageField}
+          setMessageField={setMessageField}
+          pinField={pinField}
+          setPinField={setPinField}
+          onPhotoUpload={handlePhotoUpload}
+          onSave={handleSave}
+          isNew={false}
+        />
+      </Wrapper>
+    );
+  }
+
+  // ── 4. Unlocked view
+  const linkedProduct = memory.productId
+    ? findProduct(memory.productId)
+    : undefined;
+  const createdDate = memory.createdAt ? memory.createdAt.slice(0, 10) : "";
+
+  return (
+    <Wrapper>
+      <Header />
+      <motion.article
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="mt-8 rounded-xl bg-white p-6 shadow-md ring-1 ring-[var(--color-border)] sm:p-10"
+      >
+        <div className="text-center">
+          <Heart className="mx-auto h-7 w-7 text-[var(--color-primary)]" />
+          <h1 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
+            {memory.title}
+          </h1>
+        </div>
+
+        {photos.length > 0 && <PhotoCarousel photos={photos} />}
+
+        <MessageCard
+          message={memory.message}
+          createdDate={createdDate}
+          productName={linkedProduct ? tx(linkedProduct.name) : undefined}
+        />
+
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={() => setEditing(true)}
+            className="btn btn-outline-gold"
+          >
+            <Pencil className="h-4 w-4" /> {t("edit_memory")}
+          </button>
+        </div>
+      </motion.article>
+    </Wrapper>
+  );
+}
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="bg-gradient-to-b from-[var(--color-bg-secondary)] to-[var(--color-bg)]">
+      <div className="container-h max-w-3xl py-10 lg:py-16">{children}</div>
+    </div>
+  );
+}
+
+function Header() {
+  const { t } = useT();
+  return (
+    <div className="flex items-center justify-between">
+      <Link href="/" className="btn btn-ghost btn-sm">
+        <ArrowLeft className="h-4 w-4" /> {t("back_home")}
+      </Link>
+      <Logo color="dark" />
+    </div>
+  );
+}
+
+function MemoryForm({
+  photos,
+  setPhotos,
+  titleField,
+  setTitleField,
+  messageField,
+  setMessageField,
+  pinField,
+  setPinField,
+  onPhotoUpload,
+  onSave,
+  isNew,
+}: {
+  photos: string[];
+  setPhotos: (p: string[]) => void;
+  titleField: string;
+  setTitleField: (v: string) => void;
+  messageField: string;
+  setMessageField: (v: string) => void;
+  pinField: string;
+  setPinField: (v: string) => void;
+  onPhotoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSave: () => void;
+  isNew: boolean;
+}) {
+  const { t } = useT();
+  return (
+    <div className="mt-8 rounded-xl bg-white p-6 shadow-md ring-1 ring-[var(--color-border)] sm:p-8">
+      <label className="label">{t("upload_photos")} (max 3)</label>
+      <div className="grid grid-cols-3 gap-3">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="relative aspect-square overflow-hidden rounded-md border border-dashed border-[var(--color-border-strong)]"
+          >
+            {photos[i] ? (
+              <>
+                <img
+                  src={photos[i]}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+                <button
+                  onClick={() =>
+                    setPhotos(photos.filter((_, idx) => idx !== i))
+                  }
+                  className="absolute top-1 right-1 grid h-7 w-7 place-items-center rounded-full bg-black/60 text-white"
+                  aria-label="Remove"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </>
+            ) : (
+              <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center text-[var(--color-ink-faint)] transition hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-primary)]">
+                <Camera className="h-6 w-6" />
+                <span className="mt-1 text-xs">+</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={onPhotoUpload}
+                />
+              </label>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-6 grid gap-4">
+        <div>
+          <label className="label">
+            {t("memory_title_field")}{" "}
+            <span className="text-[var(--color-ink-faint)]">
+              ({titleField.length}/100)
+            </span>
+          </label>
+          <input
+            value={titleField}
+            onChange={(e) => setTitleField(e.target.value.slice(0, 100))}
+            className="input"
+            placeholder="…"
+          />
+        </div>
+        <div>
+          <label className="label">
+            {t("memory_message")}{" "}
+            <span className="text-[var(--color-ink-faint)]">
+              ({messageField.length}/500)
+            </span>
+          </label>
+          <textarea
+            rows={5}
+            value={messageField}
+            onChange={(e) => setMessageField(e.target.value.slice(0, 500))}
+            className="input resize-none"
+            placeholder="…"
+          />
+        </div>
+        {isNew && (
+          <div>
+            <label className="label">{t("set_pin")}</label>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              value={pinField}
+              onChange={(e) => setPinField(e.target.value.replace(/\D/g, ""))}
+              className="input max-w-[160px] text-center text-xl tracking-[0.5em]"
+              placeholder="• • • •"
+            />
+          </div>
+        )}
+      </div>
+
+      <button onClick={onSave} className="btn btn-gold btn-lg mt-6 w-full">
+        <Save className="h-4 w-4" />
+        {t("save_memory")}
+      </button>
+    </div>
+  );
+}
+
+function PhotoCarousel({ photos }: { photos: string[] }) {
+  const { t, dir } = useT();
+  const [index, setIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
+  const total = photos.length;
+  const isRtl = dir === "rtl";
+
+  const go = (next: number) => {
+    setDirection(next > index ? 1 : -1);
+    setIndex((next + total) % total);
+  };
+  const prev = () => go(index - 1);
+  const next = () => go(index + 1);
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (total <= 1) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") (isRtl ? next : prev)();
+      else if (e.key === "ArrowRight") (isRtl ? prev : next)();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index, total, isRtl]);
+
+  return (
+    <div className="mt-10">
+      <div className="relative mx-auto max-w-2xl">
+        {/* Frame */}
+        <div className="group relative overflow-hidden rounded-2xl bg-[#0c0a07] shadow-[0_30px_60px_-30px_rgba(0,0,0,0.45)] ring-1 ring-black/5">
+          <div className="relative aspect-[4/5] w-full sm:aspect-[4/3]">
+            {/* Blurred backdrop = current photo, fills frame elegantly */}
+            <AnimatePresence mode="sync" initial={false}>
+              <motion.div
+                key={`bg-${index}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6 }}
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `url(${photos[index]})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  filter: "blur(28px) saturate(1.1)",
+                  transform: "scale(1.15)",
+                }}
+              />
+            </AnimatePresence>
+            <div className="absolute inset-0 bg-black/25" />
+
+            {/* Foreground photo, fully visible */}
+            <AnimatePresence mode="wait" initial={false} custom={direction}>
+              <motion.img
+                key={index}
+                src={photos[index]}
+                alt=""
+                draggable={false}
+                custom={direction}
+                initial={{ opacity: 0, x: direction * 60, scale: 0.98 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: direction * -60, scale: 0.98 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                drag={total > 1 ? "x" : false}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                onDragEnd={(_, info) => {
+                  if (info.offset.x < -60) (isRtl ? prev : next)();
+                  else if (info.offset.x > 60) (isRtl ? next : prev)();
+                }}
+                className="absolute inset-0 m-auto max-h-[92%] max-w-[92%] cursor-grab object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.45)] active:cursor-grabbing"
+              />
+            </AnimatePresence>
+
+            {/* Bottom gradient + counter */}
+            {total > 1 && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/55 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100" />
+            )}
+
+            {/* Arrows */}
+            {total > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={isRtl ? next : prev}
+                  aria-label={t("memory_prev_photo")}
+                  className="absolute top-1/2 left-4 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-[var(--color-ink)] opacity-0 shadow-lg ring-1 ring-black/5 backdrop-blur transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[var(--color-primary)] focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={isRtl ? prev : next}
+                  aria-label={t("memory_next_photo")}
+                  className="absolute top-1/2 right-4 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-[var(--color-ink)] opacity-0 shadow-lg ring-1 ring-black/5 backdrop-blur transition-all duration-300 hover:scale-105 hover:bg-white hover:text-[var(--color-primary)] focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+
+                {/* Counter pill */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/55 px-3 py-1 font-mono text-[11px] tracking-[0.2em] text-white opacity-0 backdrop-blur transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
+                  {String(index + 1).padStart(2, "0")} /{" "}
+                  {String(total).padStart(2, "0")}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Dot indicators */}
+        {total > 1 && (
+          <div className="mt-5 flex items-center justify-center gap-2">
+            {photos.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => go(i)}
+                aria-label={`${i + 1}`}
+                className={cn(
+                  "h-1.5 rounded-full transition-all",
+                  i === index
+                    ? "w-8 bg-[var(--color-primary)]"
+                    : "w-1.5 bg-[var(--color-border-strong)] hover:bg-[var(--color-ink-faint)]",
+                )}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Thumbnail strip */}
+        {total > 1 && (
+          <div className="mt-4 flex items-center justify-center gap-3">
+            {photos.map((src, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => go(i)}
+                aria-label={`${i + 1}`}
+                className={cn(
+                  "relative h-16 w-16 overflow-hidden rounded-lg transition-all duration-300",
+                  i === index
+                    ? "scale-105 ring-2 ring-[var(--color-primary)] ring-offset-2 ring-offset-[var(--color-bg)]"
+                    : "opacity-55 ring-1 ring-[var(--color-border)] hover:opacity-100",
+                )}
+              >
+                <img src={src} alt="" className="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MessageCard({
+  message,
+  createdDate,
+  productName,
+}: {
+  message: string;
+  createdDate: string;
+  productName?: string;
+}) {
+  const { t } = useT();
+  return (
+    <div className="mt-10">
+      <div className="mx-auto h-px w-16 bg-[var(--color-primary)]" />
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.15 }}
+        className="mx-auto mt-8 max-w-2xl rounded-xl bg-white px-8 py-10 shadow-sm ring-1 ring-[var(--color-border)] sm:px-12 sm:py-14"
+      >
+        <p
+          className={cn(
+            "whitespace-pre-line text-center font-display text-xl italic leading-[1.9] text-[var(--color-ink-soft)] sm:text-2xl",
+          )}
+        >
+          <span className="me-1 align-top text-[var(--color-primary)]">“</span>
+          {message}
+          <span className="ms-1 align-top text-[var(--color-primary)]">”</span>
+        </p>
+      </motion.div>
+
+      {(createdDate || productName) && (
+        <div className="mt-5 text-center text-sm text-[var(--color-ink-faint)]">
+          {createdDate && (
+            <p>
+              {t("memory_created_on")} · {createdDate}
+            </p>
+          )}
+          {productName && (
+            <p className="mt-1">
+              {t("memory_jewellery_piece")}: {productName}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

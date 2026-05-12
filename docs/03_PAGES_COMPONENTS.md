@@ -90,67 +90,88 @@ We've simplified the homepage from 13 sections to 7 focused, elegant sections to
 
 ---
 
-## 4. Component Inventory
+## 4. Component Inventory (as built)
 
-### Layout Components
+> File paths are workspace-relative under `hekaya/src/components/`.
 
-| Component          | Description                                       |
-| ------------------ | ------------------------------------------------- |
-| `LanguageSwitcher` | AR/EN toggle button                               |
-| `Header`           | Logo-centered sticky header with language support |
-| `Footer`           | 3-column footer + payment bar                     |
-| `MobileMenu`       | Full-screen slide-out menu                        |
-| `Container`        | Max-width wrapper (1280px)                        |
-| `CartDrawer`       | Side-panel cart overlay                           |
+### Layout (`components/layout/`)
 
-### Product Components
+| Component          | File                   | Description                                                                              |
+| ------------------ | ---------------------- | ---------------------------------------------------------------------------------------- |
+| `Header`           | `Header.tsx`           | Sticky header — logo, primary nav, cart count, language switcher, mobile menu trigger    |
+| `Footer`           | `Footer.tsx`           | Bilingual footer; WhatsApp icon wired to `adminSettings.store`                           |
+| `MobileMenu`       | `MobileMenu.tsx`       | Slide-in mobile drawer; uses translation key (not href) as React key to avoid duplicates |
+| `LanguageSwitcher` | `LanguageSwitcher.tsx` | AR/EN toggle that updates locale store + cookie                                          |
+| `FloatingActions`  | `FloatingActions.tsx`  | Floating WhatsApp + scroll-to-top buttons                                                |
 
-| Component             | Description                                     |
-| --------------------- | ----------------------------------------------- |
-| `ProductCard`         | Minimalist card: image + name + price           |
-| `ProductGrid`         | Responsive grid with generous spacing           |
-| `ProductCarousel`     | Horizontal scrollable row with arrows           |
-| `ProductImageGallery` | Main image + thumbnails with zoom               |
-| `QuantitySelector`    | +/- stepper for quantity                        |
-| `SortDropdown`        | Sorting options dropdown                        |
-| `ProductBadge`        | Elegant 'new' / 'sale' / 'qr' / 'soldout' badge |
+### Cart (`components/cart/`)
 
-### Home Components
+| Component    | File             | Description                                                                  |
+| ------------ | ---------------- | ---------------------------------------------------------------------------- |
+| `CartDrawer` | `CartDrawer.tsx` | Slide-in cart with quantity controls, per-order/per-piece QR choice, and CTA |
 
-| Component            | Description                         |
-| -------------------- | ----------------------------------- |
-| `HeroSection`        | Powerful single hero image and CTA  |
-| `BrandStoryStrip`    | Elegant typography section          |
-| `CollectionShowcase` | Highlighted collections             |
-| `QRMemoryBanner`     | The core memory feature CTA section |
-| `TestimonialCards`   | Minimal customer review cards       |
+### Home (`components/home/`)
 
-### Memory Components
+| Component      | File               | Description                                                                                                             |
+| -------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `HomeSections` | `HomeSections.tsx` | One file composing all homepage sections: hero, trust strip, collections, featured, QR banner, story, testimonials, CTA |
 
-| Component          | Description                                        |
-| ------------------ | -------------------------------------------------- |
-| `MemoryPageViewer` | PIN-protected QR memory display                    |
-| `MemoryEditor`     | Parent edit interface (3 photos + title + message) |
-| `PhotoUploader`    | Photo upload (max 3 images)                        |
-| `PINEntry`         | 4-digit PIN input for viewers                      |
-| `QRCodeDisplay`    | QR code image renderer                             |
+### Products (`components/products/`)
 
-### UI Components
+| Component          | File                   | Description                                                                                         |
+| ------------------ | ---------------------- | --------------------------------------------------------------------------------------------------- |
+| `ProductCard`      | `ProductCard.tsx`      | Tile with image / placeholder, badges, **wishlist heart toggle** wired to `wishlist.store`, eyebrow |
+| `ProductDetail`    | `ProductDetail.tsx`    | PDP body — gallery, variations, add-to-cart, tabs, related grid                                     |
+| `ProductsExplorer` | `ProductsExplorer.tsx` | `/products` page — filter sidebar (mobile drawer), sort dropdown, responsive grid                   |
 
-| Component       | Description                                             |
-| --------------- | ------------------------------------------------------- |
-| `Button`        | Primary, secondary, ghost variants (quiet luxury style) |
-| `Badge`         | Subtle pill badges                                      |
-| `Modal`         | Overlay dialog                                          |
-| `Input`         | Styled form input with label/error                      |
-| `Spinner`       | Loading indicator                                       |
-| `Toast`         | Notification popups                                     |
-| `WhatsAppFloat` | Floating WhatsApp CTA                                   |
-| `BackToTop`     | Scroll-to-top button                                    |
-| `Breadcrumbs`   | Navigation breadcrumbs                                  |
-| `EmptyState`    | Empty page placeholder                                  |
-| `Eyebrow`       | Sparkle-flanked eyebrow label (About hero, CTA bands)   |
-| `FinalCtaBand`  | Reusable gold-gradient CTA band (Home, About)           |
+### UI primitives (`components/ui/`)
+
+| Component          | File                   | Description                                                            |
+| ------------------ | ---------------------- | ---------------------------------------------------------------------- |
+| `Logo`             | `Logo.tsx`             | Pure SVG Hekaya wordmark (gold / dark / light variants)                |
+| `Eyebrow`          | `Eyebrow.tsx`          | Sparkle-flanked uppercase label used above section titles              |
+| `FinalCtaBand`     | `FinalCtaBand.tsx`     | Gold-gradient CTA band reused on Home + About                          |
+| `PlaceholderJewel` | `PlaceholderJewel.tsx` | SVG fallback per category (ring / necklace / bracelet / earring / gem) |
+
+### Top-level (`components/`)
+
+| Component   | File            | Description                                                       |
+| ----------- | --------------- | ----------------------------------------------------------------- |
+| `Providers` | `Providers.tsx` | Seeds locale store, sets `<html lang/dir>`, mounts Sonner toaster |
+
+### Hooks & helpers (`lib/`)
+
+| File                | Purpose                                                                               |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| `useT.ts`           | `{ t, tx, locale, dir, hydrated }`; syncs `<html lang/dir>` with the locale store     |
+| `useProducts.ts`    | Merged catalogue: `customProducts + seedProducts (with overrides) − hiddenProductIds` |
+| `useCollections.ts` | Active, sorted collections — seeds the data store once from `data/products.ts`        |
+| `i18n.ts`           | Hand-rolled bilingual dictionary + `t()` lookup                                       |
+| `qr.ts`             | `qrcode` wrapper — gold-on-white data-URL PNGs + `memoryUrlFor(token)`                |
+| `utils.ts`          | `cn`, `formatPrice`, `formatDate`, `generateOrderId`, `generateToken`, `whatsappUrl`  |
+
+### Stores (`stores/`)
+
+| Store                    | localStorage key        | Purpose                                                                                 |
+| ------------------------ | ----------------------- | --------------------------------------------------------------------------------------- |
+| `cart.store.ts`          | `hekaya-cart`           | Items, `qrChoice`, drawer state, subtotal/count selectors                               |
+| `locale.store.ts`        | `hekaya-locale`         | Current locale + cookie writer; SSR-safe `init()`                                       |
+| `data.store.ts`          | `hekaya-data`           | Orders + memories + collections + product overrides + customs + hidden ids; safeStorage |
+| `adminSettings.store.ts` | `hekaya-admin-settings` | Store info + QR config + per-emirate shipping + notifications                           |
+| `wishlist.store.ts`      | `hekaya-wishlist`       | Persisted `ids[]` with `toggle / has / clear`                                           |
+
+> Saved addresses live in plain `localStorage` under **`hekaya-mock-addresses`**, written by `account/page.tsx`. Demo login flag is **`hekaya-mock-user`**.
+
+### Components / hooks **planned** but not yet built
+
+| Item                  | Status                                     |
+| --------------------- | ------------------------------------------ |
+| `Modal` primitive     | Inlined per page for now                   |
+| `Breadcrumbs`         | Inlined where needed                       |
+| `EmptyState`          | Each page renders its own empty state      |
+| `ProductCarousel`     | Replaced by `ProductsExplorer` filter grid |
+| `ProductImageGallery` | Inlined inside `ProductDetail.tsx`         |
+| `Modal` / `Toast` etc | Sonner provides toasts; modals are inline  |
 
 ---
 

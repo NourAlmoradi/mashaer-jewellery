@@ -1,0 +1,70 @@
+"use client";
+
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import type { CartItem } from "@/types";
+
+type CartState = {
+  items: CartItem[];
+  isOpen: boolean;
+  qrChoice: "per_order" | "per_piece";
+  setOpen: (open: boolean) => void;
+  setQrChoice: (c: "per_order" | "per_piece") => void;
+  addItem: (item: CartItem) => void;
+  removeItem: (productId: string, variationId?: string) => void;
+  updateQty: (productId: string, qty: number, variationId?: string) => void;
+  clear: () => void;
+  subtotal: () => number;
+  count: () => number;
+};
+
+const keyOf = (id: string, v?: string) => `${id}__${v ?? ""}`;
+
+export const useCartStore = create<CartState>()(
+  persist(
+    (set, get) => ({
+      items: [],
+      isOpen: false,
+      qrChoice: "per_order",
+      setOpen: (isOpen) => set({ isOpen }),
+      setQrChoice: (qrChoice) => set({ qrChoice }),
+      addItem: (item) =>
+        set((state) => {
+          const idx = state.items.findIndex(
+            (i) =>
+              keyOf(i.productId, i.variationId) ===
+              keyOf(item.productId, item.variationId),
+          );
+          if (idx >= 0) {
+            const copy = [...state.items];
+            copy[idx] = { ...copy[idx], qty: copy[idx].qty + item.qty };
+            return { items: copy };
+          }
+          return { items: [...state.items, item] };
+        }),
+      removeItem: (productId, variationId) =>
+        set((state) => ({
+          items: state.items.filter(
+            (i) =>
+              keyOf(i.productId, i.variationId) !==
+              keyOf(productId, variationId),
+          ),
+        })),
+      updateQty: (productId, qty, variationId) =>
+        set((state) => ({
+          items: state.items
+            .map((i) =>
+              keyOf(i.productId, i.variationId) ===
+              keyOf(productId, variationId)
+                ? { ...i, qty: Math.max(1, qty) }
+                : i,
+            )
+            .filter((i) => i.qty > 0),
+        })),
+      clear: () => set({ items: [] }),
+      subtotal: () => get().items.reduce((sum, i) => sum + i.price * i.qty, 0),
+      count: () => get().items.reduce((sum, i) => sum + i.qty, 0),
+    }),
+    { name: "hekaya-cart" },
+  ),
+);

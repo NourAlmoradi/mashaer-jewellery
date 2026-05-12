@@ -197,11 +197,10 @@ flowchart LR
 ### 4.2 Admin Pages
 
 | Page            | What admin does there                                                     |
-| --------------- | ------------------------------------------------------------------------- |
+| --------------- | ------------------------------------------------------------------------- | --- | ------------- | ----------------------------------------------------------------- | --- | ---------- | ----------------------------------------------------------------- |
 | **Dashboard**   | Today's orders, revenue, 12-month trend chart, status breakdown           |
 | **Products**    | Add, edit, delete products and their variations (size/material)           |
-| **Collections** | Create / edit / reorder / delete collections                              |
-| **Orders**      | View all orders, update status (processing → shipped → delivered)         |
+| **Collections** | Create / edit / reorder / delete collections                              |     | **Customers** | Aggregated from orders (count, total spent, last order, location) |     | **Orders** | View all orders, update status (processing → shipped → delivered) |
 | **QR**          | Every generated QR token with status (generated / set up / pending)       |
 | **Settings**    | Store info · QR config · Per-emirate shipping rates · Email notifications |
 

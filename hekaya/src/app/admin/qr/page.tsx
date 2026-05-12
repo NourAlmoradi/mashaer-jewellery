@@ -1,0 +1,359 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { Eye, KeyRound, QrCode, Search, Trash2 } from "lucide-react";
+import { useT } from "@/lib/useT";
+import { useDataStore } from "@/stores/data.store";
+import { products, mockOrders } from "@/data/products";
+import {
+  PlaceholderJewel,
+  kindFromCategory,
+} from "@/components/ui/PlaceholderJewel";
+import { formatDate, cn } from "@/lib/utils";
+import { toast } from "sonner";
+
+type Row = {
+  token: string;
+  slug: string;
+  orderId: string;
+  createdAt: string;
+  productLabel: string;
+  productId?: string;
+  categoryId?: string;
+  placeholderTone?: string;
+  hasMemory: boolean;
+  title: string;
+  photos: number;
+};
+
+export default function AdminQrPage() {
+  const { t, locale } = useT();
+  const storeOrders = useDataStore((s) => s.orders);
+  const memories = useDataStore((s) => s.memories);
+  const resetMemoryPin = useDataStore((s) => s.resetMemoryPin);
+  const deleteMemory = useDataStore((s) => s.deleteMemory);
+  const saveMemory = useDataStore((s) => s.saveMemory);
+  const [query, setQuery] = useState("");
+
+  const handleResetPin = (token: string) => {
+    const newPin = window.prompt(t("admin_qr_reset_pin_prompt"), "");
+    if (!newPin) return;
+    if (!/^\d{4}$/.test(newPin)) {
+      toast.error(locale === "ar" ? "PIN غير صالح" : "Invalid PIN");
+      return;
+    }
+    const existing = memories[token];
+    const now = new Date().toISOString();
+    if (existing) {
+      resetMemoryPin(token, newPin);
+    } else {
+      // Pre-seed an empty memory with the new PIN so the customer can fill it later.
+      saveMemory({
+        token,
+        pin: newPin,
+        title: "",
+        message: "",
+        photos: [],
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+    toast.success(t("admin_qr_reset_pin_done"));
+  };
+
+  const handleDelete = (token: string) => {
+    if (!memories[token]) {
+      toast.info(t("admin_qr_no_memory"));
+      return;
+    }
+    if (!confirm(t("admin_qr_delete_confirm"))) return;
+    deleteMemory(token);
+    toast.success(locale === "ar" ? "تم الحذف" : "Deleted");
+  };
+
+  const rows: Row[] = useMemo(() => {
+    // Dedupe: store may already contain mockOrders (seeded from /admin/orders).
+    const map = new Map<string, (typeof storeOrders)[number]>();
+    for (const o of [...storeOrders, ...mockOrders]) {
+      if (!map.has(o.id)) map.set(o.id, o);
+    }
+    const allOrders = Array.from(map.values());
+    return allOrders.flatMap((o) =>
+      o.qrTokens.map((token, i) => {
+        const memory = memories[token];
+        const productId = o.qrTokenProductIds?.[i] ?? o.items[0]?.productId;
+        const product = products.find((p) => p.id === productId);
+        const fallbackName =
+          o.qrTokenLabels?.[i] ?? o.items[0]?.name?.[locale] ?? "—";
+        return {
+          token,
+          slug: token,
+          orderId: o.id,
+          createdAt: o.createdAt,
+          productLabel: product?.name?.[locale] ?? fallbackName,
+          productId,
+          categoryId: product?.categoryId,
+          placeholderTone: product?.placeholderTone,
+          hasMemory: !!memory,
+          title: memory?.title || t("admin_qr_no_title"),
+          photos: memory?.photos?.length ?? 0,
+        };
+      }),
+    );
+  }, [storeOrders, memories, locale, t]);
+
+  const totalGenerated = rows.length;
+  const setUp = rows.filter((r) => r.hasMemory).length;
+  const pending = totalGenerated - setUp;
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter(
+      (r) =>
+        r.title.toLowerCase().includes(q) ||
+        r.slug.toLowerCase().includes(q) ||
+        r.productLabel.toLowerCase().includes(q),
+    );
+  }, [rows, query]);
+
+  const stats = [
+    { label: t("admin_qr_total_generated"), value: totalGenerated },
+    { label: t("admin_qr_set_up"), value: setUp },
+    { label: t("admin_qr_pending_setup"), value: pending },
+  ];
+
+  return (
+    <>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl font-semibold text-white sm:text-4xl">
+            {t("admin_qr_codes")}
+          </h1>
+          <p className="mt-1 text-sm text-white/50">
+            {totalGenerated} {t("admin_qr_pages_generated")}
+          </p>
+        </div>
+        <div className="inline-flex items-center gap-2 rounded-md bg-[#1a1508] px-3 py-2 text-sm font-medium text-[#c9a96e] ring-1 ring-[#c9a96e]/20">
+          <QrCode className="h-4 w-4" />
+          {setUp} {t("admin_qr_active").toLowerCase()}
+        </div>
+      </div>
+
+      {/* Stat cards */}
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {stats.map((s) => (
+          <div
+            key={s.label}
+            className="rounded-xl border border-white/5 bg-[#141414] p-5"
+          >
+            <p className="font-display text-3xl font-semibold text-white">
+              {s.value}
+            </p>
+            <p className="mt-2 text-sm text-white/50">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Search */}
+      <div className="mt-6 max-w-md">
+        <div className="relative">
+          <Search className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("admin_qr_search")}
+            className="w-full rounded-md border border-white/10 bg-[#141414] py-3 ps-10 pe-3 text-sm text-white placeholder:text-white/40 focus:border-[#c9a96e]/40 focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <div className="mt-6 overflow-hidden rounded-xl border border-white/5 bg-[#141414]">
+        {/* Desktop table */}
+        <div className="hidden overflow-x-auto md:block">
+          <table className="w-full text-sm">
+            <thead className="border-b border-white/5 text-xs uppercase tracking-wider text-white/40">
+              <tr>
+                <th className="px-4 py-4 text-start font-medium">
+                  {t("admin_qr_memory")}
+                </th>
+                <th className="px-4 py-4 text-start font-medium">
+                  {t("admin_qr_slug")}
+                </th>
+                <th className="px-4 py-4 text-start font-medium">
+                  {locale === "ar" ? "المنتج" : "Product"}
+                </th>
+                <th className="px-4 py-4 text-start font-medium">
+                  {t("admin_qr_photos")}
+                </th>
+                <th className="px-4 py-4 text-start font-medium">
+                  {t("status")}
+                </th>
+                <th className="px-4 py-4 text-start font-medium">
+                  {t("admin_qr_created")}
+                </th>
+                <th className="px-4 py-4 text-end font-medium">
+                  {t("actions")}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {filtered.map((r) => (
+                <tr key={r.token} className="hover:bg-white/[0.02]">
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-11 w-11 shrink-0 overflow-hidden rounded-md bg-white/5 ring-1 ring-white/10">
+                        <PlaceholderJewel
+                          kind={kindFromCategory(r.categoryId ?? "")}
+                          tone={r.placeholderTone}
+                        />
+                      </div>
+                      <p className="truncate font-semibold text-[#c9a96e]">
+                        {r.title}
+                      </p>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 font-mono text-xs text-[#c9a96e]/80">
+                    {r.slug}
+                  </td>
+                  <td className="px-4 py-4 text-white/70">{r.productLabel}</td>
+                  <td className="px-4 py-4 text-white/80">{r.photos}</td>
+                  <td className="px-4 py-4">
+                    <span
+                      className={cn(
+                        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1",
+                        r.hasMemory
+                          ? "bg-emerald-300/15 text-emerald-300 ring-emerald-300/30"
+                          : "bg-amber-200/15 text-amber-300 ring-amber-300/30",
+                      )}
+                    >
+                      {r.hasMemory
+                        ? t("admin_qr_active")
+                        : t("admin_qr_pending")}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 text-white/60">
+                    {formatDate(r.createdAt, locale)}
+                  </td>
+                  <td className="px-4 py-4 text-end">
+                    <div className="inline-flex items-center gap-1">
+                      <Link
+                        href={`/memory/${r.token}`}
+                        target="_blank"
+                        className="grid h-8 w-8 place-items-center rounded-md text-white/70 hover:bg-white/[0.06] hover:text-[#c9a96e]"
+                        aria-label={t("view")}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                      <button
+                        onClick={() => handleResetPin(r.token)}
+                        className="grid h-8 w-8 place-items-center rounded-md text-amber-300 hover:bg-amber-500/10"
+                        aria-label={t("admin_qr_reset_pin")}
+                        title={t("admin_qr_reset_pin")}
+                      >
+                        <KeyRound className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(r.token)}
+                        className="grid h-8 w-8 place-items-center rounded-md text-rose-400 hover:bg-rose-500/10"
+                        aria-label={t("admin_qr_delete_memory")}
+                        title={t("admin_qr_delete_memory")}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-4 py-10 text-center text-sm text-white/40"
+                  >
+                    {locale === "ar"
+                      ? "لا توجد رموز QR بعد. أنشئ طلبًا تجريبيًا لإصدار الرموز."
+                      : "No QR codes yet. Place a demo order to generate them."}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile cards */}
+        <ul className="divide-y divide-white/5 md:hidden">
+          {filtered.map((r) => (
+            <li key={r.token} className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-white/5 ring-1 ring-white/10">
+                  <PlaceholderJewel
+                    kind={kindFromCategory(r.categoryId ?? "")}
+                    tone={r.placeholderTone}
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-[#c9a96e]">
+                    {r.title}
+                  </p>
+                  <p className="truncate font-mono text-[11px] text-[#c9a96e]/70">
+                    {r.slug}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-white/60">
+                    {r.productLabel}
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ring-1",
+                    r.hasMemory
+                      ? "bg-emerald-300/15 text-emerald-300 ring-emerald-300/30"
+                      : "bg-amber-200/15 text-amber-300 ring-amber-300/30",
+                  )}
+                >
+                  {r.hasMemory ? t("admin_qr_active") : t("admin_qr_pending")}
+                </span>
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <div className="text-xs text-white/50">
+                  {r.photos} {t("admin_qr_photos").toLowerCase()} ·{" "}
+                  {formatDate(r.createdAt, locale)}
+                </div>
+                <div className="flex gap-1">
+                  <Link
+                    href={`/memory/${r.token}`}
+                    target="_blank"
+                    className="grid h-9 w-9 place-items-center rounded-md text-white/80 ring-1 ring-white/10 hover:bg-white/[0.06] hover:text-[#c9a96e]"
+                    aria-label={t("view")}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Link>
+                  <button
+                    onClick={() => handleResetPin(r.token)}
+                    className="grid h-9 w-9 place-items-center rounded-md text-amber-300 ring-1 ring-amber-400/20 hover:bg-amber-500/10"
+                    aria-label={t("admin_qr_reset_pin")}
+                  >
+                    <KeyRound className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(r.token)}
+                    className="grid h-9 w-9 place-items-center rounded-md text-rose-400 ring-1 ring-rose-400/20 hover:bg-rose-500/10"
+                    aria-label={t("admin_qr_delete_memory")}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </li>
+          ))}
+          {filtered.length === 0 && (
+            <li className="p-8 text-center text-sm text-white/40">
+              {locale === "ar" ? "لا توجد رموز QR بعد." : "No QR codes yet."}
+            </li>
+          )}
+        </ul>
+      </div>
+    </>
+  );
+}
