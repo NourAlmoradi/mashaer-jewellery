@@ -193,13 +193,13 @@ npx create-next-app@latest hekaya
 
 **Actual versions installed:**
 
-- Next.js **16.2.4** (Turbopack enabled)
-- React **19.2.4**
+- Next.js **15.5.15** (App Router, Turbopack disabled by default)
+- React **19.1.0**
 - TypeScript **5**
 - Tailwind CSS **v4** (CSS-only config — NO `tailwind.config.ts`)
-- next-intl **4.x**
+- Bilingual via a hand-rolled dictionary in `src/lib/i18n.ts` + `useT()` hook (a `next-intl` dependency is installed but not currently wired — there is no `proxy.ts` / `middleware.ts` and no `[locale]` route segment).
 
-> ⚠️ **Important:** The build guide originally mentioned Next.js 15 and shadcn/ui. The actual project uses **Next.js 16.2.4** with **custom-built UI components** (no shadcn/ui). Tailwind v4 does not use a JS config file.
+> ⚠️ **Important:** The build guide originally mentioned Next.js 15 + shadcn/ui + locale-segmented routing via `next-intl`. The actual project uses **Next.js 15.5.15** with **custom-built UI components** (no shadcn/ui), Tailwind v4 (no JS config), and a single set of routes whose locale is driven by a Zustand store + cookie.
 
 ### All packages installed
 
@@ -218,31 +218,26 @@ npm install -D vitest @testing-library/react @types/qrcode @types/sharp
 
 ```
 hekaya/
-├── messages/
-│   ├── ar.json              ✅ Full Arabic translations
-│   └── en.json              ✅ Full English translations
 ├── src/
 │   ├── app/
-│   │   ├── [locale]/        ✅ Bilingual routing
-│   │   ├── layout.tsx       ✅ Root layout
-│   │   ├── page.tsx         ✅ Root → redirect('/ar')
-│   │   └── globals.css      ✅ Tailwind v4 @theme design system
-│   ├── components/          ✅ All UI + layout + home + product + cart
-│   ├── data/products.ts     ✅ 6 placeholder products
-│   ├── i18n/routing.ts      ✅ next-intl locale config
-│   ├── i18n/request.ts      ✅ next-intl server config
-│   ├── lib/
-│   │   ├── supabase/        ✅ client.ts, server.ts, admin.ts
-│   │   ├── format.ts        ✅
-│   │   └── utils.ts         ✅ cn()
-│   ├── proxy.ts             ✅ next-intl middleware (Next.js 16 naming)
-│   ├── stores/cart.store.ts ✅
-│   └── types/index.ts       ✅
-├── .env.local               ✅ Placeholder keys
-└── next.config.ts           ✅
+│   │   ├── layout.tsx           ✅ Root layout (no [locale] segment)
+│   │   ├── page.tsx             ✅ Homepage → HomeSections
+│   │   ├── globals.css          ✅ Tailwind v4 @theme design system
+│   │   ├── about/ account/ admin/ checkout/ contact/
+│   │   ├── memory/[token]/ my-memories/ order-confirmation/[id]/
+│   │   └── policies/ product/[slug]/ products/ qr/
+│   ├── components/             ✅ layout / home / products / cart / ui
+│   ├── data/products.ts        ✅ Seed catalogue + helpers
+│   ├── lib/                    ✅ i18n.ts, qr.ts, useT.ts, useProducts.ts,
+│   │                            useCollections.ts, utils.ts
+│   ├── stores/                 ✅ cart, locale, data, adminSettings, wishlist
+│   └── types/index.ts          ✅ Shared TS types
+├── next.config.ts              ✅ outputFileTracingRoot set
+├── package.json                ✅
+└── tsconfig.json               ✅
 ```
 
-> ⚠️ **Key difference from original plan:** The middleware file is named `proxy.ts` (not `middleware.ts`) and exports a named `proxy` function. This is required for Next.js 16 compatibility.
+> ⚠️ **Key difference from original plan:** there is no `proxy.ts` / `middleware.ts` and no `[locale]` route segment. Locale is held in a Zustand store (`hekaya-locale`, default `ar`), persisted to a cookie, and `<html lang/dir>` is updated by `useT()`/`Providers.tsx` on the client.
 
 ### How to run the dev server
 
@@ -716,15 +711,15 @@ Monthly recurring: $0 until you hit massive scale.
 
 ## 🔧 Troubleshooting Common Problems & Fixes
 
-| Problem                                         | Cause                                                     | Fix                                                |
-| ----------------------------------------------- | --------------------------------------------------------- | -------------------------------------------------- |
-| `npm error ENOENT package.json`                 | Running `npm run dev` from workspace root                 | `cd hekaya` first, then `npm run dev`              |
-| Header hidden behind images on scroll           | Tailwind v4 `z-[--css-var]` generates invalid CSS         | Use hardcoded `z-50` on the header                 |
-| Hydration mismatch with `bbai-tooltip-injected` | Browser extension (AI tool) modifying the DOM             | Test in incognito mode with extensions disabled    |
-| `z-[--z-header]` not working                    | Tailwind v4 does not support CSS var in arbitrary z-index | Replace with `z-50`, `z-40`, `z-30` etc.           |
-| `Instagram` not in lucide-react                 | Icon was removed in newer lucide versions                 | Use inline SVG or find the correct icon name       |
-| Image 404 from Unsplash                         | Unsplash photo was deleted                                | Replace URL with a working Unsplash photo ID       |
-| `middleware.ts` export error in Next.js 16      | Next.js 16 changed middleware conventions                 | File is `proxy.ts`, exports named `proxy` function |
+| Problem                                         | Cause                                                     | Fix                                                                 |
+| ----------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------- |
+| `npm error ENOENT package.json`                 | Running `npm run dev` from workspace root                 | `cd hekaya` first, then `npm run dev`                               |
+| Header hidden behind images on scroll           | Tailwind v4 `z-[--css-var]` generates invalid CSS         | Use hardcoded `z-50` on the header                                  |
+| Hydration mismatch with `bbai-tooltip-injected` | Browser extension (AI tool) modifying the DOM             | Test in incognito mode with extensions disabled                     |
+| `z-[--z-header]` not working                    | Tailwind v4 does not support CSS var in arbitrary z-index | Replace with `z-50`, `z-40`, `z-30` etc.                            |
+| `Instagram` not in lucide-react                 | Icon was removed in newer lucide versions                 | Use inline SVG or find the correct icon name                        |
+| Image 404 from Unsplash                         | Unsplash photo was deleted                                | Replace URL with a working Unsplash photo ID                        |
+| `middleware.ts` export error in Next.js 16      | Outdated guidance — project uses Next.js 15.5.15          | Hand-rolled i18n via `lib/i18n.ts` + `useT()`; no middleware needed |
 
 ---
 

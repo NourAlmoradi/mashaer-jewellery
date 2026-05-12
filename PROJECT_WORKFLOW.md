@@ -14,17 +14,19 @@ A working **frontend-only walkthrough** of every flow described below is live in
 cd hekaya && npm install && npm run dev
 ```
 
-| Workflow stage                             | Implemented | Notes                                                |
-| ------------------------------------------ | ----------- | ---------------------------------------------------- |
-| Browse → cart → checkout                   | ✅          | Real cart drawer, cart persisted in `localStorage`   |
-| Order placement                            | ✅          | Generates order ID + QR tokens, persisted in Zustand |
-| QR Memory setup (PIN, photos, message)     | ✅          | Photos stored as data-URLs (mock)                    |
-| QR Memory unlock + edit                    | ✅          | 4-digit PIN gate                                     |
-| Account dashboard                          | ✅          | Mock "demo user" login                               |
-| Admin (dashboard / products / orders / QR) | ✅          | All in-memory + persisted store data                 |
-| Real authentication                        | ❌          | Skipped per current scope                            |
-| Real payment processing                    | ❌          | Stripe/PayPal are visual choices only                |
-| Supabase backend                           | ❌          | Storage is `localStorage` for now                    |
+| Workflow stage                                                      | Implemented | Notes                                                                     |
+| ------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------- |
+| Browse → cart → checkout                                            | ✅          | Real cart drawer, cart persisted in `localStorage`                        |
+| Order placement                                                     | ✅          | Generates order ID + QR tokens, persisted in Zustand                      |
+| QR Memory setup (PIN, photos, message)                              | ✅          | Photos stored as data-URLs (mock)                                         |
+| QR Memory unlock + edit                                             | ✅          | 4-digit PIN gate                                                          |
+| Account dashboard                                                   | ✅          | Mock "demo user" login                                                    |
+| Account — Address book CRUD                                         | ✅          | Add/edit/delete addresses, persisted in `localStorage`                    |
+| Wishlist                                                            | ✅          | Heart icon on `ProductCard` toggles persisted store; live list in account |
+| Admin (dashboard / products / collections / orders / QR / settings) | ✅          | All in-memory + persisted store data                                      |
+| Real authentication                                                 | ❌          | Skipped per current scope                                                 |
+| Real payment processing                                             | ❌          | Stripe/PayPal are visual choices only                                     |
+| Supabase backend                                                    | ❌          | Storage is `localStorage` for now                                         |
 
 ---
 
@@ -59,7 +61,7 @@ flowchart TD
     G --> H["🔐 Login / Register\n(account required)"]
     H --> I["📋 Step 1: Shipping address"]
     I --> J["📝 Step 2: Review order\n+ Choose QR option"]
-    J --> K["💳 Step 3: Pay with Tap Payments\n(Visa / MC / Apple Pay)"]
+    J --> K["💳 Step 3: Pay with\nApple Pay / Mastercard / PayPal"]
     K --> L{"Payment successful?"}
     L -->|No| M["❌ Payment failed\nRetry or cancel"]
     L -->|Yes| N["✅ Order confirmed!"]
@@ -194,26 +196,30 @@ flowchart LR
 
 ### 4.2 Admin Pages
 
-| Page          | What admin does there                                             |
-| ------------- | ----------------------------------------------------------------- |
-| **Dashboard** | See today's orders, revenue at a glance                           |
-| **Products**  | Add, edit, delete products and their variations (size/material)   |
-| **Orders**    | View all orders, update status (processing → shipped → delivered) |
+| Page            | What admin does there                                                     |
+| --------------- | ------------------------------------------------------------------------- |
+| **Dashboard**   | Today's orders, revenue, 12-month trend chart, status breakdown           |
+| **Products**    | Add, edit, delete products and their variations (size/material)           |
+| **Collections** | Create / edit / reorder / delete collections                              |
+| **Orders**      | View all orders, update status (processing → shipped → delivered)         |
+| **QR**          | Every generated QR token with status (generated / set up / pending)       |
+| **Settings**    | Store info · QR config · Per-emirate shipping rates · Email notifications |
 
 ---
 
 ## 5. Payment Flow
 
-### 5.1 Payment Provider: Tap Payments
+### 5.1 Payment Providers: Stripe + PayPal
 
-| Detail         | Value                                             |
-| -------------- | ------------------------------------------------- |
-| **Provider**   | [Tap Payments](https://tap.company) (tap.company) |
-| **Methods**    | Visa, Mastercard, Apple Pay                       |
-| **Currency**   | AED only                                          |
-| **Fees**       | ~2.75% per transaction                            |
-| **Settlement** | 2-3 business days to UAE bank                     |
-| **Test mode**  | Full sandbox for development                      |
+| Detail         | Value                                                                            |
+| -------------- | -------------------------------------------------------------------------------- |
+| **Methods**    | **Apple Pay**, **Mastercard**, **PayPal**                                        |
+| **Providers**  | Stripe (Apple Pay + Mastercard) · [PayPal](https://paypal.com) (PayPal balances) |
+| **Currency**   | AED only                                                                         |
+| **Fees**       | Stripe ~2.9% + 1 AED · PayPal ~3.9% + fixed AED                                  |
+| **Settlement** | Stripe 2-7 business days to UAE bank · PayPal immediate to balance               |
+| **Test mode**  | Stripe test keys · PayPal sandbox                                                |
+| **COD**        | Not supported — online payment only                                              |
 
 ### 5.2 Checkout Steps
 
@@ -221,7 +227,7 @@ flowchart LR
 flowchart LR
     A["🛒 Cart"] --> B["📋 Step 1:\nShipping Address"]
     B --> C["📝 Step 2:\nReview Order\n+ QR Option"]
-    C --> D["💳 Step 3:\nTap Payments"]
+    C --> D["💳 Step 3:\nApple Pay / Mastercard / PayPal"]
     D --> E["✅ Order\nConfirmed"]
     E --> F["📧 Email\nSent"]
 
@@ -252,14 +258,14 @@ stateDiagram-v2
     Cancelled --> [*]
 ```
 
-| Status         | Who triggers it      | What happens                             |
-| -------------- | -------------------- | ---------------------------------------- |
-| **Pending**    | System (auto)        | Order created, awaiting payment          |
-| **Paid**       | Tap Payments webhook | Payment confirmed                        |
-| **Processing** | Admin                | Order being prepared                     |
-| **Shipped**    | Admin                | Tracking number added, customer notified |
-| **Delivered**  | Admin                | Order complete                           |
-| **Cancelled**  | System or Admin      | Payment failed or manual cancel          |
+| Status         | Who triggers it         | What happens                             |
+| -------------- | ----------------------- | ---------------------------------------- |
+| **Pending**    | System (auto)           | Order created, awaiting payment          |
+| **Paid**       | Stripe / PayPal webhook | Payment confirmed                        |
+| **Processing** | Admin                   | Order being prepared                     |
+| **Shipped**    | Admin                   | Tracking number added, customer notified |
+| **Delivered**  | Admin                   | Order complete                           |
+| **Cancelled**  | System or Admin         | Payment failed or manual cancel          |
 
 ---
 
@@ -366,7 +372,8 @@ flowchart TB
     end
 
     subgraph Payment["💳 Payment"]
-        TAP["Tap Payments"]
+        STRIPE["Stripe\n(Apple Pay + Mastercard)"]
+        PAYPAL["PayPal"]
     end
 
     subgraph Hosting["🌐 Hosting"]
@@ -379,7 +386,8 @@ flowchart TB
     API <--> AUTH
     API <--> DB
     API <--> FILES
-    API <--> TAP
+    API <--> STRIPE
+    API <--> PAYPAL
 
     style Customer fill:#C9A96E,color:#1A1A1A
     style Payment fill:#4A7C59,color:white
@@ -475,13 +483,14 @@ erDiagram
 
 ### Service Costs
 
-| Service                   | Launch (Free) | Growth      | Purpose               |
-| ------------------------- | ------------- | ----------- | --------------------- |
-| Vercel (Hosting)          | $0            | $20/mo      | Website hosting + CDN |
-| Supabase (Database)       | $0            | $25/mo      | Database + Auth       |
-| Supabase Storage (Images) | $0            | Pay-per-use | Photo storage         |
-| Tap Payments              | ~2.75%/tx     | ~2.75%/tx   | Payment processing    |
-| Domain                    | ~$12/year     | ~$12/year   | hekaya-Jewellery.com  |
+| Service                   | Launch (Free)        | Growth               | Purpose                     |
+| ------------------------- | -------------------- | -------------------- | --------------------------- |
+| Vercel (Hosting)          | $0                   | $20/mo               | Website hosting + CDN       |
+| Supabase (Database)       | $0                   | $25/mo               | Database + Auth             |
+| Supabase Storage (Images) | $0                   | Pay-per-use          | Photo storage               |
+| Stripe (Apple Pay + MC)   | ~2.9% + 1 AED/tx     | ~2.9% + 1 AED/tx     | Card + Apple Pay processing |
+| PayPal                    | ~3.9% + fixed AED/tx | ~3.9% + fixed AED/tx | PayPal balances             |
+| Domain                    | ~$12/year            | ~$12/year            | hekaya-Jewellery.com        |
 
 ### First Year Total: ~$12 (domain only) + payment processing fees
 
@@ -489,38 +498,38 @@ erDiagram
 
 ## 13. Technology Summary
 
-| Layer         | Technology            | Why                                     |
-| ------------- | --------------------- | --------------------------------------- |
-| Website       | Next.js (React)       | Fast, SEO-friendly, bilingual support   |
-| Language      | TypeScript            | Catches bugs early                      |
-| Database      | Supabase (PostgreSQL) | Free tier, built-in auth, real-time     |
-| Auth          | Supabase Auth         | Email/password registration             |
-| Image Storage | Supabase Storage      | Seamless integration with Supabase Auth |
-| Payments      | Tap Payments          | Best for UAE market                     |
-| QR Generation | qrcode library        | Generates QR code images                |
-| Hosting       | Vercel                | Free, global CDN, auto-deploy           |
-| Bilingual     | next-intl             | Full Arabic/English support             |
+| Layer         | Technology            | Why                                                           |
+| ------------- | --------------------- | ------------------------------------------------------------- |
+| Website       | Next.js (React)       | Fast, SEO-friendly, bilingual support                         |
+| Language      | TypeScript            | Catches bugs early                                            |
+| Database      | Supabase (PostgreSQL) | Free tier, built-in auth, real-time                           |
+| Auth          | Supabase Auth         | Email/password registration                                   |
+| Image Storage | Supabase Storage      | Seamless integration with Supabase Auth                       |
+| Payments      | Stripe + PayPal       | Apple Pay & Mastercard via Stripe; PayPal balances via PayPal |
+| QR Generation | qrcode library        | Generates QR code images                                      |
+| Hosting       | Vercel                | Free, global CDN, auto-deploy                                 |
+| Bilingual     | next-intl             | Full Arabic/English support                                   |
 
 ---
 
 ## 14. Key Business Decisions (Confirmed)
 
-| Decision           | Answer                                   |
-| ------------------ | ---------------------------------------- |
-| Target market      | UAE only                                 |
-| Currency           | AED only                                 |
-| Languages          | Arabic (default) + English               |
-| Payment            | Tap Payments (online only, no COD)       |
-| QR per             | Customer chooses: per order or per piece |
-| Memory content     | 3 photos + title + message               |
-| Memory privacy     | 4-digit PIN required to view             |
-| Memory editing     | Owner can edit anytime (login required)  |
-| Product variations | Yes (size, material, price override)     |
-| Inventory tracking | No                                       |
-| Shipping           | Customer pays actual cost                |
-| Reviews system     | No                                       |
-| Coupon system      | No                                       |
-| Admin roles        | Owner + Store Manager                    |
+| Decision           | Answer                                                                |
+| ------------------ | --------------------------------------------------------------------- |
+| Target market      | UAE only                                                              |
+| Currency           | AED only                                                              |
+| Languages          | Arabic (default) + English                                            |
+| Payment            | Stripe + PayPal — Apple Pay, Mastercard, PayPal (online only, no COD) |
+| QR per             | Customer chooses: per order or per piece                              |
+| Memory content     | 3 photos + title + message                                            |
+| Memory privacy     | 4-digit PIN required to view                                          |
+| Memory editing     | Owner can edit anytime (login required)                               |
+| Product variations | Yes (size, material, price override)                                  |
+| Inventory tracking | No                                                                    |
+| Shipping           | Customer pays actual cost                                             |
+| Reviews system     | No                                                                    |
+| Coupon system      | No                                                                    |
+| Admin roles        | Owner + Store Manager                                                 |
 
 ---
 
