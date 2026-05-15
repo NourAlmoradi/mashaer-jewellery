@@ -4,91 +4,46 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 export type AdminStoreInfo = {
-  nameEn: string;
-  nameAr: string;
-  taglineEn: string;
-  taglineAr: string;
   email: string;
   phone: string;
   whatsapp: string;
   instagram: string;
-  address: string;
-};
-
-export type AdminQrConfig = {
-  defaultColor: string;
-  bgColor: string;
-  maxPhotos: number;
-  maxMessageLength: number;
-  autoGenerate: boolean;
-  requirePin: boolean;
+  facebook: string;
 };
 
 export type AdminShipping = {
   dubai: number;
   abuDhabi: number;
   sharjah: number;
-  otherEmirates: number;
-  gcc: number;
-  processingDays: number;
-};
-
-export type AdminNotifications = {
-  newOrder: boolean;
-  qrCreated: boolean;
-  lowStock: boolean;
-  customerMessage: boolean;
-  weeklyReport: boolean;
+  ajman: number;
+  ummAlQuwain: number;
+  rasAlKhaimah: number;
+  fujairah: number;
 };
 
 export type AdminSettingsState = {
   store: AdminStoreInfo;
-  qr: AdminQrConfig;
   shipping: AdminShipping;
-  notifications: AdminNotifications;
   setStore: (s: Partial<AdminStoreInfo>) => void;
-  setQr: (q: Partial<AdminQrConfig>) => void;
   setShipping: (sh: Partial<AdminShipping>) => void;
-  setNotifications: (n: Partial<AdminNotifications>) => void;
 };
 
-const defaults: Pick<
-  AdminSettingsState,
-  "store" | "qr" | "shipping" | "notifications"
-> = {
+const defaults: Pick<AdminSettingsState, "store" | "shipping"> = {
   store: {
-    nameEn: "Hekaya Jewellery",
-    nameAr: "مجوهرات حكاية",
-    taglineEn: "A Story in Every Piece",
-    taglineAr: "في كل قطعة… حكاية",
     email: "hello@hekayajewellery.com",
     phone: "+971 50 000 0000",
     whatsapp: "+971 50 000 0000",
     instagram: "@hekayajewellery",
-    address: "Dubai Design District (d3), Dubai, UAE",
-  },
-  qr: {
-    defaultColor: "#C9A96E",
-    bgColor: "#FAFAF8",
-    maxPhotos: 3,
-    maxMessageLength: 500,
-    autoGenerate: true,
-    requirePin: true,
+    facebook: "hekayajewellery",
   },
   shipping: {
     dubai: 0,
     abuDhabi: 15,
     sharjah: 10,
-    otherEmirates: 25,
-    gcc: 50,
-    processingDays: 2,
-  },
-  notifications: {
-    newOrder: true,
-    qrCreated: true,
-    lowStock: true,
-    customerMessage: true,
-    weeklyReport: false,
+    ajman: 20,
+    ummAlQuwain: 25,
+    rasAlKhaimah: 25,
+    fujairah: 25,
   },
 };
 
@@ -97,15 +52,21 @@ export const useAdminSettings = create<AdminSettingsState>()(
     (set) => ({
       ...defaults,
       setStore: (s) => set((cur) => ({ store: { ...cur.store, ...s } })),
-      setQr: (q) => set((cur) => ({ qr: { ...cur.qr, ...q } })),
       setShipping: (sh) =>
         set((cur) => ({ shipping: { ...cur.shipping, ...sh } })),
-      setNotifications: (n) =>
-        set((cur) => ({ notifications: { ...cur.notifications, ...n } })),
     }),
     {
       name: "hekaya-admin-settings",
       storage: createJSONStorage(() => localStorage),
+      version: 2,
+      // v1 had nameEn/nameAr/taglineEn/taglineAr/address, qr/notifications
+      // slices, and a different shipping shape. Drop everything and re-seed
+      // with the new defaults so persisted browsers don't crash on the new
+      // schema.
+      migrate: () => ({
+        store: defaults.store,
+        shipping: defaults.shipping,
+      }),
     },
   ),
 );

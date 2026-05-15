@@ -154,7 +154,7 @@ export function ProductsExplorer() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-5 md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-5 sm:gap-6 md:grid-cols-3 lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] lg:gap-7">
               {filtered.map((p, i) => (
                 <ProductCard key={p.id} product={p} index={i} />
               ))}

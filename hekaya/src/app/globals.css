@@ -26,11 +26,13 @@
   --color-warning: #d4a437;
   --color-whatsapp: #25d366;
 
-  /* Fonts */
-  --font-display: "Cormorant Garamond", "Amiri", Georgia, serif;
-  --font-display-ar: "Amiri", "Cormorant Garamond", Georgia, serif;
-  --font-body: "Inter", "Noto Sans Arabic", system-ui, sans-serif;
-  --font-body-ar: "Noto Sans Arabic", "Inter", system-ui, sans-serif;
+  /* Fonts — driven by next/font CSS variables set on <html> */
+  --font-display: var(--font-cormorant), var(--font-amiri), Georgia, serif;
+  --font-display-ar: var(--font-amiri), var(--font-cormorant), Georgia, serif;
+  --font-body:
+    var(--font-inter), var(--font-noto-arabic), system-ui, sans-serif;
+  --font-body-ar:
+    var(--font-noto-arabic), var(--font-inter), system-ui, sans-serif;
 
   /* Shadows */
   --shadow-soft:
@@ -50,8 +52,6 @@
   /* Container */
   --container-max: 1280px;
 }
-
-@import url("https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap");
 
 * {
   -webkit-font-smoothing: antialiased;

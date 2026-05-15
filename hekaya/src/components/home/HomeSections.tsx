@@ -1,15 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  ShieldCheck,
-  Truck,
-  RefreshCw,
-  QrCode,
-  Star,
-} from "lucide-react";
+import { ArrowRight, ShieldCheck, QrCode, Star } from "lucide-react";
 import { useT } from "@/lib/useT";
 import { useCollections } from "@/lib/useCollections";
 import { useProducts } from "@/lib/useProducts";
@@ -114,11 +108,14 @@ export function Hero() {
           <div className="relative">
             {/* Circle image */}
             <div className="relative h-[340px] w-[340px] overflow-hidden rounded-full ring-1 ring-[#c9a96e]/20 sm:h-[420px] sm:w-[420px]">
-              <div className="h-full w-full bg-gradient-to-br from-[#2a2010] to-[#1a1508]">
-                <img
-                  src="../logo.png"
-                  alt="Logo"
-                  className="h-full w-full object-cover"
+              <div className="relative h-full w-full bg-gradient-to-br from-[#2a2010] to-[#1a1508]">
+                <Image
+                  src="/Logo.png"
+                  alt="Hekaya Jewellery"
+                  fill
+                  priority
+                  sizes="(min-width: 640px) 420px, 340px"
+                  className="object-cover"
                 />
               </div>
               {/* Shimmer overlay */}
@@ -139,29 +136,43 @@ export function TrustBadges() {
   const { t } = useT();
   const items = [
     { Icon: ShieldCheck, t: t("trust_quality"), d: t("trust_quality_d") },
-    { Icon: Truck, t: t("trust_ship"), d: t("trust_ship_d") },
     { Icon: QrCode, t: t("trust_qr"), d: t("trust_qr_d") },
-    { Icon: RefreshCw, t: t("trust_return"), d: t("trust_return_d") },
   ];
   return (
-    <section className="border-y border-[var(--color-border)] bg-white">
-      <div className="container-h grid grid-cols-2 gap-6 py-10 sm:grid-cols-4 sm:py-12">
-        {items.map(({ Icon, t: title, d }, i) => (
-          <motion.div
-            key={title}
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.5, delay: i * 0.06 }}
-            className="flex items-center gap-3 sm:flex-col sm:items-start sm:text-start"
-          >
-            <Icon className="h-7 w-7 shrink-0 text-[var(--color-primary)]" />
-            <div>
-              <h4 className="text-sm font-semibold">{title}</h4>
-              <p className="text-xs text-[var(--color-ink-muted)]">{d}</p>
-            </div>
-          </motion.div>
-        ))}
+    <section className="relative border-y border-[var(--color-border)] bg-gradient-to-b from-white to-[var(--color-bg-secondary)]">
+      <div className="container-h py-14 sm:py-20">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 items-stretch gap-10 md:grid-cols-[1fr_auto_1fr] md:gap-14">
+          {items.map(({ Icon, t: title, d }, i) => (
+            <motion.div
+              key={title}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.6, delay: i * 0.1 }}
+              className="flex flex-col items-center text-center"
+            >
+              <span className="relative grid h-20 w-20 place-items-center rounded-full bg-[var(--color-primary)]/8 ring-1 ring-[var(--color-primary)]/25 sm:h-24 sm:w-24">
+                <span className="absolute inset-0 rounded-full bg-[var(--color-primary)]/5 blur-md" />
+                <Icon
+                  className="relative h-9 w-9 text-[var(--color-primary-dark)] sm:h-10 sm:w-10"
+                  strokeWidth={1.4}
+                />
+              </span>
+              <h3 className="mt-6 font-display text-2xl font-semibold text-[var(--color-ink)] sm:text-3xl">
+                {title}
+              </h3>
+              <span className="mx-auto mt-3 h-px w-10 bg-[var(--color-primary)]/60" />
+              <p className="mt-3 max-w-[28ch] text-sm leading-relaxed text-[var(--color-ink-muted)] sm:text-base">
+                {d}
+              </p>
+            </motion.div>
+          ))}
+          {/* Vertical gold divider — desktop only, slotted between the two columns */}
+          <div
+            aria-hidden
+            className="pointer-events-none order-2 hidden h-full w-px self-stretch bg-gradient-to-b from-transparent via-[var(--color-primary)]/40 to-transparent md:block md:[grid-column:2] md:[grid-row:1]"
+          />
+        </div>
       </div>
     </section>
   );
@@ -190,7 +201,7 @@ export function CollectionShowcase() {
           <div className="divider-gold mx-auto w-20" />
         </motion.div>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-[repeat(auto-fit,minmax(260px,1fr))] lg:gap-7">
           {collections.map((c, i) => (
             <motion.div
               key={c.id}
@@ -262,7 +273,7 @@ export function FeaturedProducts() {
           </Link>
         </motion.div>
 
-        <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-5 sm:gap-6 lg:grid-cols-[repeat(auto-fit,minmax(240px,1fr))] lg:gap-7">
           {featured.map((p, i) => (
             <ProductCard key={p.id} product={p} index={i} />
           ))}

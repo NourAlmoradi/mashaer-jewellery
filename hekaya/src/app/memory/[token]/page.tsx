@@ -348,6 +348,7 @@ function MemoryForm({
           >
             {photos[i] ? (
               <>
+                {/* eslint-disable-next-line @next/next/no-img-element -- user-uploaded data URL; not eligible for next/image optimization */}
                 <img
                   src={photos[i]}
                   alt=""
@@ -580,6 +581,7 @@ function PhotoCarousel({ photos }: { photos: string[] }) {
                     : "opacity-55 ring-1 ring-[var(--color-border)] hover:opacity-100",
                 )}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element -- user-uploaded data URL; not eligible for next/image optimization */}
                 <img src={src} alt="" className="h-full w-full object-cover" />
               </button>
             ))}

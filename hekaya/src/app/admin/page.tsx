@@ -52,7 +52,10 @@ export default function AdminDashboard() {
   const storeOrders = useDataStore((s) => s.orders);
   const memories = useDataStore((s) => s.memories);
 
-  const allOrders = [...storeOrders, ...mockOrders];
+  const allOrders = useMemo(
+    () => [...storeOrders, ...mockOrders],
+    [storeOrders],
+  );
   const totalRevenue =
     allOrders.reduce((s, o) => s + o.total, 0) +
     // Add baseline mock revenue so dashboard has realistic numbers

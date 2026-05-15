@@ -1,12 +1,40 @@
 import type { Metadata } from "next";
+import {
+  Cormorant_Garamond,
+  Inter,
+  Amiri,
+  Noto_Sans_Arabic,
+} from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { CartDrawer } from "@/components/cart/CartDrawer";
-import { FloatingActions } from "@/components/layout/FloatingActions";
+import { SiteChrome } from "@/components/layout/SiteChrome";
 import { Providers } from "@/components/Providers";
 import type { Locale } from "@/types";
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-cormorant",
+  display: "swap",
+});
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter",
+  display: "swap",
+});
+const amiri = Amiri({
+  subsets: ["arabic"],
+  weight: ["400", "700"],
+  variable: "--font-amiri",
+  display: "swap",
+});
+const notoArabic = Noto_Sans_Arabic({
+  subsets: ["arabic"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-noto-arabic",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Hekaya Jewellery — A Story in Every Piece | مجوهرات حكاية",
@@ -31,14 +59,15 @@ export default async function RootLayout({
   const dir = locale === "ar" ? "rtl" : "ltr";
 
   return (
-    <html lang={locale} dir={dir} suppressHydrationWarning>
+    <html
+      lang={locale}
+      dir={dir}
+      suppressHydrationWarning
+      className={`${cormorant.variable} ${inter.variable} ${amiri.variable} ${notoArabic.variable}`}
+    >
       <body className="min-h-screen bg-[var(--color-bg)] text-[var(--color-ink)] antialiased">
         <Providers initialLocale={locale}>
-          <Header />
-          <main className="min-h-[60vh]">{children}</main>
-          <Footer />
-          <CartDrawer />
-          <FloatingActions />
+          <SiteChrome>{children}</SiteChrome>
         </Providers>
       </body>
     </html>

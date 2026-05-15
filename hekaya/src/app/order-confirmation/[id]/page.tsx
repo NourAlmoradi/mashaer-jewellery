@@ -177,6 +177,7 @@ export default function OrderConfirmation({
 
                     {/* QR image */}
                     <div className="mx-auto mt-6 inline-block rounded-lg bg-white p-5 ring-1 ring-[#e8dcc4]">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- data URL generated client-side; next/image cannot optimize it */}
                       <img src={q.dataUrl} alt="QR" className="h-52 w-52" />
                     </div>
 

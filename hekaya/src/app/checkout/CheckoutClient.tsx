@@ -76,7 +76,14 @@ export default function CheckoutClient() {
       return shippingRates.abuDhabi;
     if (k.includes("الشارقة") || k.includes("sharjah"))
       return shippingRates.sharjah;
-    return shippingRates.otherEmirates;
+    if (k.includes("عجمان") || k.includes("ajman")) return shippingRates.ajman;
+    if (k.includes("أم القيوين") || k.includes("umm al quwain"))
+      return shippingRates.ummAlQuwain;
+    if (k.includes("رأس الخيمة") || k.includes("ras al khaimah"))
+      return shippingRates.rasAlKhaimah;
+    if (k.includes("الفجيرة") || k.includes("fujairah"))
+      return shippingRates.fujairah;
+    return shippingRates.dubai;
   };
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -257,7 +264,8 @@ export default function CheckoutClient() {
       });
       clear();
       setPlaced(true);
-      router.push(`/order-confirmation/${id}`);
+      // replace() so the back button doesn't return to the checkout flow
+      router.replace(`/order-confirmation/${id}`);
     }, 1100);
   };
 

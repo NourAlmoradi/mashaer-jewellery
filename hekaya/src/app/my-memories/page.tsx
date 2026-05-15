@@ -7,17 +7,19 @@ import { motion } from "framer-motion";
 import { Plus, QrCode, Pencil, Eye, Calendar } from "lucide-react";
 import { useT } from "@/lib/useT";
 import { useDataStore } from "@/stores/data.store";
-import { useAdminSettings } from "@/stores/adminSettings.store";
 import { findProduct } from "@/data/products";
 import { generateQrDataUrl, memoryUrlFor } from "@/lib/qr";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { formatDate } from "@/lib/utils";
 import type { Memory } from "@/types";
 
+// Brand gold — matches --color-primary in globals.css
+const QR_COLOR = "#C9A96E";
+
 export default function MyMemoriesPage() {
   const { t, locale, tx } = useT();
   const memories = useDataStore((s) => s.memories);
-  const qrColor = useAdminSettings((s) => s.qr.defaultColor);
+  const qrColor = QR_COLOR;
 
   const entries = useMemo(
     () =>

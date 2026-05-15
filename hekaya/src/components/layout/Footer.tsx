@@ -44,6 +44,17 @@ const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export function Footer() {
   const { t } = useT();
   const whatsapp = useAdminSettings((s) => s.store.whatsapp);
+  const instagram = useAdminSettings((s) => s.store.instagram);
+  const facebook = useAdminSettings((s) => s.store.facebook);
+  // Strip leading "@" or "/" so we can safely compose social URLs.
+  const igHandle = instagram.replace(/^[@/]+/, "").trim();
+  const fbHandle = facebook.replace(/^[@/]+/, "").trim();
+  const igUrl = igHandle
+    ? `https://instagram.com/${igHandle}`
+    : "https://instagram.com";
+  const fbUrl = fbHandle
+    ? `https://facebook.com/${fbHandle}`
+    : "https://facebook.com";
   return (
     <footer className="mt-24 bg-[var(--color-bg-dark)] text-white/80">
       <div className="container-h grid grid-cols-1 gap-12 py-16 md:grid-cols-2 lg:grid-cols-4">
@@ -54,10 +65,10 @@ export function Footer() {
             {t("footer_about_d")}
           </p>
           <div className="flex items-center gap-3 pt-2">
-            <SocialLink href="https://instagram.com" label="Instagram">
+            <SocialLink href={igUrl} label="Instagram">
               <InstagramIcon className="h-4 w-4" />
             </SocialLink>
-            <SocialLink href="https://facebook.com" label="Facebook">
+            <SocialLink href={fbUrl} label="Facebook">
               <FacebookIcon className="h-4 w-4" />
             </SocialLink>
             <SocialLink

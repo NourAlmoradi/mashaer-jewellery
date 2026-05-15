@@ -35,12 +35,8 @@ export const translations = {
   // Trust
   trust_quality: { ar: "خامات أصلية", en: "Authentic Materials" },
   trust_quality_d: { ar: "ذهب وفضة معتمدة", en: "Certified gold & silver" },
-  trust_ship: { ar: "شحن مجاني محلي", en: "Free UAE Shipping" },
-  trust_ship_d: { ar: "للطلبات فوق 500 د.إ", en: "On orders over 500 AED" },
   trust_qr: { ar: "ذكرى QR مجانية", en: "Free QR Memory" },
   trust_qr_d: { ar: "مع كل قطعة مؤهلة", en: "With every eligible piece" },
-  trust_return: { ar: "إرجاع خلال 14 يومًا", en: "14-Day Returns" },
-  trust_return_d: { ar: "ضمان رضا تام", en: "Hassle-free guarantee" },
 
   // Sections
   collections_title: { ar: "تصفح المجموعات", en: "Browse Collections" },
@@ -300,103 +296,33 @@ export const translations = {
     en: "Manage your store configuration",
   },
   admin_tab_store: { ar: "المتجر", en: "Store" },
-  admin_tab_qr: { ar: "ذكريات QR", en: "QR Memory" },
   admin_tab_shipping: { ar: "الشحن", en: "Shipping" },
-  admin_tab_notifications: { ar: "الإشعارات", en: "Notifications" },
 
   admin_store_info: { ar: "معلومات المتجر", en: "Store Information" },
-  admin_store_name_en: {
-    ar: "اسم المتجر (إنجليزي)",
-    en: "Store Name (English)",
-  },
-  admin_store_name_ar: { ar: "اسم المتجر (عربي)", en: "Store Name (Arabic)" },
-  admin_tagline_en: { ar: "الشعار (إنجليزي)", en: "Tagline (English)" },
-  admin_tagline_ar: { ar: "الشعار (عربي)", en: "Tagline (Arabic)" },
   admin_contact_email: { ar: "بريد التواصل", en: "Contact Email" },
   admin_phone: { ar: "رقم الهاتف", en: "Phone Number" },
   admin_whatsapp: { ar: "رقم واتساب", en: "WhatsApp Number" },
   admin_instagram: { ar: "حساب إنستغرام", en: "Instagram Handle" },
-  admin_business_address: { ar: "العنوان التجاري", en: "Business Address" },
+  admin_facebook: { ar: "حساب فيسبوك", en: "Facebook Handle" },
   admin_save_store: { ar: "حفظ إعدادات المتجر", en: "Save Store Settings" },
-
-  admin_qr_config: { ar: "إعدادات ذكريات QR", en: "QR Memory Configuration" },
-  admin_qr_default_color: {
-    ar: "لون الـ QR الافتراضي",
-    en: "Default QR Color",
-  },
-  admin_qr_bg_color: { ar: "لون خلفية الـ QR", en: "QR Background Color" },
-  admin_qr_max_photos: { ar: "أقصى عدد للصور", en: "Max Photos Per Memory" },
-  admin_qr_max_message: {
-    ar: "أقصى طول للرسالة (حروف)",
-    en: "Max Message Length (chars)",
-  },
-  admin_qr_auto: {
-    ar: "إنشاء QR تلقائيًا عند تأكيد الطلب",
-    en: "Auto-generate QR on order confirmation",
-  },
-  admin_qr_require_pin: {
-    ar: "اشتراط رمز PIN لعرض صفحات الذكريات",
-    en: "Require PIN to view memory pages",
-  },
-  admin_save_qr: { ar: "حفظ إعدادات QR", en: "Save QR Settings" },
-  admin_photos_unit: { ar: "صور", en: "photos" },
 
   admin_shipping_rates: {
     ar: "أسعار الشحن (درهم)",
     en: "Shipping Rates (AED)",
   },
-  admin_shipping_dubai: {
-    ar: "دبي (شحن مجاني للحد الأدنى للطلب)",
-    en: "Dubai (Free shipping minimum order)",
-  },
-  admin_shipping_abudhabi: { ar: "أسعار أبوظبي", en: "Abu Dhabi Rate" },
-  admin_shipping_sharjah: { ar: "أسعار الشارقة", en: "Sharjah Rate" },
-  admin_shipping_other: {
-    ar: "أسعار باقي الإمارات",
-    en: "Other Emirates Rate",
-  },
-  admin_shipping_gcc: { ar: "أسعار دول الخليج", en: "GCC Countries Rate" },
-  admin_shipping_processing_days: {
-    ar: "أيام التجهيز قبل الشحن",
-    en: "Processing Days Before Dispatch",
-  },
+  admin_shipping_dubai: { ar: "دبي", en: "Dubai" },
+  admin_shipping_abudhabi: { ar: "أبوظبي", en: "Abu Dhabi" },
+  admin_shipping_sharjah: { ar: "الشارقة", en: "Sharjah" },
+  admin_shipping_ajman: { ar: "عجمان", en: "Ajman" },
+  admin_shipping_uaq: { ar: "أم القيوين", en: "Umm Al Quwain" },
+  admin_shipping_rak: { ar: "رأس الخيمة", en: "Ras Al Khaimah" },
+  admin_shipping_fujairah: { ar: "الفجيرة", en: "Fujairah" },
   admin_aed: { ar: "درهم", en: "AED" },
-  admin_days: { ar: "أيام", en: "days" },
   admin_save_shipping: {
     ar: "حفظ إعدادات الشحن",
     en: "Save Shipping Settings",
   },
 
-  admin_email_notifications: {
-    ar: "إشعارات البريد الإلكتروني",
-    en: "Email Notifications",
-  },
-  admin_notif_new_order: { ar: "طلب جديد", en: "New Order Received" },
-  admin_notif_new_order_d: {
-    ar: "تنبيه عند تقديم العميل لطلب",
-    en: "Get notified when a customer places an order",
-  },
-  admin_notif_qr_created: { ar: "إنشاء ذكرى QR", en: "QR Memory Created" },
-  admin_notif_qr_created_d: {
-    ar: "عند إعداد العميل لصفحة الذكرى",
-    en: "When a customer sets up their memory page",
-  },
-  admin_notif_low_stock: { ar: "تنبيه مخزون منخفض", en: "Low Stock Alert" },
-  admin_notif_low_stock_d: {
-    ar: "عند انخفاض مخزون منتج عن الحد",
-    en: "When a product stock drops below threshold",
-  },
-  admin_notif_customer_msg: { ar: "رسالة عميل", en: "Customer Message" },
-  admin_notif_customer_msg_d: {
-    ar: "رسالة جديدة عبر نموذج التواصل",
-    en: "New contact form submission",
-  },
-  admin_notif_weekly: { ar: "تقرير أسبوعي", en: "Weekly Report" },
-  admin_notif_weekly_d: {
-    ar: "ملخص أسبوعي للطلبات والإيرادات",
-    en: "Weekly summary of orders and revenue",
-  },
-  admin_save_notifications: { ar: "حفظ الإشعارات", en: "Save Notifications" },
   admin_settings_saved: { ar: "تم حفظ الإعدادات", en: "Settings saved" },
   add_product: { ar: "إضافة منتج", en: "Add Product" },
   product_name: { ar: "اسم المنتج", en: "Product Name" },

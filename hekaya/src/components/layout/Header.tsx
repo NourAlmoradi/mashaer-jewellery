@@ -1,36 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Menu, ShoppingBag, User, Search } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useT } from "@/lib/useT";
 import { useCartStore } from "@/stores/cart.store";
-import { cn } from "@/lib/utils";
 import { MobileMenu } from "./MobileMenu";
 
 export function Header() {
   const { t } = useT();
-  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const setCartOpen = useCartStore((s) => s.setOpen);
   const count = useCartStore((s) => s.items.reduce((sum, i) => sum + i.qty, 0));
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
     <>
-      <header
-        className={cn(
-          "fixed inset-x-0 top-0 z-5 transition-all duration-300 bg-white/85 shadow-[0_1px_0_rgba(0,0,0,0.05)] backdrop-blur-xl ",
-        )}
-      >
+      <header className="fixed inset-x-0 top-0 z-5 bg-white/85 shadow-[0_1px_0_rgba(0,0,0,0.05)] backdrop-blur-xl">
         <div className="container-h flex h-[72px] items-center justify-between gap-4">
           {/* Mobile menu button */}
           <button

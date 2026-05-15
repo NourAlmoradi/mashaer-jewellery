@@ -8,9 +8,7 @@ import {
   Minus,
   Plus,
   ShoppingBag,
-  Truck,
   ShieldCheck,
-  RefreshCw,
   QrCode,
 } from "lucide-react";
 import type { Product } from "@/types";
@@ -340,18 +338,14 @@ export function ProductDetail({ product }: { product: Product }) {
           </div>
 
           {/* Trust strip */}
-          <ul className="mt-6 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
-            <li className="flex items-center gap-2 text-[var(--color-ink-muted)]">
-              <Truck className="h-4 w-4 text-[var(--color-primary)]" />
-              {t("trust_ship")}
-            </li>
+          <ul className="mt-6 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
             <li className="flex items-center gap-2 text-[var(--color-ink-muted)]">
               <ShieldCheck className="h-4 w-4 text-[var(--color-primary)]" />
               {t("trust_quality")}
             </li>
             <li className="flex items-center gap-2 text-[var(--color-ink-muted)]">
-              <RefreshCw className="h-4 w-4 text-[var(--color-primary)]" />
-              {t("trust_return")}
+              <QrCode className="h-4 w-4 text-[var(--color-primary)]" />
+              {t("trust_qr")}
             </li>
           </ul>
         </div>
