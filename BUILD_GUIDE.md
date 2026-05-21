@@ -1,6 +1,6 @@
-# 💎 Hekaya Jewellery — Complete Build Guide (Start to Finish)
+﻿# 💎 MASHAER JEWELLERY — Complete Build Guide (Start to Finish)
 
-> **The ultimate step-by-step guide to build, deploy, and launch Hekaya Jewellery for FREE (or near-zero cost)**
+> **The ultimate step-by-step guide to build, deploy, and launch MASHAER JEWELLERY for FREE (or near-zero cost)**
 >
 > This guide reflects the **actual project state** as of April 2026. Completed steps are marked ✅. Pending steps are marked ❌.
 
@@ -237,13 +237,13 @@ hekaya/
 └── tsconfig.json               ✅
 ```
 
-> ⚠️ **Key difference from original plan:** there is no `proxy.ts` / `middleware.ts` and no `[locale]` route segment. Locale is held in a Zustand store (`hekaya-locale`, default `ar`), persisted to a cookie, and `<html lang/dir>` is updated by `useT()`/`Providers.tsx` on the client.
+> ⚠️ **Key difference from original plan:** there is no `proxy.ts` / `middleware.ts` and no `[locale]` route segment. Locale is held in a Zustand store (`mashaer-locale`, default `ar`), persisted to a cookie, and `<html lang/dir>` is updated by `useT()`/`Providers.tsx` on the client.
 
 ### How to run the dev server
 
 ```bash
 # ⚠️ ALWAYS cd into the hekaya/ subfolder first
-cd C:\Users\Dell\Desktop\Hekaya_Jewerly\hekaya
+cd C:\Users\Dell\Desktop\Hekaya_Jewerly\mashaer
 npm run dev
 # Opens at http://localhost:3000 → auto-redirects to /ar
 ```
@@ -277,7 +277,7 @@ Run the RLS policies from `docs/05_SECURITY_AUTH.md` to secure all tables.
 
 In Supabase Dashboard → Storage:
 
-1. Create bucket: `hekaya-images` (make it public)
+1. Create bucket: `mashaer-images` (make it public)
 2. Inside the bucket, use these prefixes:
    - `products/` — product images
    - `memories/` — memory photos (max 3 per QR)
@@ -309,7 +309,7 @@ All design tokens are defined in `src/app/globals.css` using Tailwind v4's `@the
 }
 ```
 
-Custom utility classes built: `.container-hekaya`, `.btn-gold`, `.btn-outline-gold`, `.badge-qr`, `.badge-new`, `.badge-sale`, `.badge-soldout`, `.divider-gold`, `.section-padding`, `.product-card`
+Custom utility classes built: `.container-mashaer`, `.btn-gold`, `.btn-outline-gold`, `.badge-qr`, `.badge-new`, `.badge-sale`, `.badge-soldout`, `.divider-gold`, `.section-padding`, `.product-card`
 
 > ⚠️ **Tailwind v4 note:** Do NOT use `z-[--css-var]` syntax — it generates invalid CSS. Always use hardcoded z-index values: `z-50` (header), `z-[41]` (drawer panel), `z-40` (overlay), `z-30` (floats).
 
@@ -409,7 +409,7 @@ getTotalItems()    // for badge
 getTotalPrice()    // for subtotal
 ```
 
-Cart is persisted to localStorage under key `hekaya-cart`.
+Cart is persisted to localStorage under key `mashaer-cart`.
 
 ---
 
@@ -639,7 +639,7 @@ if (profile?.role !== "admin") redirect("/");
 
 1. Push code to GitHub:
    ```bash
-   cd C:\Users\Dell\Desktop\Hekaya_Jewerly\hekaya
+   cd C:\Users\Dell\Desktop\Hekaya_Jewerly\mashaer
    git add .
    git commit -m "Production-ready build"
    git push origin main
@@ -653,10 +653,10 @@ if (profile?.role !== "admin") redirect("/");
 
 ## ❌ Step 20: Buy & Connect Your Domain (~$12/year)
 
-1. Buy `hekaya-Jewellery.com` via [Namecheap](https://namecheap.com) or directly through Vercel
-2. In Vercel → Project Settings → Domains → Add `hekaya-Jewellery.com`
+1. Buy `mashaer-jewellery.com` via [Namecheap](https://namecheap.com) or directly through Vercel
+2. In Vercel → Project Settings → Domains → Add `mashaer-jewellery.com`
 3. Update DNS records as instructed by Vercel
-4. Update `NEXT_PUBLIC_SITE_URL` in Vercel env vars to `https://hekaya-Jewellery.com`
+4. Update `NEXT_PUBLIC_SITE_URL` in Vercel env vars to `https://mashaer-jewellery.com`
 
 ---
 
@@ -665,7 +665,7 @@ if (profile?.role !== "admin") redirect("/");
 1. Go to Stripe Dashboard → Activate account with UAE business documents
 2. Go to PayPal Dashboard → Get live Client ID and Secret
 3. Switch to **live keys** in Vercel environment variables for both Stripe and PayPal
-4. Configure webhook in Stripe Dashboard → `https://hekaya-Jewellery.com/api/webhook`
+4. Configure webhook in Stripe Dashboard → `https://mashaer-jewellery.com/api/webhook`
 5. Test with a real transaction
 
 ---
@@ -703,7 +703,7 @@ Monthly recurring: $0 until you hit massive scale.
 | Vercel Hobby                   | Free                          |
 | Supabase Free Tier             | Free                          |
 | GitHub                         | Free                          |
-| Domain (~hekaya-Jewellery.com) | ~$12/year                     |
+| Domain (~mashaer-jewellery.com) | ~$12/year                     |
 | Stripe (Apple Pay/Mastercard)  | 2.9% + 1 AED per transaction  |
 | PayPal                         | ~3.9% + fixed per transaction |
 
@@ -723,5 +723,5 @@ Monthly recurring: $0 until you hit massive scale.
 
 ---
 
-Built with love for Hekaya Jewellery
-**hekaya-Jewellery.com**
+Built with love for MASHAER JEWELLERY
+**mashaer-jewellery.com**

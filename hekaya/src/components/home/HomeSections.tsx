@@ -41,7 +41,7 @@ export function Hero() {
 
           <h1 className="font-display font-semibold leading-[1.08]">
             <span className="block text-5xl text-white sm:text-6xl lg:text-7xl">
-              {locale === "ar" ? "في كل قطعة " : "A Story in"}
+              {locale === "ar" ? "في كل قطعة " : "Feelings That Last,"}
             </span>
             <span
               className="block text-5xl sm:text-6xl lg:text-7xl"
@@ -53,7 +53,7 @@ export function Hero() {
                 backgroundClip: "text",
               }}
             >
-              {locale === "ar" ? " ذكرى و حكاية" : "Every Piece"}
+              {locale === "ar" ? " مشاعر تبقى" : "Every Piece"}
             </span>
           </h1>
 
@@ -111,7 +111,7 @@ export function Hero() {
               <div className="relative h-full w-full bg-gradient-to-br from-[#2a2010] to-[#1a1508]">
                 <Image
                   src="/Logo.png"
-                  alt="Hekaya Jewellery"
+                  alt="Mashaer Jewellery"
                   fill
                   priority
                   sizes="(min-width: 640px) 420px, 340px"
@@ -347,7 +347,9 @@ export function QRBanner() {
           <div className="relative aspect-[3/4] rounded-2xl bg-gradient-to-br from-white to-[#f5efe2] p-8 shadow-2xl ring-1 ring-white/10">
             <div className="flex flex-col items-center text-center text-[var(--color-ink)]">
               <Logo color="dark" variant="mark" className="h-12 w-12" />
-              <p className="mt-3 font-display text-sm tracking-wider">HEKAYA</p>
+              <p className="mt-3 font-display text-sm tracking-wider">
+                MASHAER
+              </p>
               <div className="my-6 h-44 w-44 rounded-md bg-white p-3 shadow-inner ring-1 ring-[var(--color-border)]">
                 <FakeQR />
               </div>
@@ -355,7 +357,7 @@ export function QRBanner() {
                 {t("memory_title")}
               </p>
               <p className="mt-1 text-xs text-[var(--color-ink-muted)]">
-                hekaya-jewellery.com/memory
+                mashaer-jewellery.com/memory
               </p>
               <div className="divider-gold w-12" />
               <p className="text-[10px] uppercase tracking-[0.3em] text-[var(--color-primary-dark)]">
@@ -412,7 +414,7 @@ export function StoryStrip() {
           transition={{ duration: 0.7 }}
           className="mx-auto max-w-3xl text-center"
         >
-          <span className="eyebrow">Hekaya — حكاية</span>
+          <span className="eyebrow">Mashaer — مشاعر</span>
           <h2 className="mt-3 font-display text-4xl font-semibold sm:text-5xl">
             {t("story_title")}
           </h2>

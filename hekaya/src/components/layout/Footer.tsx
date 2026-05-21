@@ -125,7 +125,7 @@ export function Footer() {
           <ul className="space-y-2 pt-2 text-sm text-white/60">
             <li className="flex items-center gap-2">
               <Mail className="h-3.5 w-3.5 shrink-0 text-[var(--color-primary)]" />
-              hello@hekaya-jewellery.com
+              hello@mashaer-jewellery.com
             </li>
             <li className="flex items-center gap-2">
               <Phone className="h-3.5 w-3.5 shrink-0 text-[var(--color-primary)]" />
@@ -142,7 +142,8 @@ export function Footer() {
       <div className="border-t border-white/10">
         <div className="container-h flex flex-col items-center justify-between gap-3 py-5 text-xs text-white/45 md:flex-row">
           <p>
-            © {new Date().getFullYear()} Hekaya Jewellery. {t("footer_rights")}.
+            © {new Date().getFullYear()} Mashaer Jewellery. {t("footer_rights")}
+            .
           </p>
           <div className="flex items-center gap-3">
             <PaymentBadge>VISA</PaymentBadge>

@@ -207,6 +207,6 @@ export const useDataStore = create<DataState>()(
           };
         }),
     }),
-    { name: "hekaya-data", storage: createJSONStorage(() => safeStorage) },
+    { name: "mashaer-data", storage: createJSONStorage(() => safeStorage) },
   ),
 );

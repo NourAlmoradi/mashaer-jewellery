@@ -1,12 +1,12 @@
-# 💰 Cost Breakdown
+﻿# 💰 Cost Breakdown
 
-> Budget estimates at every growth stage — designed for zero-cost launch for Hekaya Jewellery
+> Budget estimates at every growth stage — designed for zero-cost launch for MASHAER JEWELLERY
 
 ---
 
 ## 1. Philosophy: Start Free, Scale Smart
 
-Hekaya Jewellery is designed to launch at **$0/month** using free tiers of every service. You only start paying when your business grows enough to justify the cost. Every paid upgrade has a clear trigger point.
+MASHAER JEWELLERY is designed to launch at **$0/month** using free tiers of every service. You only start paying when your business grows enough to justify the cost. Every paid upgrade has a clear trigger point.
 
 ---
 
@@ -23,7 +23,7 @@ Hekaya Jewellery is designed to launch at **$0/month** using free tiers of every
 | **GitHub** | Free | $0 | Unlimited private repos |
 | **Google Analytics** | Free | $0 | Traffic analytics |
 | **UptimeRobot** | Free | $0 | Uptime monitoring (50 monitors) |
-| **Domain** | `.com` | ~$1/month (~$12/year) | hekaya-Jewellery.com |
+| **Domain** | `.com` | ~$1/month (~$12/year) | mashaer-jewellery.com |
 
 ### Free Tier Limits
 | Service | Limit | What Happens at Limit |
@@ -124,11 +124,11 @@ Hekaya Jewellery is designed to launch at **$0/month** using free tiers of every
 
 ---
 
-## 7. Cost Comparison: Hekaya Jewellery vs. Alternatives
+## 7. Cost Comparison: MASHAER JEWELLERY vs. Alternatives
 
 | Platform | Monthly Cost | Transaction Fee | Customizable? |
 |----------|-------------|----------------|---------------|
-| **Hekaya (Ours)** | **$0-46** | **~2.9% - 3.9%** | ✅ 100% |
+| **Mashaer (Ours)** | **$0-46** | **~2.9% - 3.9%** | ✅ 100% |
 | Shopify | $29-79 | 2.9% + 30¢ + gateway | Limited |
 | Salla (سلة) | 99-299 SAR | 2.5-3% | Limited |
 | Zid (زد) | 99-460 SAR | Varies | Limited |

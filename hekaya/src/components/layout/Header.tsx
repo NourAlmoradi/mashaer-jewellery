@@ -32,7 +32,7 @@ export function Header() {
           <Link
             href="/"
             className="flex items-center transition hover:opacity-80"
-            aria-label="Hekaya"
+            aria-label="Mashaer"
           >
             <Logo />
           </Link>

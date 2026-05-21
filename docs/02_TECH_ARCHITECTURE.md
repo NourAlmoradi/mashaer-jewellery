@@ -1,6 +1,6 @@
-# 🛠️ Tech Stack & Architecture
+﻿# 🛠️ Tech Stack & Architecture
 
-> Technologies, database schema, API routes, and project structure for Hekaya Jewellery
+> Technologies, database schema, API routes, and project structure for MASHAER JEWELLERY
 
 > **⚠️ MVP vs Production:** This document covers both the **current MVP** (frontend-only, mocked data in localStorage, no real backend or payments) and the **production target** (Supabase + Stripe + PayPal). Sections marked 🔜 describe the production goal, not the current build.
 
@@ -91,15 +91,15 @@ hekaya/src/
 
 | Store           | localStorage key        | Notes                                                                                                                                                                 |
 | --------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `cart`          | `hekaya-cart`           | Cart items + per-order/per-piece QR choice + drawer open state                                                                                                        |
-| `locale`        | `hekaya-locale`         | Current `Locale` (`ar` default), syncs to a cookie for SSR-friendly fallback                                                                                          |
-| `data`          | `hekaya-data`           | Orders (capped at 30), memories (by token), collections, product overrides/customs/hidden ids. **safeStorage** evicts memory photos on quota errors and retries once. |
-| `adminSettings` | `hekaya-admin-settings` | Store info, QR colour/limits, per-emirate shipping rates, notification toggles                                                                                        |
-| `wishlist`      | `hekaya-wishlist`       | Persisted `ids: string[]` with `toggle / has / clear`                                                                                                                 |
+| `cart`          | `mashaer-cart`           | Cart items + per-order/per-piece QR choice + drawer open state                                                                                                        |
+| `locale`        | `mashaer-locale`         | Current `Locale` (`ar` default), syncs to a cookie for SSR-friendly fallback                                                                                          |
+| `data`          | `mashaer-data`           | Orders (capped at 30), memories (by token), collections, product overrides/customs/hidden ids. **safeStorage** evicts memory photos on quota errors and retries once. |
+| `adminSettings` | `mashaer-admin-settings` | Store info, QR colour/limits, per-emirate shipping rates, notification toggles                                                                                        |
+| `wishlist`      | `mashaer-wishlist`       | Persisted `ids: string[]` with `toggle / has / clear`                                                                                                                 |
 
 ### Address book (mock)
 
-Not a Zustand store — saved addresses live in `localStorage` directly under the key **`hekaya-mock-addresses`**, written by `account/page.tsx`. Demo login flag is **`hekaya-mock-user`**.
+Not a Zustand store — saved addresses live in `localStorage` directly under the key **`mashaer-mock-addresses`**, written by `account/page.tsx`. Demo login flag is **`mashaer-mock-user`**.
 
 ### Backend — Current MVP (Mocked)
 
@@ -399,10 +399,10 @@ PAYPAL_CLIENT_SECRET=               # ⚠️ Server-only! No NEXT_PUBLIC_
 # Supabase Storage uses NEXT_PUBLIC_SUPABASE_URL
 
 # Site
-NEXT_PUBLIC_SITE_URL=https://hekaya-Jewellery.com
-NEXT_PUBLIC_SITE_NAME=Hekaya Jewellery
+NEXT_PUBLIC_SITE_URL=https://mashaer-jewellery.com
+NEXT_PUBLIC_SITE_NAME=MASHAER JEWELLERY
 NEXT_PUBLIC_WHATSAPP_NUMBER=+971XXXXXXXXX
-ADMIN_EMAIL=admin@hekaya-Jewellery.com
+ADMIN_EMAIL=admin@mashaer-jewellery.com
 ```
 
 ---

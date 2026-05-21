@@ -26,8 +26,8 @@ import { products } from "@/data/products";
 import { formatDate, formatPrice, cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-const LS_KEY = "hekaya-mock-user";
-const ADDR_KEY = "hekaya-mock-addresses";
+const LS_KEY = "mashaer-mock-user";
+const ADDR_KEY = "mashaer-mock-addresses";
 
 type Tab = "overview" | "orders" | "memories" | "addresses" | "wishlist";
 

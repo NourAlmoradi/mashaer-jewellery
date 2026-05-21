@@ -37,13 +37,22 @@ const notoArabic = Noto_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "Hekaya Jewellery — A Story in Every Piece | مجوهرات حكاية",
+  title:
+    "Mashaer Jewellery — Feelings That Last, In Every Piece | مجوهرات مشاعر",
   description:
     "Premium children's jewellery for the UAE — every piece comes with a private QR Memory card to keep your moments forever. مجوهرات أطفال فاخرة مع بطاقة ذكرى رقمية.",
-  keywords: ["jewellery", "UAE", "children", "QR memory", "Hekaya", "مجوهرات"],
+  keywords: [
+    "jewellery",
+    "UAE",
+    "children",
+    "QR memory",
+    "Mashaer",
+    "مجوهرات",
+    "مشاعر",
+  ],
   openGraph: {
-    title: "Hekaya Jewellery",
-    description: "A Story in Every Piece — في كل قطعة… حكاية",
+    title: "Mashaer Jewellery",
+    description: "Feelings That Last, In Every Piece — في كل قطعة… مشاعر تبقى",
     type: "website",
   },
 };
@@ -54,7 +63,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const cookieStore = await cookies();
-  const cookieLocale = cookieStore.get("hekaya-locale")?.value;
+  const cookieLocale = cookieStore.get("mashaer-locale")?.value;
   const locale: Locale = cookieLocale === "en" ? "en" : "ar";
   const dir = locale === "ar" ? "rtl" : "ltr";
 

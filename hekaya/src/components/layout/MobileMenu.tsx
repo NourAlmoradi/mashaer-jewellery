@@ -87,7 +87,7 @@ export function MobileMenu({
             <div className="border-t border-[var(--color-border)] px-5 py-4">
               <LanguageSwitcher />
               <p className="mt-4 text-xs text-[var(--color-ink-faint)]">
-                © {new Date().getFullYear()} Hekaya Jewellery
+                © {new Date().getFullYear()} Mashaer Jewellery
               </p>
             </div>
           </motion.aside>

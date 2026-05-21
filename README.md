@@ -1,7 +1,7 @@
-# ✨ Hekaya Jewellery | مجوهرات حكاية
+﻿# ✨ MASHAER JEWELLERY | مجوهرات مشاعر
 
 > **Children's Jewellery with Dynamic QR Memory Codes**  
-> _"A Story in Every Piece" / "في كل قطعة… حكاية"_
+> _"Feelings That Last, In Every Piece" / "في كل قطعة… مشاعر تبقى"_
 
 A bilingual (Arabic-default, English-secondary), mobile-first, premium jewellery e-commerce experience for the UAE market — featuring a one-of-a-kind **QR Memory keepsake** system embedded into every piece.
 
@@ -70,7 +70,7 @@ The current build is a **frontend-only walkthrough** — backend / authenticatio
 ### i18n
 
 - Single set of routes (no `[locale]` folder)
-- Locale lives in a Zustand store (`hekaya-locale`), default `ar`
+- Locale lives in a Zustand store (`mashaer-locale`), default `ar`
 - `<html dir>` is updated client-side via the `useT` hook
 - Bilingual translations centralised in [`hekaya/src/lib/i18n.ts`](./hekaya/src/lib/i18n.ts)
 
@@ -148,7 +148,7 @@ Hekaya_Jewerlley/
 | `products/ProductsExplorer.tsx` | Filter sidebar + sort + grid for `/products`                                         |
 | `ui/Eyebrow.tsx`                | Sparkle-flanked uppercase label used above section titles                            |
 | `ui/FinalCtaBand.tsx`           | Gold-gradient CTA band reused on Home + About                                        |
-| `ui/Logo.tsx`                   | Pure SVG Hekaya wordmark (gold/dark/light variants)                                  |
+| `ui/Logo.tsx`                   | Pure SVG Mashaer wordmark (gold/dark/light variants)                                  |
 | `ui/PlaceholderJewel.tsx`       | SVG fallback graphic per category (ring/necklace/bracelet/earring/gem)               |
 
 ### `hekaya/src/data/`
@@ -227,4 +227,4 @@ See [`docs/`](./docs) for full design, architecture, and roadmap.
 
 ---
 
-© Hekaya Jewellery. All rights reserved.
+© MASHAER JEWELLERY. All rights reserved.

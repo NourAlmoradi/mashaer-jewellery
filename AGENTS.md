@@ -1,10 +1,10 @@
-# Repository Guide for AI Agents
+﻿# Repository Guide for AI Agents
 
 > Read this **first** before making changes. It encodes the conventions and intentional gaps that have caused doc-drift in past sessions.
 
 ## What this repo is
 
-**Hekaya Jewellery** — a bilingual (AR/EN) Next.js storefront with a unique "QR Memory" feature. The app is currently an **MVP**: real UI, no real backend.
+**MASHAER JEWELLERY** — a bilingual (AR/EN) Next.js storefront with a unique "QR Memory" feature. The app is currently an **MVP**: real UI, no real backend.
 
 ## Tech baseline (do not change without good reason)
 
@@ -15,8 +15,8 @@
 
 ## Things that look missing but are intentional
 
-- **No `middleware.ts` / `proxy.ts`.** Locale is held in a Zustand store (`hekaya-locale`, default `ar`) + cookie. `<html lang/dir>` is updated client-side by `useT()`. Do **not** add a `[locale]` segment unless explicitly asked.
-- **No real auth.** `/account` and `/admin` are gated by a localStorage flag (`hekaya-mock-user`). Treat all admin pages as open-by-design in MVP.
+- **No `middleware.ts` / `proxy.ts`.** Locale is held in a Zustand store (`mashaer-locale`, default `ar`) + cookie. `<html lang/dir>` is updated client-side by `useT()`. Do **not** add a `[locale]` segment unless explicitly asked.
+- **No real auth.** `/account` and `/admin` are gated by a localStorage flag (`mashaer-mock-user`). Treat all admin pages as open-by-design in MVP.
 - **No real payment.** Checkout step 3 shows Card / Apple Pay / PayPal as visual choices. `placeOrder()` mints a local order after a 1.1s `setTimeout`. Do not point real customers at this.
 - **No backend / database.** All persistence is `localStorage` via Zustand `persist`. There is a `safeStorage` wrapper in `data.store.ts` that drops memory photos on `QuotaExceededError` and retries.
 - **No image uploads to cloud.** Memory photos are downscaled to ≤800 px JPEG q=0.7 and stored as data URLs.
@@ -26,13 +26,13 @@
 
 | Key                     | Owner                                                                                        |
 | ----------------------- | -------------------------------------------------------------------------------------------- |
-| `hekaya-cart`           | `stores/cart.store.ts`                                                                       |
-| `hekaya-locale`         | `stores/locale.store.ts`                                                                     |
-| `hekaya-data`           | `stores/data.store.ts` (orders, memories, collections, product overrides/customs/hidden ids) |
-| `hekaya-admin-settings` | `stores/adminSettings.store.ts`                                                              |
-| `hekaya-wishlist`       | `stores/wishlist.store.ts`                                                                   |
-| `hekaya-mock-user`      | `app/account/page.tsx` (login flag)                                                          |
-| `hekaya-mock-addresses` | `app/account/page.tsx` (address book)                                                        |
+| `mashaer-cart`           | `stores/cart.store.ts`                                                                       |
+| `mashaer-locale`         | `stores/locale.store.ts`                                                                     |
+| `mashaer-data`           | `stores/data.store.ts` (orders, memories, collections, product overrides/customs/hidden ids) |
+| `mashaer-admin-settings` | `stores/adminSettings.store.ts`                                                              |
+| `mashaer-wishlist`       | `stores/wishlist.store.ts`                                                                   |
+| `mashaer-mock-user`      | `app/account/page.tsx` (login flag)                                                          |
+| `mashaer-mock-addresses` | `app/account/page.tsx` (address book)                                                        |
 
 ## Folder map (high-level)
 
@@ -55,7 +55,7 @@ hekaya/src/types/       Shared TS types
 - **No external images** — every product card falls back to `<PlaceholderJewel />` when `images[]` is empty.
 - **Animations** — `framer-motion`. Toasts via `sonner`.
 - **Styling** — Tailwind v4 CSS-only `@theme` in `globals.css`. Use the `--color-*` design tokens; do **not** create a `tailwind.config.ts`.
-- **Address book on checkout** — `CheckoutClient.tsx` reads `hekaya-mock-addresses` to offer a saved-address picker on step 1. Keep the `SavedAddress` shape in sync with `account/page.tsx`.
+- **Address book on checkout** — `CheckoutClient.tsx` reads `mashaer-mock-addresses` to offer a saved-address picker on step 1. Keep the `SavedAddress` shape in sync with `account/page.tsx`.
 
 ## Workflow expectations
 

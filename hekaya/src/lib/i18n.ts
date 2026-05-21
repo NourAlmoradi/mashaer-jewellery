@@ -2,16 +2,19 @@ export type Locale = "ar" | "en";
 
 export const translations = {
   // Common
-  brand: { ar: "حكاية", en: "Hekaya" },
-  brandFull: { ar: "مجوهرات حكاية", en: "Hekaya Jewellery" },
-  tagline: { ar: "في كل قطعة… حكاية", en: "A Story in Every Piece" },
+  brand: { ar: "مشاعر", en: "Mashaer" },
+  brandFull: { ar: "مجوهرات مشاعر", en: "Mashaer Jewellery" },
+  tagline: {
+    ar: "في كل قطعة… مشاعر تبقى",
+    en: "Feelings That Last, In Every Piece",
+  },
 
   // Nav
   nav_home: { ar: "الرئيسية", en: "Home" },
   nav_shop: { ar: "المتجر", en: "Shop" },
   nav_collections: { ar: "المجموعات", en: "Collections" },
   nav_qr: { ar: "ذكرى QR", en: "QR Memory" },
-  nav_about: { ar: "عن حكاية", en: "About" },
+  nav_about: { ar: "عن مشاعر", en: "About" },
   nav_contact: { ar: "تواصل معنا", en: "Contact" },
   nav_account: { ar: "حسابي", en: "Account" },
   nav_admin: { ar: "لوحة التحكم", en: "Admin" },
@@ -24,7 +27,7 @@ export const translations = {
     ar: "مجوهرات الأطفال الفاخرة",
     en: "Premium Children's Jewellery",
   },
-  hero_title: { ar: "كل قطعة… تروي حكاية", en: "Every Piece Tells a Story" },
+  hero_title: { ar: "كل قطعة… تحمل مشاعر", en: "Every Piece Holds a Feeling" },
   hero_subtitle: {
     ar: "مجوهرات مصممة بدقة، تحمل ذكرى رقمية محفوظة برمز QR — لتبقى لحظاتكم خالدة، تُلبس وتُورث.",
     en: "Crafted jewellery with a private QR memory keepsake — for moments worth keeping forever, worn today and inherited tomorrow.",
@@ -76,16 +79,16 @@ export const translations = {
     en: "Worn Today. Inherited Tomorrow.",
   },
   story_text: {
-    ar: "لا نصمم للزينة فقط، بل لنحفظ لحظات تستحق أن تبقى. حكاية ليست مجوهرات… حكاية وعد.",
-    en: "We don't design for adornment alone — we design to preserve moments worth keeping. Hekaya isn't jewellery. It's a promise.",
+    ar: "لا نصمم للزينة وحدها، بل نحفظ نبضات اللحظات التي تستحقّ الخلود. مشاعر ليست مجوهرات… مشاعر وعدٌ يُلبَس.",
+    en: "We don't craft for adornment alone — we craft to preserve the heartbeat of moments worth keeping. Mashaer isn't jewellery. It's a promise you can wear.",
   },
   value_meaning: { ar: "المعنى قبل الشكل", en: "Meaning Over Ornament" },
   value_timeless: { ar: "ذكرى خالدة", en: "Timeless Memory" },
   value_quiet: { ar: "فخامة هادئة", en: "Quiet Luxury" },
 
-  testimonials_title: { ar: "حكايات عملائنا", en: "Their Stories" },
+  testimonials_title: { ar: "مشاعر عائلتنا", en: "Their Feelings" },
   testimonials_sub: {
-    ar: "ماذا يقول من اقتنوا حكاية",
+    ar: "ماذا تقول عائلة مشاعر",
     en: "What our family says",
   },
 
@@ -347,10 +350,10 @@ export const translations = {
   status_cancelled: { ar: "ملغى", en: "Cancelled" },
 
   // Footer
-  footer_about: { ar: "عن حكاية", en: "About Hekaya" },
+  footer_about: { ar: "عن مشاعر", en: "About Mashaer" },
   footer_about_d: {
-    ar: "مجوهرات تروي حكاية. مصممة بدقة، تحمل لحظاتك للأبد.",
-    en: "Jewellery that tells a story. Crafted with care, holding your moments forever.",
+    ar: "مجوهرات تنبض بالمشاعر. مصاغة بأناقة هادئة، لتحمل أغلى لحظاتكِ إلى الأبد.",
+    en: "Jewellery that carries feeling. Crafted with quiet elegance to hold your most precious moments — forever.",
   },
   footer_shop: { ar: "تسوق", en: "Shop" },
   footer_help: { ar: "مساعدة", en: "Help" },
@@ -364,10 +367,10 @@ export const translations = {
   subscribe: { ar: "اشترك", en: "Subscribe" },
 
   // About
-  about_title: { ar: "حكايتنا", en: "Our Story" },
+  about_title: { ar: "قصتنا", en: "Our Story" },
   about_intro: {
-    ar: "حكاية ولدت من إيمان عميق بأن المجوهرات أكثر من مجرد زينة — هي ذكريات تُلبس.",
-    en: "Hekaya was born from a deep belief that jewellery is more than ornament — it is memory you can wear.",
+    ar: "وُلدت مشاعر من قناعة صادقة بأن المجوهرات أعمق من الزينة — هي مشاعر تُلبَس وذكريات تُورَّث.",
+    en: "Mashaer was born from a sincere belief that jewellery is deeper than ornament — it is feeling you can wear and memory you can pass on.",
   },
 
   // Contact
@@ -412,14 +415,14 @@ export const translations = {
     en: "Ready to Create a Memory?",
   },
   cta_ready_sub: {
-    ar: "اختاري قطعة، وأرفقي بها لحظة. هكذا تُولد الحكايات.",
+    ar: "اختاري قطعة، وأرفقي بها لحظة. هكذا تُولد المشاعر الخالدة.",
     en: "Pick a piece, attach a moment. That's how stories begin.",
   },
   cta_ready_btn: { ar: "تسوّقي الآن", en: "Shop Now" },
-  cta_about_eyebrow: { ar: "كوني جزءًا من الحكاية", en: "Join the story" },
+  cta_about_eyebrow: { ar: "كوني جزءًا من مشاعرنا", en: "Join the feeling" },
   cta_about_title: {
-    ar: "كوني جزءًا من الحكاية",
-    en: "Be Part of the Story",
+    ar: "كوني جزءًا من مشاعرنا",
+    en: "Be Part of the Feeling",
   },
   cta_about_sub: {
     ar: "اكتشفي مجموعتنا واختاري القطعة التي تحمل ذكراكِ الأغلى.",
@@ -499,7 +502,7 @@ export const translations = {
   message_counter: { ar: "حرف", en: "characters" },
 
   // About restyle
-  about_eyebrow: { ar: "حكايتنا", en: "Our Story" },
+  about_eyebrow: { ar: "قصتنا", en: "Our Story" },
   about_hero_l1: { ar: "أكثر من مجوهرات.", en: "More Than Jewellery." },
   about_hero_l2: { ar: "إرث يُورث.", en: "A Legacy." },
   about_hero_sub: {

@@ -30,11 +30,11 @@ export type AdminSettingsState = {
 
 const defaults: Pick<AdminSettingsState, "store" | "shipping"> = {
   store: {
-    email: "hello@hekayajewellery.com",
+    email: "hello@mashaer-jewellery.com",
     phone: "+971 50 000 0000",
     whatsapp: "+971 50 000 0000",
-    instagram: "@hekayajewellery",
-    facebook: "hekayajewellery",
+    instagram: "@mashaerjewellery",
+    facebook: "mashaerjewellery",
   },
   shipping: {
     dubai: 0,
@@ -56,7 +56,7 @@ export const useAdminSettings = create<AdminSettingsState>()(
         set((cur) => ({ shipping: { ...cur.shipping, ...sh } })),
     }),
     {
-      name: "hekaya-admin-settings",
+      name: "mashaer-admin-settings",
       storage: createJSONStorage(() => localStorage),
       version: 2,
       // v1 had nameEn/nameAr/taglineEn/taglineAr/address, qr/notifications

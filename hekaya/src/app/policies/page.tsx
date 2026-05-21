@@ -75,7 +75,7 @@ export default function PoliciesPage() {
 const ShippingAr = () => (
   <>
     <h2>الشحن والتوصيل</h2>
-    <p>نقوم بشحن جميع طلبيات حكاية بعناية فائقة ضمن صناديق هدية أنيقة.</p>
+    <p>نقوم بشحن جميع طلبيات مشاعر بعناية فائقة ضمن صناديق هدية أنيقة.</p>
     <ul>
       <li>التوصيل داخل الإمارات: ٢ – ٤ أيام عمل.</li>
       <li>الشحن مجاني للطلبات فوق ٥٠٠ درهم، وإلا ٣٠ درهم.</li>
@@ -86,7 +86,7 @@ const ShippingAr = () => (
 const ShippingEn = () => (
   <>
     <h2>Shipping & Delivery</h2>
-    <p>Every Hekaya order ships in our signature gift packaging.</p>
+    <p>Every Mashaer order ships in our signature gift packaging.</p>
     <ul>
       <li>UAE delivery: 2 – 4 business days.</li>
       <li>Free over AED 500, otherwise AED 30 flat.</li>
@@ -146,14 +146,14 @@ const PrivacyEn = () => (
 const TermsAr = () => (
   <>
     <h2>الشروط والأحكام</h2>
-    <p>باستخدامك لموقع حكاية فإنك توافق على هذه الشروط.</p>
+    <p>باستخدامك لموقع مشاعر فإنك توافق على هذه الشروط.</p>
     <p>جميع الأسعار بالدرهم الإماراتي وتشمل ضريبة القيمة المضافة.</p>
   </>
 );
 const TermsEn = () => (
   <>
     <h2>Terms & Conditions</h2>
-    <p>By using Hekaya, you agree to these terms.</p>
+    <p>By using Mashaer, you agree to these terms.</p>
     <p>All prices in AED, inclusive of VAT.</p>
   </>
 );

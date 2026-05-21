@@ -1,6 +1,6 @@
-# 💳 Payment & Checkout
+﻿# 💳 Payment & Checkout
 
-> How to accept payments securely for Hekaya Jewellery
+> How to accept payments securely for MASHAER JEWELLERY
 
 ---
 
@@ -69,7 +69,7 @@ No server, no real payment call, no webhook. The chosen `paymentMethod` is store
 
 ### Saved-address autofill
 
-Step 1 reads `localStorage["hekaya-mock-addresses"]` (written by `account/page.tsx`). When at least one saved address exists, a small picker is shown above the form letting the customer prefill the fields with one click.
+Step 1 reads `localStorage["mashaer-mock-addresses"]` (written by `account/page.tsx`). When at least one saved address exists, a small picker is shown above the form letting the customer prefill the fields with one click.
 
 ---
 
@@ -119,7 +119,7 @@ Shipping is computed in `CheckoutClient.tsx` via `rateForEmirate()` and the **ad
 
 **Free-shipping rule:** subtotal **> 500 AED** → `ship = 0` regardless of emirate.
 
-Admins can change all of these from `/admin/settings → Shipping` and the change is immediately reflected at checkout (Zustand `persist`, key `hekaya-admin-settings`).
+Admins can change all of these from `/admin/settings → Shipping` and the change is immediately reflected at checkout (Zustand `persist`, key `mashaer-admin-settings`).
 
 ```ts
 // Effective rate (CheckoutClient.tsx)

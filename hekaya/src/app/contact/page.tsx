@@ -186,7 +186,7 @@ export default function ContactPage() {
           <ContactCard
             Icon={Mail}
             title={locale === "ar" ? "البريد" : "Email"}
-            value="hello@hekaya-jewellery.com"
+            value="hello@mashaer-jewellery.com"
           />
           <ContactCard
             Icon={Phone}

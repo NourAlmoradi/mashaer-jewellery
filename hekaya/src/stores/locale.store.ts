@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import type { Locale } from "@/types";
 
-const COOKIE_NAME = "hekaya-locale";
+const COOKIE_NAME = "mashaer-locale";
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
 function writeCookie(locale: Locale) {

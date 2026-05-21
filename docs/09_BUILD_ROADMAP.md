@@ -1,6 +1,6 @@
-# 🗺️ Build Roadmap
+﻿# 🗺️ Build Roadmap
 
-> 8-week step-by-step plan to build Hekaya Jewellery from zero to launch
+> 8-week step-by-step plan to build MASHAER JEWELLERY from zero to launch
 
 ---
 
@@ -198,7 +198,7 @@ Full auth system. Users register, login, manage profile, view orders, and access
 
 ### Goal: The unique feature — QR codes with digital memory pages
 
-> This is the feature that differentiates Hekaya Jewellery. See [04_QR_MEMORY_SYSTEM.md](04_QR_MEMORY_SYSTEM.md) for full spec.
+> This is the feature that differentiates MASHAER JEWELLERY. See [04_QR_MEMORY_SYSTEM.md](04_QR_MEMORY_SYSTEM.md) for full spec.
 
 **Day 1-2: QR Generation**
 
@@ -214,7 +214,7 @@ Full auth system. Users register, login, manage profile, view orders, and access
 - [ ] Display timeline of photos and milestones
 - [ ] Beautiful, animated, swipeable gallery
 - [ ] Optional PIN protection (prompt for PIN before showing content)
-- [ ] "This memory powered by Hekaya Jewellery" subtle branding
+- [ ] "This memory powered by MASHAER JEWELLERY" subtle branding
 
 **Day 5-7: Memory Editor (Owner Only)**
 
@@ -308,7 +308,7 @@ Complete checkout flow with real payments (Stripe + PayPal). Admin can manage pr
 
 - [ ] Switch Stripe + PayPal from test/sandbox to live keys
 - [ ] Deploy to Vercel production (see [07_DEPLOYMENT.md](07_DEPLOYMENT.md))
-- [ ] Connect custom domain (`hekaya-Jewellery.com`)
+- [ ] Connect custom domain (`mashaer-jewellery.com`)
 - [ ] Verify SSL is active (https)
 - [ ] Set up UptimeRobot monitoring
 - [ ] Submit sitemap to Google Search Console
@@ -317,7 +317,7 @@ Complete checkout flow with real payments (Stripe + PayPal). Admin can manage pr
 
 ### ✅ Week 8 Deliverable
 
-Hekaya Jewellery is LIVE at `hekaya-Jewellery.com`! 🎉
+MASHAER JEWELLERY is LIVE at `mashaer-jewellery.com`! 🎉
 
 ---
 

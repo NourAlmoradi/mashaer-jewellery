@@ -194,7 +194,7 @@ export default function OrderConfirmation({
                       </Link>
                       <a
                         href={q.dataUrl}
-                        download={`hekaya-qr-${q.token}.png`}
+                        download={`mashaer-qr-${q.token}.png`}
                         className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
                       >
                         <Download className="h-4 w-4" />

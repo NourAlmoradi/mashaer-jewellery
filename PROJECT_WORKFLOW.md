@@ -1,6 +1,6 @@
-# Hekaya Jewellery — Complete Project Workflow
+﻿# MASHAER JEWELLERY — Complete Project Workflow
 
-> **مجوهرات حكاية — "في كل قطعة… حكاية"**
+> **مجوهرات مشاعر — "في كل قطعة… مشاعر تبقى"**
 > A children's Jewellery e-commerce platform with a unique QR Memory system.
 > This document describes the full business flow, user experience, and system behavior.
 
@@ -30,15 +30,15 @@ cd hekaya && npm install && npm run dev
 
 ---
 
-## 1. What is Hekaya Jewellery?
+## 1. What is MASHAER JEWELLERY?
 
-Hekaya Jewellery is a **bilingual (Arabic/English)** online Jewellery store targeting the **UAE market**. The store primarily sells **children's Jewellery** but also serves all age groups.
+MASHAER JEWELLERY is a **bilingual (Arabic/English)** online Jewellery store targeting the **UAE market**. The store primarily sells **children's Jewellery** but also serves all age groups.
 
 Every eligible Jewellery piece comes with a **unique QR Memory code** — a physical card containing a QR code that unlocks a private digital memory page. Parents scan the QR, upload photos and a heartfelt message, and create a keepsake that lasts forever.
 
 **What makes this different from any other Jewellery store:**
 
-| Normal Jewellery Shop            | Hekaya Jewellery                      |
+| Normal Jewellery Shop            | MASHAER JEWELLERY                      |
 | -------------------------------- | ------------------------------------- |
 | Customer buys → Customer forgets | Customer buys → Receives QR card      |
 | No emotional connection          | Scans QR → Uploads precious photos    |
@@ -51,7 +51,7 @@ Every eligible Jewellery piece comes with a **unique QR Memory code** — a phys
 
 ```mermaid
 flowchart TD
-    A["🏠 Customer visits Hekaya website"] --> B["🛍️ Browses products"]
+    A["🏠 Customer visits Mashaer Website"] --> B["🛍️ Browses products"]
     B --> C["💍 Selects a product"]
     C --> D["📐 Chooses variation\n(size, material)"]
     D --> E["🛒 Adds to cart"]
@@ -93,7 +93,7 @@ At checkout, the customer chooses whether to add a QR Memory to their order:
 After payment is confirmed, the system:
 
 1. Generates a unique token (random 8-character code)
-2. Creates a QR code image pointing to `hekaya-Jewellery.com/memory/[token]`
+2. Creates a QR code image pointing to `mashaer-jewellery.com/memory/[token]`
 3. Stores the QR in the database as **inactive** (no memories yet)
 4. QR code is printed on a physical card and placed inside the Jewellery packaging
 
@@ -101,7 +101,7 @@ After payment is confirmed, the system:
 
 ```mermaid
 flowchart TD
-    A["📱 Customer scans QR code\non physical card"] --> B["🌐 Opens:\nhekaya-Jewellery.com/memory/abc123"]
+    A["📱 Customer scans QR code\non physical card"] --> B["🌐 Opens:\nmashaer-jewellery.com/memory/abc123"]
     B --> C{"Memory page\nhas content?"}
 
     C -->|"No (first time)"| D["🔐 Login required\nto set up memory"]
@@ -489,7 +489,7 @@ erDiagram
 | Supabase Storage (Images) | $0                   | Pay-per-use          | Photo storage               |
 | Stripe (Apple Pay + MC)   | ~2.9% + 1 AED/tx     | ~2.9% + 1 AED/tx     | Card + Apple Pay processing |
 | PayPal                    | ~3.9% + fixed AED/tx | ~3.9% + fixed AED/tx | PayPal balances             |
-| Domain                    | ~$12/year            | ~$12/year            | hekaya-Jewellery.com        |
+| Domain                    | ~$12/year            | ~$12/year            | mashaer-jewellery.com        |
 
 ### First Year Total: ~$12 (domain only) + payment processing fees
 
@@ -533,7 +533,7 @@ erDiagram
 ---
 
 <p align="center">
-  <strong>Hekaya Jewellery</strong> — مجوهرات حكاية<br>
-  "A Story in Every Piece" / "في كل قطعة… حكاية"<br><br>
+  <strong>MASHAER JEWELLERY</strong> — مجوهرات مشاعر<br>
+  "Feelings That Last, In Every Piece" / "في كل قطعة… مشاعر تبقى"<br><br>
   <em>Document prepared for project approval</em>
 </p>

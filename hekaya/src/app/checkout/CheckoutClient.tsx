@@ -45,7 +45,7 @@ type SavedAddress = {
   city: string;
   country: string;
 };
-const ADDR_KEY = "hekaya-mock-addresses";
+const ADDR_KEY = "mashaer-mock-addresses";
 
 function loadSavedAddresses(): SavedAddress[] {
   if (typeof window === "undefined") return [];

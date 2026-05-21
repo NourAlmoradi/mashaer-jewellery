@@ -1,18 +1,18 @@
-# 📖 Hekaya Jewellery: Comprehensive Project Overview
+﻿# 📖 MASHAER JEWELLERY: Comprehensive Project Overview
 
-> **Brand Name:** Hekaya Jewellery / مجوهرات حكاية  
-> **Tagline:** "A Story in Every Piece" / "في كل قطعة… حكاية"  
-> **Domain:** hekaya-Jewellery.com
+> **Brand Name:** MASHAER JEWELLERY / مجوهرات مشاعر  
+> **Tagline:** "Feelings That Last, In Every Piece" / "في كل قطعة… مشاعر تبقى"  
+> **Domain:** mashaer-jewellery.com
 
 ---
 
 ## 1. Executive Summary (The Core Idea)
 
-**Hekaya Jewellery** is a premium, bilingual (Arabic & English) e-commerce platform specializing in **children's fine Jewellery**.
+**MASHAER JEWELLERY** is a premium, bilingual (Arabic & English) e-commerce platform specializing in **children's fine Jewellery**.
 
-While traditional Jewellery is valued purely for its material, Hekaya introduces a profound emotional layer: **The Dynamic QR Memory System**. Every piece of kids' Jewellery sold comes with a unique, dynamic QR code. When scanned, this code unlocks a private, parent-managed digital memory page dedicated to the child wearing the piece.
+While traditional Jewellery is valued purely for its material, Mashaer introduces a profound emotional layer: **The Dynamic QR Memory System**. Every piece of kids' Jewellery sold comes with a unique, dynamic QR code. When scanned, this code unlocks a private, parent-managed digital memory page dedicated to the child wearing the piece.
 
-Hekaya transforms a simple piece of gold into a living, digital heirloom that captures a child's precious photos and heartfelt messages.
+Mashaer transforms a simple piece of gold into a living, digital heirloom that captures a child's precious photos and heartfelt messages.
 
 ---
 
@@ -22,7 +22,7 @@ Hekaya transforms a simple piece of gold into a living, digital heirloom that ca
 
 When parents or grandparents buy Jewellery for children, the pieces are often outgrown, stored away, or passed down with the memories surrounding them forgotten. A gold bracelet bought for a 1st birthday is just a bracelet ten years later; the emotional context of _when_ and _why_ it was given is lost to time.
 
-### The Hekaya Solution
+### The Mashaer Solution
 
 We digitize the emotional value of the Jewellery. By tying a physical, high-quality piece of Jewellery to a secure digital memory timeline, we ensure that the story outlives the moment. The Jewellery becomes a physical key to a digital vault of childhood memories.
 
@@ -30,7 +30,7 @@ We digitize the emotional value of the Jewellery. By tying a physical, high-qual
 
 ## 3. The Star Feature: Dynamic QR Memory System
 
-This is the original, innovative idea that sets Hekaya apart from any other Jewellery brand in the market.
+This is the original, innovative idea that sets Mashaer apart from any other Jewellery brand in the market.
 
 **How it works (The User Journey):**
 
@@ -108,4 +108,4 @@ Introduce Buy-Now-Pay-Later (Tabby/Tamara) to increase conversion rates. Expand 
 
 ## 9. Summary Conclusion
 
-Hekaya Jewellery is not just an e-commerce store; it is a **memory-keeping platform disguised as a premium Jewellery brand**. By combining physical craftsmanship with digital innovation, it offers a product that increases in emotional value over time, ensuring high customer loyalty, strong word-of-mouth marketing, and a completely unique position in the GCC Jewellery market.
+MASHAER JEWELLERY is not just an e-commerce store; it is a **memory-keeping platform disguised as a premium Jewellery brand**. By combining physical craftsmanship with digital innovation, it offers a product that increases in emotional value over time, ensuring high customer loyalty, strong word-of-mouth marketing, and a completely unique position in the GCC Jewellery market.

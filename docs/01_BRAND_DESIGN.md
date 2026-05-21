@@ -1,23 +1,23 @@
-# 🎨 Brand & Design System
+﻿# 🎨 Brand & Design System
 
-> Hekaya Jewellery — A premium children's Jewellery brand that captures memories for a lifetime
-> **"A Story in Every Piece" / "في كل قطعة… حكاية"**
+> MASHAER JEWELLERY — A premium children's Jewellery brand that captures memories for a lifetime
+> **"Feelings That Last, In Every Piece" / "في كل قطعة… مشاعر تبقى"**
 
 ---
 
 ## 1. Brand Identity
 
 ### Brand Name
-- **Arabic:** مجوهرات حكاية (Hekaya Jewellery)
-- **English:** Hekaya Jewellery
-- **Tagline Arabic:** في كل قطعة… حكاية
-- **Tagline English:** A Story in Every Piece
+- **Arabic:** مجوهرات مشاعر (MASHAER JEWELLERY)
+- **English:** MASHAER JEWELLERY
+- **Tagline Arabic:** في كل قطعة… مشاعر تبقى
+- **Tagline English:** Feelings That Last, In Every Piece
 
-### The Hekaya Vision (الرؤية)
+### The Mashaer Vision (الرؤية)
 **"To become the definitive destination for moments worth keeping forever — through Jewellery that carries meaning across generations."**
-"أن تصبح “حكاية” المرجع الأول لكل لحظة تُراد أن تُحفظ للأبد — عبر قطعة تُلبس وتُورث."
+"أن تصبح “مشاعر” المرجع الأول لكل لحظة تُراد أن تُحفظ للأبد — عبر قطعة تُلبس وتُورث."
 
-### The Hekaya Mission (المهمة)
+### The Mashaer Mission (المهمة)
 **"We craft meaningful pieces that capture life’s earliest moments, transforming them into lasting stories you can wear."**
 "نصمم قطعًا تحمل معنى عاطفيًا عميقًا، تُوثّق بدايات الحياة ولحظاتها الأولى، لتبقى ذكرى حيّة مع كل من يرتديها."
 
@@ -37,7 +37,7 @@
 
 ### Logo Requirements
 - **Style:** Minimalist, elegant, quiet luxury mark
-- **Text:** "Hekaya Jewellery" / "مجوهرات حكاية"
+- **Text:** "MASHAER JEWELLERY" / "مجوهرات مشاعر"
 - **Colors:** Warm Gold (#C9A96E) and Charcoal Black (#1A1A1A)
 - **Vibe:** Heritage-inspired, clean, timeless.
 

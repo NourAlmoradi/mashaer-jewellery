@@ -7,8 +7,7 @@ type LogoProps = {
 };
 
 /**
- * Hekaya Logo — flourished H with a small crowned silhouette and stardust.
- * Pure SVG, scalable, no external assets.
+ * Mashaer Logo — elegant wordmark with subtle accent. Pure SVG, scalable, no external assets.
  */
 export function Logo({
   className,
@@ -17,7 +16,6 @@ export function Logo({
 }: LogoProps) {
   const accent = color === "light" ? "#ffffff" : "#c9a96e";
   const text = color === "light" ? "#ffffff" : "#1a1a1a";
-
 
   if (variant === "full") {
     return (
@@ -31,12 +29,12 @@ export function Logo({
           y="180"
           textAnchor="middle"
           fontFamily="Cormorant Garamond, serif"
-          fontSize="34"
+          fontSize="30"
           fontWeight="600"
           letterSpacing="6"
           fill={text}
         >
-          HEKAYA
+          MASHAER
         </text>
         <line
           x1="40"
@@ -76,7 +74,7 @@ export function Logo({
           fill={text}
           opacity="0.6"
         >
-          A STORY IN EVERY PIECE
+          FEELINGS THAT LAST
         </text>
       </svg>
     );
@@ -90,7 +88,7 @@ export function Logo({
           className="font-display text-xl font-semibold tracking-wider"
           style={{ color: text }}
         >
-          HEKAYA
+          MASHAER
         </span>
         <span
           className="text-[9px] font-medium tracking-[0.3em] uppercase"

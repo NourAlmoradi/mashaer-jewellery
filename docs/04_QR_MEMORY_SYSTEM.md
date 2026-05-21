@@ -1,4 +1,4 @@
-# 🔲 QR Memory System
+﻿# 🔲 QR Memory System
 
 > The core differentiator — Dynamic QR codes that store children's memories
 
@@ -17,7 +17,7 @@ When a customer buys a kids' Jewellery piece, they can choose to add a **unique 
 - **Emotional connection** — transforms Jewellery into a keepsake
 - **Repeat engagement** — parents keep coming back
 - **Gift-worthy** — grandparents scan QR and see grandchild's memories
-- **Unique in market** — an innovative feature that sets Hekaya Jewellery apart
+- **Unique in market** — an innovative feature that sets MASHAER JEWELLERY apart
 
 ---
 
@@ -79,7 +79,7 @@ Defaults are read from `adminSettings.qr.defaultColor` / `bgColor` so the admin 
 
 ### Persistence — `data.store.ts`
 
-Memories live in **`useDataStore.memories`** keyed by token, persisted under `localStorage["hekaya-data"]`:
+Memories live in **`useDataStore.memories`** keyed by token, persisted under `localStorage["mashaer-data"]`:
 
 ```ts
 type Memory = {
@@ -116,11 +116,11 @@ Each uploaded image is read with `FileReader`, drawn onto a `<canvas>` scaled to
 
 ## 4. Public Memory Page Design
 
-**URL:** `hekaya-Jewellery.com/memory/abc3def7`
+**URL:** `mashaer-jewellery.com/memory/abc3def7`
 
 ```
 ┌──────────────────────────────────────┐
-│        Hekaya Jewellery                │
+│        MASHAER JEWELLERY                │
 │                                      │
 │     🔑 Enter 4-digit PIN            │
 │     [____]  [View Memory →]         │
@@ -135,7 +135,7 @@ Each uploaded image is read with `FileReader`, drawn onto a `<canvas>` scaled to
 │  │   1    │ │   2    │ │   3    │  │
 │  └────────┘ └────────┘ └────────┘  │
 │                                      │
-│      Hekaya Jewellery                 │
+│      MASHAER JEWELLERY                 │
 └──────────────────────────────────────┘
 ```
 
