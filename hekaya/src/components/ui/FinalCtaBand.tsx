@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Eyebrow } from "./Eyebrow";
+import { FloralPattern } from "./FloralPattern";
 
 /**
  * Reusable gold-gradient call-to-action band.
@@ -22,7 +23,7 @@ export function FinalCtaBand({
   ctaHref: string;
 }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#d4b06a] via-[#c9a96e] to-[#b8935a] py-20 sm:py-24">
+    <section className="safe-pb relative overflow-hidden bg-gradient-to-br from-[#d8b07a] via-[#c9a96e] to-[#c98a7a] py-20 sm:py-24">
       {/* Decorative radial glow */}
       <div
         aria-hidden
@@ -31,6 +32,18 @@ export function FinalCtaBand({
           background:
             "radial-gradient(circle at 50% 0%, rgba(255,255,255,0.45), transparent 60%)",
         }}
+      />
+      <div aria-hidden className="noise-overlay absolute inset-0" />
+      {/* Floral ornaments */}
+      <FloralPattern
+        className="absolute -top-20 ltr:-left-24 rtl:-right-24 h-[480px] w-[480px]"
+        color="#ffffff"
+        opacity={0.12}
+      />
+      <FloralPattern
+        className="absolute -bottom-28 ltr:-right-24 rtl:-left-24 h-[520px] w-[520px]"
+        color="#ffffff"
+        opacity={0.1}
       />
       <div className="container-h relative text-center">
         <motion.div
@@ -63,7 +76,7 @@ export function FinalCtaBand({
           )}
           <Link
             href={ctaHref}
-            className="mt-8 inline-flex items-center gap-2 rounded-sm bg-[#1a1508] px-8 py-4 text-xs font-semibold uppercase tracking-[0.28em] text-white shadow-lg shadow-black/20 transition hover:bg-black"
+            className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-full bg-[#1a1207] px-8 py-4 text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-primary-light)] shadow-lg shadow-black/20 transition hover:bg-black hover:text-white"
           >
             {ctaLabel}
             <span aria-hidden>→</span>

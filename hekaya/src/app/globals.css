@@ -3,14 +3,20 @@
 @theme inline {
   /* Brand Colors — Quiet Luxury */
   --color-primary: #c9a96e;
-  --color-primary-dark: #b8944d;
+  --color-primary-dark: #a8853f;
   --color-primary-light: #e0d3b8;
   --color-primary-soft: #f5efe2;
+
+  /* Warm secondary — blush / rose-nude */
+  --color-blush: #f4e4dc;
+  --color-blush-deep: #e8c9bd;
+  --color-blush-soft: #faecdf;
+  --color-rose: #c98a7a;
 
   --color-bg: #fafaf8;
   --color-bg-secondary: #f2f0eb;
   --color-bg-tertiary: #ece8df;
-  --color-bg-dark: #1a1a1a;
+  --color-bg-dark: #1f1610;
   --color-bg-darker: #0f0f0f;
 
   --color-ink: #1a1a1a;
@@ -71,6 +77,18 @@ body {
 
 html[dir="rtl"] body {
   font-family: var(--font-body-ar);
+}
+
+html[dir="rtl"] [class*="tracking-"],
+html[dir="rtl"] .uppercase,
+html[dir="rtl"] .eyebrow,
+html[dir="rtl"] .btn,
+html[dir="rtl"] .badge,
+html[dir="rtl"] .label {
+  letter-spacing: 0 !important;
+}
+html[dir="rtl"] .uppercase {
+  text-transform: none;
 }
 
 ::selection {
@@ -388,4 +406,164 @@ html[dir="rtl"] .prose-h h2 {
 .prose-h ul li {
   margin-bottom: 0.375rem;
   line-height: 1.6;
+}
+
+/* ----- Fluid typography helpers (used by hero & section headings) ----- */
+.fs-display-xl {
+  font-size: clamp(2.5rem, 4vw + 1rem, 5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+.fs-display-lg {
+  font-size: clamp(1.875rem, 2.4vw + 1rem, 3.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+
+/* Arabic: letter-spacing breaks cursive glyph connections — always reset to 0.
+    Also adjust line-height and padding for better visual balance at larger sizes. */
+[dir="rtl"] .fs-display-xl,
+[dir="rtl"] .fs-display-lg {
+  letter-spacing: 0;
+}
+[dir="rtl"] .fs-display-xl {
+  line-height: 1.45;
+  padding-block: 0.15em;
+}
+[dir="rtl"] .fs-display-lg {
+  line-height: 1.45;
+  padding-block: 0.12em;
+}
+[dir="rtl"] .fs-display-md {
+  line-height: 1.45;
+}
+.fs-display-md {
+  font-size: clamp(1.25rem, 1.2vw + 0.85rem, 1.875rem);
+  line-height: 1.2;
+}
+.fs-body-lg {
+  font-size: clamp(1rem, 0.4vw + 0.9rem, 1.125rem);
+  line-height: 1.65;
+}
+
+/* ----- Section spacing (fluid) ----- */
+.section-fluid {
+  padding-block: clamp(3.5rem, 6vw, 6.5rem);
+}
+
+/* ----- Decorative washes / halos ----- */
+.bg-blush-wash {
+  background:
+    radial-gradient(120% 80% at 10% 0%, var(--color-blush) 0%, transparent 55%),
+    radial-gradient(
+      120% 80% at 100% 100%,
+      var(--color-blush-soft) 0%,
+      transparent 55%
+    ),
+    var(--color-bg);
+}
+.bg-cream-diagonal {
+  background: linear-gradient(
+    160deg,
+    var(--color-bg) 0%,
+    color-mix(in srgb, var(--color-blush) 40%, transparent) 100%
+  );
+}
+/* ----- Safe-area helper (iOS notches / home indicator) ----- */
+.safe-pb {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* ----- Slow rotation (hero rings) — respects reduced motion ----- */
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin-slow {
+  animation: spin-slow 60s linear infinite;
+}
+.spin-slow-rev {
+  animation: spin-slow 90s linear infinite reverse;
+}
+
+/* ----- Hero slide progress bar fill (matches 6s autoplay interval) ----- */
+@keyframes heroProgress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* ----- Gentle floating sparkle ----- */
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.float-y {
+  animation: float-y 6s ease-in-out infinite;
+}
+
+/* ----- Soft pulse for slider dots ----- */
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin-slow,
+  .spin-slow-rev {
+    animation: none !important;
+  }
+}
+
+/* ----- Noise overlay (subtle grain on gradients) ----- */
+.noise-overlay {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.5'/></svg>");
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* ----- Rose-toned divider ----- */
+.divider-rose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-block: 1rem;
+}
+.divider-rose::before,
+.divider-rose::after {
+  content: "";
+  height: 1px;
+  width: 2rem;
+  background: var(--color-rose);
+  opacity: 0.6;
+}
+.divider-rose > * {
+  color: var(--color-rose);
+}
+
+/* ----- Outlined-rose button variant ----- */
+.btn-outline-rose {
+  background: transparent;
+  color: var(--color-rose);
+  border-color: var(--color-rose);
+}
+.btn-outline-rose:hover:not(:disabled) {
+  background: var(--color-blush-soft);
+  color: var(--color-ink);
 }

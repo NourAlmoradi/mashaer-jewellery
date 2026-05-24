@@ -35,9 +35,34 @@ export const translations = {
   hero_cta_shop: { ar: "تسوق المجموعة", en: "Shop the Collection" },
   hero_cta_learn: { ar: "اكتشف ذكرى QR", en: "Discover QR Memory" },
 
+  // Hero slides (3 auto-rotating)
+  hero_slide1_eyebrow: { ar: "مشاعر تبقى", en: "Feelings That Last" },
+  hero_slide1_title_a: { ar: "في كل قطعة", en: "A Feeling" },
+  hero_slide1_title_b: { ar: "مشاعر تبقى", en: "In Every Piece" },
+  hero_slide1_sub: {
+    ar: "مجوهرات مصممة بدقة، تحمل ذكرى رقمية محفوظة برمز QR لتبقى لحظاتكم خالدة.",
+    en: "Crafted jewellery with a private QR memory keepsake — moments worth keeping forever.",
+  },
+
+  hero_slide2_eyebrow: { ar: "ذكرى QR حصرية", en: "Exclusive QR Memory" },
+  hero_slide2_title_a: { ar: "امسحي،", en: "Scan, Share," },
+  hero_slide2_title_b: { ar: "احفظي، أهدي", en: "Keep Forever" },
+  hero_slide2_sub: {
+    ar: "بطاقة QR خاصة داخل كل علبة. ارفعي صورة ورسالة من القلب… واحفظيها للأبد.",
+    en: "A private QR card in every box. Upload a photo and a heartfelt note — sealed forever.",
+  },
+
+  hero_slide3_eyebrow: { ar: "صناعة يدوية", en: "Handcrafted Quietly" },
+  hero_slide3_title_a: { ar: "قطع تُلبس", en: "Worn Today," },
+  hero_slide3_title_b: { ar: "وتُورث", en: "Inherited Tomorrow" },
+  hero_slide3_sub: {
+    ar: "ذهب وفضة معتمدة، تصاميم هادئة الفخامة تستحقّ أن تُورث جيلًا بعد جيل.",
+    en: "Certified gold & silver, quietly luxurious designs made to be passed down.",
+  },
+
   // Trust
   trust_quality: { ar: "خامات أصلية", en: "Authentic Materials" },
-  trust_quality_d: { ar: "ذهب وفضة معتمدة", en: "Certified gold & silver" },
+  trust_quality_d: { ar: "ذهب معتمد", en: "Certified gold " },
   trust_qr: { ar: "ذكرى QR مجانية", en: "Free QR Memory" },
   trust_qr_d: { ar: "مع كل قطعة مؤهلة", en: "With every eligible piece" },
 
@@ -47,6 +72,15 @@ export const translations = {
     ar: "اختاري قطعتك المفضلة من بين تشكيلتنا الفاخرة",
     en: "Find your favourite from our curated edit",
   },
+  collections_page_eyebrow: { ar: "عالم مشاعر", en: "The Mashaer Edit" },
+  collections_page_title: { ar: "مجموعاتنا", en: "Our Collections" },
+  collections_page_sub: {
+    ar: "كل مجموعة تروي حكاية — اختاري عالمكِ وابدئي رحلة من القطع التي تستحقّ أن تُورث.",
+    en: "Each collection tells a story — pick your world and begin a journey through pieces worth keeping.",
+  },
+  collection_pieces: { ar: "قطعة", en: "pieces" },
+  view_collection: { ar: "استعرضي المجموعة", en: "View Collection" },
+  no_collections: { ar: "لا توجد مجموعات بعد", en: "No collections yet" },
   featured_title: { ar: "القطع المميزة", en: "Featured Pieces" },
   featured_sub: {
     ar: "أحدث ما يستحق أن يُهدى ويُورث",
@@ -85,12 +119,6 @@ export const translations = {
   value_meaning: { ar: "المعنى قبل الشكل", en: "Meaning Over Ornament" },
   value_timeless: { ar: "ذكرى خالدة", en: "Timeless Memory" },
   value_quiet: { ar: "فخامة هادئة", en: "Quiet Luxury" },
-
-  testimonials_title: { ar: "مشاعر عائلتنا", en: "Their Feelings" },
-  testimonials_sub: {
-    ar: "ماذا تقول عائلة مشاعر",
-    en: "What our family says",
-  },
 
   // Product
   add_to_cart: { ar: "أضف إلى السلة", en: "Add to Cart" },

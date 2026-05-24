@@ -35,7 +35,7 @@ export function ProductCard({
       className="product-card group relative"
     >
       <Link href={`/product/${product.slug}`} className="block">
-        <div className="product-card-img relative aspect-[4/5] rounded-md ring-1 ring-[var(--color-border)] overflow-hidden">
+        <div className="product-card-img relative aspect-[4/5] overflow-hidden rounded-xl bg-[var(--color-blush-soft)] ring-1 ring-[var(--color-blush-deep)]/40">
           {product.images?.[0] ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -46,21 +46,11 @@ export function ProductCard({
           ) : (
             <PlaceholderJewel
               kind={kindFromCategory(product.categoryId)}
-              tone={product.placeholderTone}
+              tone={product.placeholderTone ?? "#f4e4dc"}
             />
           )}
           {/* badges */}
           <div className="absolute top-3 ltr:left-3 rtl:right-3 flex flex-col gap-1.5">
-            {product.isNew && (
-              <span className="badge badge-new">
-                {locale === "ar" ? "جديد" : "New"}
-              </span>
-            )}
-            {product.compareAtPrice && (
-              <span className="badge badge-sale">
-                {locale === "ar" ? "خصم" : "Sale"}
-              </span>
-            )}
             {product.isQrEligible && (
               <span className="badge badge-gold inline-flex items-center gap-1">
                 <QrCode className="h-3 w-3" />
@@ -84,7 +74,7 @@ export function ProductCard({
                     : "Saved to wishlist",
               );
             }}
-            className="absolute top-3 ltr:right-3 rtl:left-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow-sm ring-1 ring-black/5 backdrop-blur transition sm:opacity-0 sm:group-hover:opacity-100"
+            className="absolute top-3 ltr:right-3 rtl:left-3 grid h-10 w-10 place-items-center rounded-full bg-white/90 shadow-sm ring-1 ring-black/5 backdrop-blur transition hover:bg-white sm:opacity-0 sm:group-hover:opacity-100"
             aria-label="Add to wishlist"
           >
             <Heart
@@ -102,18 +92,15 @@ export function ProductCard({
           <h3 className="mt-1 line-clamp-1 font-display text-lg font-semibold text-[var(--color-ink)] transition group-hover:text-[var(--color-primary-dark)]">
             {tx(product.name)}
           </h3>
-          <p className="mt-0.5 line-clamp-1 text-sm text-[var(--color-ink-muted)]">
-            {tx(product.shortDescription ?? { ar: "", en: "" })}
-          </p>
+          {product.material && (
+            <p className="mt-0.5 line-clamp-1 text-sm text-[var(--color-ink-muted)]">
+              {tx(product.material)}
+            </p>
+          )}
           <div className="mt-2 flex items-baseline gap-2">
             <span className="font-display text-base font-semibold text-[var(--color-primary-dark)]">
               {formatPrice(product.price, locale)}
             </span>
-            {product.compareAtPrice && (
-              <span className="text-xs text-[var(--color-ink-faint)] line-through">
-                {formatPrice(product.compareAtPrice, locale)}
-              </span>
-            )}
           </div>
         </div>
       </Link>

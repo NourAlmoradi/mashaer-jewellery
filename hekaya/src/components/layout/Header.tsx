@@ -31,9 +31,12 @@ export function Header() {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center transition hover:opacity-80"
+            className="flex items-center gap-2.5 transition hover:opacity-85"
             aria-label="Mashaer"
           >
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] font-display text-base font-bold text-white shadow-[var(--shadow-soft)] ring-1 ring-[var(--color-primary-dark)]/40">
+              M
+            </span>
             <Logo />
           </Link>
 
@@ -41,7 +44,7 @@ export function Header() {
           <nav className="hidden items-center gap-8 text-sm font-medium lg:flex">
             <NavLink href="/">{t("nav_home")}</NavLink>
             <NavLink href="/products">{t("nav_shop")}</NavLink>
-            <NavLink href="/products">{t("nav_collections")}</NavLink>
+            <NavLink href="/collections">{t("nav_collections")}</NavLink>
             <NavLink href="/qr">{t("nav_qr")}</NavLink>
             <NavLink href="/about">{t("nav_about")}</NavLink>
             <NavLink href="/contact">{t("nav_contact")}</NavLink>
@@ -71,7 +74,7 @@ export function Header() {
             >
               <ShoppingBag className="h-5 w-5" />
               {count > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[var(--color-primary)] px-1 text-[10px] font-bold text-white shadow">
+                <span className="absolute -top-1 ltr:-right-1 rtl:-left-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-primary)] px-1 text-[10px] font-bold text-white shadow">
                   {count}
                 </span>
               )}

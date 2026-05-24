@@ -80,6 +80,36 @@ export function Logo({
     );
   }
 
+  if (variant === "mark") {
+    return (
+      <svg
+        viewBox="0 0 60 60"
+        className={cn("h-10 w-10", className)}
+        aria-hidden
+      >
+        <text
+          x="30"
+          y="43"
+          textAnchor="middle"
+          fontFamily="Cormorant Garamond, serif"
+          fontSize="42"
+          fontWeight="600"
+          fill={text}
+        >
+          M
+        </text>
+        <line
+          x1="8"
+          y1="51"
+          x2="52"
+          y2="51"
+          stroke={accent}
+          strokeWidth="1.2"
+        />
+      </svg>
+    );
+  }
+
   // inline (header)
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>

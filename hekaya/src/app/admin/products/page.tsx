@@ -214,11 +214,6 @@ export default function AdminProducts() {
                     <p className="font-semibold text-white">
                       {formatPrice(p.price, locale)}
                     </p>
-                    {p.compareAtPrice && (
-                      <p className="text-xs text-white/30 line-through">
-                        {formatPrice(p.compareAtPrice, locale)}
-                      </p>
-                    )}
                   </td>
                   <td className="px-4 py-4">
                     {p.isQrEligible ? (

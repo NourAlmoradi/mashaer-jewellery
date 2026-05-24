@@ -5,7 +5,6 @@ import {
   FeaturedProducts,
   QRBanner,
   StoryStrip,
-  Testimonials,
   HomeFinalCta,
 } from "@/components/home/HomeSections";
 
@@ -18,7 +17,6 @@ export default function HomePage() {
       <FeaturedProducts />
       <QRBanner />
       <StoryStrip />
-      <Testimonials />
       <HomeFinalCta />
     </>
   );

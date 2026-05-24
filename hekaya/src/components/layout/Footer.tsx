@@ -83,7 +83,7 @@ export function Footer() {
         {/* Shop */}
         <FooterCol title={t("footer_shop")}>
           <FLink href="/products">{t("nav_shop")}</FLink>
-          <FLink href="/products">{t("nav_collections")}</FLink>
+          <FLink href="/collections">{t("nav_collections")}</FLink>
           <FLink href="/qr">{t("nav_qr")}</FLink>
           <FLink href="/about">{t("nav_about")}</FLink>
         </FooterCol>
@@ -107,17 +107,17 @@ export function Footer() {
             onSubmit={(e) => {
               e.preventDefault();
             }}
-            className="flex overflow-hidden rounded-sm border border-white/15 bg-white/5"
+            className="flex w-full overflow-hidden rounded-full border border-white/15 bg-white/5"
           >
             <input
               type="email"
               required
               placeholder={t("email")}
-              className="flex-1 bg-transparent px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none"
+              className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder-white/40 outline-none"
             />
             <button
               type="submit"
-              className="bg-[var(--color-primary)] px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-[var(--color-primary-dark)]"
+              className="shrink-0 whitespace-nowrap bg-[var(--color-primary)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--color-primary-dark)] sm:px-6"
             >
               {t("subscribe")}
             </button>

@@ -207,6 +207,18 @@ export const useDataStore = create<DataState>()(
           };
         }),
     }),
-    { name: "mashaer-data", storage: createJSONStorage(() => safeStorage) },
+    {
+      name: "mashaer-data",
+      storage: createJSONStorage(() => safeStorage),
+      version: 2,
+      migrate: (state) => {
+        // v1 → v2: collections used to be persisted without `image`; force reseed
+        if (state && typeof state === "object") {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (state as any).collections = [];
+        }
+        return state;
+      },
+    },
   ),
 );

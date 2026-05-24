@@ -33,7 +33,7 @@ export function Eyebrow({
   align?: "center" | "start";
 }) {
   const color =
-    tone === "light" ? "text-[#d4b06a]" : "text-[var(--color-primary-dark)]";
+    tone === "light" ? "text-white/95" : "text-[var(--color-primary-dark)]";
   return (
     <div
       className={cn(
@@ -45,7 +45,7 @@ export function Eyebrow({
       <Sparkle className={cn("h-3.5 w-3.5", color)} />
       <span
         className={cn(
-          "text-[11px] font-semibold uppercase tracking-[0.32em]",
+          "text-[12px] font-semibold uppercase tracking-[0.32em] drop-shadow-[0_1px_4px_rgba(0,0,0,0.25)]",
           color,
         )}
       >
