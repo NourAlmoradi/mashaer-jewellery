@@ -53,7 +53,7 @@ hekaya/src/
 │   │   ├── orders/             Filter pills, status dropdown, detail drawer
 │   │   ├── products/           CRUD table + add/edit modal
 │   │   ├── qr/                 All generated tokens with status pill
-│   │   └── settings/           4 tabs: Store / QR / Shipping / Notifications
+│   │   └── settings/           2 tabs: Store / Shipping
 │   ├── checkout/               3-step shipping → review → pay flow
 │   ├── contact/                Form, WhatsApp banner, FAQ
 │   ├── memory/[token]/         Public memory page (PIN setup / unlock / view / edit)
@@ -79,7 +79,7 @@ hekaya/src/
 │   ├── useT.ts                 Hook — { t, tx, locale, dir, hydrated }; syncs <html lang/dir>
 │   └── utils.ts                cn, formatPrice, formatDate, generateOrderId, generateToken, whatsappUrl
 ├── stores/                     Zustand stores (all persisted)
-│   ├── adminSettings.store.ts  store info + qr config + per-emirate shipping + notifications
+│   ├── adminSettings.store.ts  store info (contact/social) + per-emirate shipping
 │   ├── cart.store.ts           items, qrChoice, drawer state, subtotal/count selectors
 │   ├── data.store.ts           orders + memories + collections + product overrides/customs/hidden ids; safeStorage wrapper drops memory photos on quota errors
 │   ├── locale.store.ts         current locale + cookie writer
@@ -89,8 +89,8 @@ hekaya/src/
 
 ### Zustand stores at a glance
 
-| Store           | localStorage key        | Notes                                                                                                                                                                 |
-| --------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Store           | localStorage key         | Notes                                                                                                                                                                 |
+| --------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `cart`          | `mashaer-cart`           | Cart items + per-order/per-piece QR choice + drawer open state                                                                                                        |
 | `locale`        | `mashaer-locale`         | Current `Locale` (`ar` default), syncs to a cookie for SSR-friendly fallback                                                                                          |
 | `data`          | `mashaer-data`           | Orders (capped at 30), memories (by token), collections, product overrides/customs/hidden ids. **safeStorage** evicts memory photos on quota errors and retries once. |
@@ -399,10 +399,10 @@ PAYPAL_CLIENT_SECRET=               # ⚠️ Server-only! No NEXT_PUBLIC_
 # Supabase Storage uses NEXT_PUBLIC_SUPABASE_URL
 
 # Site
-NEXT_PUBLIC_SITE_URL=https://mashaer-jewellery.com
+NEXT_PUBLIC_SITE_URL=https://mashaerjewellery.com
 NEXT_PUBLIC_SITE_NAME=MASHAER JEWELLERY
 NEXT_PUBLIC_WHATSAPP_NUMBER=+971XXXXXXXXX
-ADMIN_EMAIL=admin@mashaer-jewellery.com
+ADMIN_EMAIL=admin@mashaerjewellery.com
 ```
 
 ---

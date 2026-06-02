@@ -116,7 +116,7 @@ Each uploaded image is read with `FileReader`, drawn onto a `<canvas>` scaled to
 
 ## 4. Public Memory Page Design
 
-**URL:** `mashaer-jewellery.com/memory/abc3def7`
+**URL:** `mashaerjewellery.com/memory/abc3def7`
 
 ```
 ┌──────────────────────────────────────┐

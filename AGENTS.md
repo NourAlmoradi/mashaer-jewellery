@@ -24,8 +24,8 @@
 
 ## Storage keys (single source of truth)
 
-| Key                     | Owner                                                                                        |
-| ----------------------- | -------------------------------------------------------------------------------------------- |
+| Key                      | Owner                                                                                        |
+| ------------------------ | -------------------------------------------------------------------------------------------- |
 | `mashaer-cart`           | `stores/cart.store.ts`                                                                       |
 | `mashaer-locale`         | `stores/locale.store.ts`                                                                     |
 | `mashaer-data`           | `stores/data.store.ts` (orders, memories, collections, product overrides/customs/hidden ids) |
@@ -50,9 +50,9 @@ hekaya/src/types/       Shared TS types
 
 - **Bilingual content** — strings of type `Bilingual = { ar; en }`. Locale comes from `useT()`. Never hardcode AR/EN text outside `lib/i18n.ts` unless the surrounding component already inlines bilingual ternaries.
 - **Currency** — AED only, formatted via `formatPrice(value, locale)` in `lib/utils.ts`.
-- **IDs / tokens** — `generateOrderId()` (`HK-XXXXXX`) and `generateToken()` (8-char ambiguity-free) from `lib/utils.ts`. Do not roll your own.
+- **IDs / tokens** — `generateOrderId()` (`HK-XXXXXX`) and `generateToken()` (8-char ambiguity-free) from `lib/utils.ts`, both backed by `crypto.getRandomValues`. Do not roll your own.
 - **Icons** — `lucide-react` only. Brand social icons (Instagram/Facebook) are hand-coded SVGs.
-- **No external images** — every product card falls back to `<PlaceholderJewel />` when `images[]` is empty.
+- **No external images** — seed catalogue ships with empty `images[]`; every product card falls back to `<PlaceholderJewel />` and collections to their `tone` colour. Add local assets later.
 - **Animations** — `framer-motion`. Toasts via `sonner`.
 - **Styling** — Tailwind v4 CSS-only `@theme` in `globals.css`. Use the `--color-*` design tokens; do **not** create a `tailwind.config.ts`.
 - **Address book on checkout** — `CheckoutClient.tsx` reads `mashaer-mock-addresses` to offer a saved-address picker on step 1. Keep the `SavedAddress` shape in sync with `account/page.tsx`.

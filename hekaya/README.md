@@ -22,22 +22,25 @@ This is the Next.js app for **MASHAER JEWELLERY** (see the repo root [`README.md
 
 ### Routes
 
-| Route                      | Type   | Notes                                                                                     |
-| -------------------------- | ------ | ----------------------------------------------------------------------------------------- |
-| `/`                        | Static | Hero · Trust · Collections · Featured · QR banner · Story · Testimonials · Final CTA band |
-| `/about`                   | Static | Dark editorial hero · Vision · Our Values 4-card grid · Final CTA band                    |
-| `/products`                | Static | Filterable catalogue (sidebar + mobile drawer)                                            |
-| `/product/[slug]`          | SSG    | Eyebrow + age/material chips + Description / Shipping / Care tabs                         |
-| `/checkout`                | Static | 3-step flow with sticky Order Summary (rates from admin Settings)                         |
-| `/order-confirmation/[id]` | Dyn    | Per-token QR PNGs                                                                         |
-| `/memory/[token]`          | Dyn    | PIN setup / unlock / view / edit                                                          |
-| `/account`                 | Static | Overview · Orders · Memories · **Addresses (CRUD)** · **Wishlist (live, persisted)**      |
-| `/my-memories`             | Static | Real keepsakes from `data.store.memories` with rendered QR PNGs                           |
-| `/contact`                 | Static | Form (topic + counter) · WhatsApp banner · Showroom · FAQ                                 |
-| `/policies`                | Static | Tabbed Shipping / Returns / Privacy / Terms                                               |
-| `/qr`                      | Static | QR Memory marketing page                                                                  |
-| `/admin/*`                 | Static | Dashboard · Products · **Collections** · Orders · **Customers** · QR · Settings           |
-| `/api/upload`              | API    | Dev-only multipart image upload stub (writes to `public/uploads/`); returns 503 on Vercel |
+| Route                      | Type   | Notes                                                                                       |
+| -------------------------- | ------ | ------------------------------------------------------------------------------------------- |
+| `/`                        | Static | Hero · Trust · Collections · Featured · QR banner · Story · Testimonials · Final CTA band   |
+| `/about`                   | Static | Dark editorial hero · Vision · Our Values 4-card grid · Final CTA band                      |
+| `/products`                | Static | Filterable catalogue (sidebar + mobile drawer)                                              |
+| `/product/[slug]`          | SSG    | Eyebrow + age/material chips + Description / Shipping / Care tabs                           |
+| `/checkout`                | Static | 3-step flow with sticky Order Summary (rates from admin Settings)                           |
+| `/order-confirmation/[id]` | Dyn    | Per-token QR PNGs                                                                           |
+| `/memory/[token]`          | Dyn    | PIN setup / unlock / view / edit                                                            |
+| `/account`                 | Static | Overview · Orders · Memories · **Addresses (CRUD)** · **Wishlist (live, persisted)**        |
+| `/my-memories`             | Static | Real keepsakes from `data.store.memories` with rendered QR PNGs                             |
+| `/contact`                 | Static | Form (topic + counter) · WhatsApp banner · Showroom · FAQ                                   |
+| `/policies`                | Static | Tabbed Shipping / Returns / Privacy / Terms                                                 |
+| `/qr`                      | Static | QR Memory marketing page                                                                    |
+| `/admin/*`                 | Static | Dashboard · Products · **Collections** · Orders · **Customers** · QR · Settings (`noindex`) |
+| `/api/upload`              | API    | Dev-only multipart image upload stub (same-origin + rate-limited); returns 503 on Vercel    |
+| `/sitemap.xml`             | Static | Generated from products + active collections                                                |
+| `/robots.txt`              | Static | Allows public routes, disallows `/admin /account /checkout /api` etc.                       |
+| `/manifest.webmanifest`    | Static | PWA manifest (gold theme, RTL)                                                              |
 
 ### Stack
 
@@ -45,7 +48,7 @@ This is the Next.js app for **MASHAER JEWELLERY** (see the repo root [`README.md
 - Tailwind CSS v4 (CSS `@theme`, no JS config)
 - Zustand 5 with `persist` (cart / locale / data / adminSettings / **wishlist**) — quota-safe `localStorage` wrapper drops memory photos on overflow
 - Framer Motion 12 · lucide-react · `qrcode` · `recharts` · `sonner`
-- `react-hook-form` + `zod` available for forms
+- `react-hook-form` + `zod` available for forms (planned for Phase 2)
 - Bilingual via `src/lib/i18n.ts` + `useT()` (default locale `ar`, full RTL)
 
 ### Key files added / updated in the latest iteration
@@ -62,6 +65,25 @@ This is the Next.js app for **MASHAER JEWELLERY** (see the repo root [`README.md
 - `src/app/my-memories/page.tsx` — keepsakes list with rendered QR images
 - `src/lib/utils.ts` — `whatsappUrl()` helper
 
+### Phase 2 readiness audit (latest)
+
+Hardening + SEO pass completed before the Supabase integration:
+
+- **SEO / metadata** — `metadataBase`, title template, canonicals, Open Graph + Twitter,
+  Organization + per-product **JSON-LD**; new `sitemap.ts`, `robots.ts`, `manifest.ts`.
+- **Route boundaries** — added `loading.tsx`, `error.tsx`, `not-found.tsx`.
+- **Per-page metadata** — marketing pages split into server `page.tsx` (metadata) + `*Client.tsx`;
+  `checkout` and `admin` marked `noindex`.
+- **Security** — `generateOrderId` / `generateToken` now use `crypto.getRandomValues`
+  (ambiguity-free alphabet); `/api/upload` adds same-origin (CSRF) check + in-memory rate limit.
+- **Performance** — `ProductCard` wrapped in `React.memo`; cart totals exposed as
+  `useCartCount` / `useCartSubtotal` selectors (no whole-store subscriptions).
+- **A11y** — global `:focus-visible` ring + `prefers-reduced-motion` reset; stable list keys.
+- **DX / cleanup** — removed unused `embla-carousel-react` + `nanoid`; shared `useWishlistToggle`
+  hook; `data.store` surfaces a toast when `localStorage` quota evicts photos.
+- **Images** — all remote Unsplash URLs stripped from seed data (`images: []`); UI falls back to
+  `PlaceholderJewel` / tone colours until local assets are added.
+
 ### Payments (planned, not yet wired)
 
 - **Stripe** — Apple Pay + Mastercard
@@ -71,7 +93,7 @@ This is the Next.js app for **MASHAER JEWELLERY** (see the repo root [`README.md
 ### Build
 
 ```bash
-npm run build   # TypeScript + production build, 25 routes prerendered
+npm run build   # TypeScript + production build, 32 routes (product pages SSG)
 ```
 
 ---

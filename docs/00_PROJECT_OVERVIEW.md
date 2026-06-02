@@ -1,8 +1,8 @@
 ﻿# 📖 MASHAER JEWELLERY: Comprehensive Project Overview
 
 > **Brand Name:** MASHAER JEWELLERY / مجوهرات مشاعر  
-> **Tagline:** "Feelings That Last, In Every Piece" / "في كل قطعة… مشاعر تبقى"  
-> **Domain:** mashaer-jewellery.com
+> **Tagline:** "Some Feelings Deserve Eternity" / "بعض المشاعر تستحق الخلود"  
+> **Domain:** mashaerjewellery.com
 
 ---
 

@@ -308,7 +308,7 @@ Complete checkout flow with real payments (Stripe + PayPal). Admin can manage pr
 
 - [ ] Switch Stripe + PayPal from test/sandbox to live keys
 - [ ] Deploy to Vercel production (see [07_DEPLOYMENT.md](07_DEPLOYMENT.md))
-- [ ] Connect custom domain (`mashaer-jewellery.com`)
+- [ ] Connect custom domain (`mashaerjewellery.com`)
 - [ ] Verify SSL is active (https)
 - [ ] Set up UptimeRobot monitoring
 - [ ] Submit sitemap to Google Search Console
@@ -317,7 +317,7 @@ Complete checkout flow with real payments (Stripe + PayPal). Admin can manage pr
 
 ### ✅ Week 8 Deliverable
 
-MASHAER JEWELLERY is LIVE at `mashaer-jewellery.com`! 🎉
+MASHAER JEWELLERY is LIVE at `mashaerjewellery.com`! 🎉
 
 ---
 
@@ -363,7 +363,6 @@ MASHAER JEWELLERY is LIVE at `mashaer-jewellery.com`! 🎉
 | **QR Feature Done**   | End of Week 6 | Generate, view, edit memory pages              |
 | **Payments Work**     | End of Week 7 | End-to-end purchase in test mode               |
 | **🚀 LAUNCH**         | End of Week 8 | Live site accepting real orders                |
-
 
 ---
 

@@ -109,22 +109,24 @@ const total = items.reduce(
 
 Shipping is computed in `CheckoutClient.tsx` via `rateForEmirate()` and the **admin-configurable rates** in `useAdminSettings().shipping`. The defaults are:
 
-| Emirate                             | Default rate (AED) | Source                                     |
-| ----------------------------------- | ------------------ | ------------------------------------------ |
-| Dubai                               | 0                  | `adminSettings.shipping.dubai`             |
-| Abu Dhabi                           | 15                 | `adminSettings.shipping.abuDhabi`          |
-| Sharjah                             | 10                 | `adminSettings.shipping.sharjah`           |
-| Other emirates (UAQ, RAK, FUJ, AJM) | 25                 | `adminSettings.shipping.otherEmirates`     |
-| GCC export                          | 50                 | `adminSettings.shipping.gcc` (planned use) |
+| Emirate        | Default rate (AED) | Source                                |
+| -------------- | ------------------ | ------------------------------------- |
+| Dubai          | 0                  | `adminSettings.shipping.dubai`        |
+| Abu Dhabi      | 15                 | `adminSettings.shipping.abuDhabi`     |
+| Sharjah        | 10                 | `adminSettings.shipping.sharjah`      |
+| Ajman          | 20                 | `adminSettings.shipping.ajman`        |
+| Umm Al Quwain  | 25                 | `adminSettings.shipping.ummAlQuwain`  |
+| Ras Al Khaimah | 25                 | `adminSettings.shipping.rasAlKhaimah` |
+| Fujairah       | 25                 | `adminSettings.shipping.fujairah`     |
 
-**Free-shipping rule:** subtotal **> 500 AED** → `ship = 0` regardless of emirate.
+**No free-shipping threshold.** Delivery is always charged by emirate (admin-configured); there is no subtotal at which shipping becomes free.
 
 Admins can change all of these from `/admin/settings → Shipping` and the change is immediately reflected at checkout (Zustand `persist`, key `mashaer-admin-settings`).
 
 ```ts
 // Effective rate (CheckoutClient.tsx)
 const sub = subtotal();
-const ship = sub > 500 ? 0 : rateForEmirate(shipping.emirate);
+const ship = rateForEmirate(shipping.emirate);
 const total = sub + ship;
 ```
 

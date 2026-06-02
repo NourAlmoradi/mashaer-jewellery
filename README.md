@@ -1,7 +1,7 @@
 ﻿# ✨ MASHAER JEWELLERY | مجوهرات مشاعر
 
 > **Children's Jewellery with Dynamic QR Memory Codes**  
-> _"Feelings That Last, In Every Piece" / "في كل قطعة… مشاعر تبقى"_
+> _"Some Feelings Deserve Eternity" / "بعض المشاعر تستحق الخلود"_
 
 A bilingual (Arabic-default, English-secondary), mobile-first, premium jewellery e-commerce experience for the UAE market — featuring a one-of-a-kind **QR Memory keepsake** system embedded into every piece.
 
@@ -45,7 +45,7 @@ The current build is a **frontend-only walkthrough** — backend / authenticatio
 | `/admin/products`          | Dark CRUD table with search, status toggle switch, add/edit modal (in-memory)                                                                                              |
 | `/admin/collections`       | Create / edit / reorder / delete collections (persisted Zustand)                                                                                                           |
 | `/admin/orders`            | Search + filter pills, inline status dropdown, dark detail drawer with QR token chips                                                                                      |     | `/admin/customers` | Aggregated from orders by email — stat tiles, search, table with order count & total spent |     | `/admin/qr` | QR Memories — 3 stat cards (Total Generated / Set Up / Pending), search, table of every generated token with status pill |
-| `/admin/settings`          | 4 tabs: Store info / QR Memory config / Shipping rates / Email Notifications — persisted via Zustand                                                                       |
+| `/admin/settings`          | 2 tabs: Store info / Shipping rates (per-emirate) — persisted via Zustand                                                                                                  |
 | `/qr`                      | Marketing/explainer page for QR Memory                                                                                                                                     |
 | `/about`                   | Dark editorial hero ("More Than Jewellery. A Legacy.") + Our Values 4-card grid + gold "Be Part of the Story" CTA band                                                     |
 | `/contact`                 | Topic dropdown, 0/500 character counter, **WhatsApp banner**, **Showroom card**, contact cards, **FAQ accordion** (4 Qs)                                                   |
@@ -62,7 +62,7 @@ The current build is a **frontend-only walkthrough** — backend / authenticatio
 - **qrcode** for real QR PNG generation (gold `#c9a96e` default)
 - **recharts** for the admin dashboard charts
 - **sonner** for toasts
-- **react-hook-form** + **zod** for forms (available; selectively used)
+- **react-hook-form** + **zod** for forms (available; planned for Phase 2)
 - All product imagery via in-house `<PlaceholderJewel />` SVGs (no external assets)
 - Logo as scalable SVG (`<Logo />` in `hekaya/src/components/ui/Logo.tsx`)
 - `next.config.ts` sets `outputFileTracingRoot` to silence multiple-lockfile warning
@@ -120,7 +120,7 @@ Hekaya_Jewerlley/
 | `admin/orders/page.tsx`                             | Orders table, filter pills, status dropdown, detail drawer                                     |
 | `admin/products/page.tsx`                           | Products CRUD table, status toggle, add/edit modal                                             |
 | `admin/qr/page.tsx`                                 | Every generated QR token with status pill                                                      |
-| `admin/settings/page.tsx`                           | 4-tab settings (Store / QR / Shipping / Notifications)                                         |
+| `admin/settings/page.tsx`                           | 2-tab settings (Store info / per-emirate Shipping rates)                                       |
 | `checkout/page.tsx` + `CheckoutClient.tsx`          | 3-step shipping → review → pay flow with sticky summary                                        |
 | `contact/page.tsx`                                  | Form with topic + char counter, WhatsApp banner, showroom, FAQ                                 |
 | `memory/[token]/page.tsx`                           | Public memory page — setup / PIN unlock / view / edit                                          |
@@ -148,7 +148,7 @@ Hekaya_Jewerlley/
 | `products/ProductsExplorer.tsx` | Filter sidebar + sort + grid for `/products`                                         |
 | `ui/Eyebrow.tsx`                | Sparkle-flanked uppercase label used above section titles                            |
 | `ui/FinalCtaBand.tsx`           | Gold-gradient CTA band reused on Home + About                                        |
-| `ui/Logo.tsx`                   | Pure SVG Mashaer wordmark (gold/dark/light variants)                                  |
+| `ui/Logo.tsx`                   | Pure SVG Mashaer wordmark (gold/dark/light variants)                                 |
 | `ui/PlaceholderJewel.tsx`       | SVG fallback graphic per category (ring/necklace/bracelet/earring/gem)               |
 
 ### `hekaya/src/data/`
@@ -172,7 +172,7 @@ Hekaya_Jewerlley/
 
 | File                     | Purpose                                                                                                               |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| `adminSettings.store.ts` | Store info + QR config + per-emirate shipping rates + email-notification toggles                                      |
+| `adminSettings.store.ts` | Store info (contact/social) + per-emirate shipping rates                                                              |
 | `cart.store.ts`          | Cart items, `qrChoice` (per-order/per-piece), drawer open state, subtotal/count selectors                             |
 | `data.store.ts`          | Orders + memories + collections + product overrides + custom products + hidden ids; quota-safe `localStorage` wrapper |
 | `locale.store.ts`        | Current locale + cookie writer; SSR-safe `init()`                                                                     |
@@ -199,12 +199,30 @@ Hekaya_Jewerlley/
    - `/admin/orders` → update status of any order you placed
    - `/admin/products` → add/edit/delete products in-memory
    - `/admin/qr` → see every generated QR (yours + mock-data orders)
-   - `/admin/settings` → edit store info, QR config, shipping rates and email notifications
+   - `/admin/settings` → edit store info and per-emirate shipping rates
 8. **Keepsakes view**: visit `/my-memories` — every memory you set up appears as a card with a real gold QR PNG, masked PIN, View/Edit links and the linked product name.
 
 ---
 
-## 🆕 Latest Additions
+## 🔒 Phase 2 Readiness Audit (completed)
+
+Before starting the Supabase integration the following hardening pass was applied:
+
+| Area                  | What changed                                                                                                                                                                                                             |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Security**          | `generateOrderId` / `generateToken` now use `crypto.getRandomValues` (ambiguity-free alphabet). `/api/upload` has a same-origin CSRF guard + in-memory rate limiter (20 req/min).                                        |
+| **SEO**               | New `sitemap.ts`, `robots.ts`, `manifest.ts`; root `metadataBase` + Organization JSON-LD; per-page `generateMetadata()` + canonical on all public routes; per-product JSON-LD schema. Checkout + admin marked `noindex`. |
+| **Route boundaries**  | Added `loading.tsx`, `error.tsx`, `not-found.tsx`.                                                                                                                                                                       |
+| **Static generation** | `product/[slug]` now uses `generateStaticParams()` — all 8 product pages are SSG.                                                                                                                                        |
+| **Performance**       | `ProductCard` wrapped in `React.memo`; `useCartCount` + `useCartSubtotal` selector hooks; `CartDrawer` + `CheckoutClient` subscribe to slices instead of full store.                                                     |
+| **Admin layout**      | `admin/layout.tsx` is now a server component (exports `metadata: noindex`); interactive shell in `AdminShell.tsx` client component.                                                                                      |
+| **A11y**              | Global `:focus-visible` ring + `prefers-reduced-motion` reset in `globals.css`; stable `key` props on thumbnail lists.                                                                                                   |
+| **DX / cleanup**      | `embla-carousel-react` + `nanoid` removed (unused). `useWishlistToggle` hook shared by `ProductCard` + `ProductDetail`. `data.store` surfaces a toast on `localStorage` quota eviction.                                  |
+| **Images**            | All remote Unsplash seed URLs stripped — products use `images: []`, collections drop the `image` field. `PlaceholderJewel` + tone colours render until local assets are added.                                           |
+
+**Build output:** 32 routes, 0 type/lint errors (`npm run build` clean).
+
+---## 🆕 Latest Additions
 
 These features were added in the most recent iteration to close the gap with the design reference:
 

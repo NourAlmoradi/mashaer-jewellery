@@ -9,7 +9,7 @@
 > **Note:** The current MVP uses a **flat route structure** — no `[locale]/` prefix. Language is toggled client-side via a Zustand locale store. The production target may add locale-prefixed routes later.
 
 ```
-mashaer-jewellery.com/
+mashaerjewellery.com/
 ├── /                           Homepage (Hero · Trust · Collections · Featured · QR · Story · Testimonials · Final CTA band)
 ├── /products                   Shop All (cards now show category eyebrow tag)
 ├── /product/[slug]             Product detail (eyebrow + age/material chips + Description / Shipping / Care tabs)
@@ -26,7 +26,7 @@ mashaer-jewellery.com/
 ├── /admin/products             Manage products (CRUD with status toggle)
 ├── /admin/orders               Manage orders + status update
 ├── /admin/qr                   QR Memories — every generated token + status
-└── /admin/settings             Store / QR / Shipping / Notifications tabs
+└── /admin/settings             Store / Shipping tabs
 ```
 
 ### Production target routes \ud83d\udd1c (planned)
@@ -46,15 +46,15 @@ mashaer-jewellery.com/
 
 We've simplified the homepage from 13 sections to 7 focused, elegant sections to provide breathing room and highlight the products and stories.
 
-| #   | Section                  | Layout                                                           | Background         |
-| --- | ------------------------ | ---------------------------------------------------------------- | ------------------ |
-| 1   | **Sticky Header**        | Clean logo, cart, user, AR/EN language switcher                  | Warm White         |
-| 2   | **Hero Section**         | Powerful hero image with elegant CTA, not an overwhelming slider | Image              |
-| 3   | **Brand Story Strip**    | "Feelings That Last, In Every Piece" + vision (subtle, elegant typography)   | Charcoal           |
-| 4   | **Featured Collections** | 3-4 collection cards (elegant layout, not dense grids)           | Warm White         |
-| 5   | **Memory Feature CTA**   | The QR memory system explained elegantly with a visual           | Warm Gold Gradient |
-| 6   | **Testimonials**         | 3 minimal cards emphasizing emotional connection                 | Warm White         |
-| 7   | **Footer**               | Clean, minimal, bilingual links                                  | Charcoal           |
+| #   | Section                  | Layout                                                                 | Background         |
+| --- | ------------------------ | ---------------------------------------------------------------------- | ------------------ |
+| 1   | **Sticky Header**        | Clean logo, cart, user, AR/EN language switcher                        | Warm White         |
+| 2   | **Hero Section**         | Powerful hero image with elegant CTA, not an overwhelming slider       | Image              |
+| 3   | **Brand Story Strip**    | "Some Feelings Deserve Eternity" + vision (subtle, elegant typography) | Charcoal           |
+| 4   | **Featured Collections** | 3-4 collection cards (elegant layout, not dense grids)                 | Warm White         |
+| 5   | **Memory Feature CTA**   | The QR memory system explained elegantly with a visual                 | Warm Gold Gradient |
+| 6   | **Testimonials**         | 3 minimal cards emphasizing emotional connection                       | Warm White         |
+| 7   | **Footer**               | Clean, minimal, bilingual links                                        | Charcoal           |
 
 ### Floating Elements
 
@@ -128,7 +128,7 @@ We've simplified the homepage from 13 sections to 7 focused, elegant sections to
 
 | Component          | File                   | Description                                                            |
 | ------------------ | ---------------------- | ---------------------------------------------------------------------- |
-| `Logo`             | `Logo.tsx`             | Pure SVG Mashaer wordmark (gold / dark / light variants)                |
+| `Logo`             | `Logo.tsx`             | Pure SVG Mashaer wordmark (gold / dark / light variants)               |
 | `Eyebrow`          | `Eyebrow.tsx`          | Sparkle-flanked uppercase label used above section titles              |
 | `FinalCtaBand`     | `FinalCtaBand.tsx`     | Gold-gradient CTA band reused on Home + About                          |
 | `PlaceholderJewel` | `PlaceholderJewel.tsx` | SVG fallback per category (ring / necklace / bracelet / earring / gem) |
@@ -152,12 +152,12 @@ We've simplified the homepage from 13 sections to 7 focused, elegant sections to
 
 ### Stores (`stores/`)
 
-| Store                    | localStorage key        | Purpose                                                                                 |
-| ------------------------ | ----------------------- | --------------------------------------------------------------------------------------- |
+| Store                    | localStorage key         | Purpose                                                                                 |
+| ------------------------ | ------------------------ | --------------------------------------------------------------------------------------- |
 | `cart.store.ts`          | `mashaer-cart`           | Items, `qrChoice`, drawer state, subtotal/count selectors                               |
 | `locale.store.ts`        | `mashaer-locale`         | Current locale + cookie writer; SSR-safe `init()`                                       |
 | `data.store.ts`          | `mashaer-data`           | Orders + memories + collections + product overrides + customs + hidden ids; safeStorage |
-| `adminSettings.store.ts` | `mashaer-admin-settings` | Store info + QR config + per-emirate shipping + notifications                           |
+| `adminSettings.store.ts` | `mashaer-admin-settings` | Store info (contact/social) + per-emirate shipping rates                                |
 | `wishlist.store.ts`      | `mashaer-wishlist`       | Persisted `ids[]` with `toggle / has / clear`                                           |
 
 > Saved addresses live in plain `localStorage` under **`mashaer-mock-addresses`**, written by `account/page.tsx`. Demo login flag is **`mashaer-mock-user`**.

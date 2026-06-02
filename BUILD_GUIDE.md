@@ -2,7 +2,7 @@
 
 > **The ultimate step-by-step guide to build, deploy, and launch MASHAER JEWELLERY for FREE (or near-zero cost)**
 >
-> This guide reflects the **actual project state** as of April 2026. Completed steps are marked ✅. Pending steps are marked ❌.
+> This guide reflects the **actual project state** as of June 2026. Completed steps are marked ✅. Pending steps are marked ❌.
 
 ---
 
@@ -43,10 +43,10 @@ These will be wired up in subsequent milestones following the sections below.
 12. [Build User Account Pages](#-step-11-build-user-account-pages) ⚠️ Shell only
 13. [Build the QR Memory System](#-step-12-build-the-qr-memory-system--the-unique-feature) ⚠️ Shell only
 14. [Build Checkout & Payment](#-step-13-build-checkout--payment) ✅ UI done / ❌ API pending
-15. [Build Admin Dashboard](#-step-14-build-admin-dashboard) ❌
+15. [Build Admin Dashboard](#-step-14-build-admin-dashboard) ✅
 16. [Build Static Info Pages](#-step-15-build-static-info-pages) ✅
 17. [Polish & Animations](#-step-16-polish--animations) ✅
-18. [SEO & Performance](#-step-17-seo--performance-optimization) ❌
+18. [SEO & Performance](#-step-17-seo--performance-optimization) ✅
 19. [Testing](#-step-18-testing-everything) ❌
 20. [Deploy to Vercel (FREE)](#-step-19-deploy-to-vercel-free) ❌
 21. [Buy & Connect Domain](#-step-20-buy--connect-your-domain-12year) ❌
@@ -208,8 +208,10 @@ npx create-next-app@latest hekaya
 npm install next-intl @supabase/supabase-js @supabase/ssr \
   @stripe/stripe-js stripe @paypal/react-paypal-js @aws-sdk/client-s3 \
   @tanstack/react-query react-hook-form zod @hookform/resolvers \
-  zustand framer-motion embla-carousel-react lucide-react \
-  sonner resend qrcode sharp nanoid date-fns clsx tailwind-merge
+  zustand framer-motion lucide-react \
+  sonner resend qrcode sharp date-fns clsx tailwind-merge
+
+# Note: embla-carousel-react and nanoid were removed in the Phase 2 readiness audit (unused)
 
 npm install -D vitest @testing-library/react @types/qrcode @types/sharp
 ```
@@ -519,7 +521,7 @@ export async function generateQRCode(slug: string): Promise<Buffer> {
 2. **Review** — Order summary with items, shipping address confirmation
 3. **Payment** — Payment method selector (placeholder buttons)
 
-Order summary sidebar shows subtotal, shipping cost (free over 200 AED), and total.
+Order summary sidebar shows subtotal, shipping cost (charged by emirate, no free-delivery threshold), and total.
 
 ### Still to build
 
@@ -552,32 +554,25 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 ---
 
-## ❌ Step 14: Build Admin Dashboard (PENDING)
+## ✅ Step 14: Build Admin Dashboard (DONE)
 
-### To build at `/admin` (separate from bilingual routing)
+### What was built
 
-- `app/admin/layout.tsx` — Admin shell with sidebar, auth guard (role = 'admin')
-- `app/admin/page.tsx` — Dashboard overview (orders today, revenue, stock alerts)
-- `app/admin/products/page.tsx` — Products list + add/edit/delete
-- `app/admin/orders/page.tsx` — Orders list with status management
-- `app/admin/categories/page.tsx` — Category management
-- `app/admin/coupons/page.tsx` — Discount coupon management
-- `app/admin/memories/page.tsx` — View all QR memory pages
+Full dark luxury admin panel at `/admin` — no external routing, a frontend-only mock that demonstrates every admin workflow:
 
-Auth guard:
+| Route                | What it contains                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| `/admin`             | 4 trend stat cards, Orders-by-Status bar chart, 12-month Revenue area chart, recent orders |
+| `/admin/products`    | Search, status toggle, add/edit modal (in-memory + Zustand)                                |
+| `/admin/collections` | Create / edit / reorder / delete (persisted Zustand)                                       |
+| `/admin/orders`      | Filter pills, inline status dropdown, detail drawer with QR token chips                    |
+| `/admin/customers`   | Aggregated from orders — stat tiles, search, order count + total spent                     |
+| `/admin/qr`          | 3 stat cards, table of every token with status pill, search                                |
+| `/admin/settings`    | 2 tabs: Store info / per-emirate shipping rates (persisted)                                |
 
-```typescript
-// In admin/layout.tsx
-const {
-  data: { user },
-} = await supabase.auth.getUser();
-const { data: profile } = await supabase
-  .from("profiles")
-  .select("role")
-  .eq("id", user.id)
-  .single();
-if (profile?.role !== "admin") redirect("/");
-```
+**Layout note:** `admin/layout.tsx` is a server component that exports `robots: noindex`. It renders `<AdminShell>` (a separate `AdminShell.tsx` client component) so the route subtree is not force-pushed to the client bundle.
+
+> ⚠️ **Auth guard (Phase 2):** The current mock uses a `localStorage` flag (`mashaer-mock-user`). Replace with Supabase role check once auth is wired.
 
 ---
 
@@ -608,15 +603,22 @@ if (profile?.role !== "admin") redirect("/");
 
 ---
 
-## ❌ Step 17: SEO & Performance Optimization (PENDING)
+## ✅ Step 17: SEO & Performance Optimization (DONE)
 
-### To do
+### What was built
 
-- Add `generateMetadata()` to all remaining pages (login, register, about, contact, policies)
-- Add `robots.txt` and `sitemap.xml`
-- Add Open Graph images for social sharing
-- Optimize all product images via `next/image` (already configured, but real images needed)
-- Add structured data (JSON-LD) for products
+- **`src/app/sitemap.ts`** — auto-generated `/sitemap.xml` covering static routes, all product slugs, and active collections
+- **`src/app/robots.ts`** — `/robots.txt` allowing public routes; disallows `/admin`, `/account`, `/checkout`, `/api`
+- **`src/app/manifest.ts`** — PWA web manifest (name, gold theme colour, RTL)
+- **Root layout** — `metadataBase`, title template `"%s | Mashaer Jewellery"`, full Open Graph + Twitter cards, Organization JSON-LD
+- **Per-page `generateMetadata()`** — title + canonical on every public route (about, contact, qr, policies, products, collections); `noindex` on checkout + admin
+- **Product JSON-LD** — schema.org `Product` with AED offers and availability, rendered as inline `<script>` in `product/[slug]/page.tsx`
+- **`generateStaticParams()`** on `product/[slug]` — product detail pages are now pre-rendered at build time (SSG)
+- **Performance** — `ProductCard` wrapped in `React.memo`; `useCartCount` + `useCartSubtotal` selector hooks added to `cart.store.ts` so consumers subscribe to derived values instead of the full store
+- **A11y** — global `:focus-visible` ring + `prefers-reduced-motion` reset added to `globals.css`; stable `key` props on thumbnail lists
+- **Shared hook** — `src/lib/useWishlistToggle.ts` deduplicates wishlist logic from `ProductCard` + `ProductDetail`
+
+> **Deferred to Phase 2:** actual OG image files (`/opengraph-image.png`); `next/image` with real local product assets (seed catalogue uses `PlaceholderJewel` until images are supplied).
 
 ---
 
@@ -653,10 +655,10 @@ if (profile?.role !== "admin") redirect("/");
 
 ## ❌ Step 20: Buy & Connect Your Domain (~$12/year)
 
-1. Buy `mashaer-jewellery.com` via [Namecheap](https://namecheap.com) or directly through Vercel
-2. In Vercel → Project Settings → Domains → Add `mashaer-jewellery.com`
+1. Buy `mashaerjewellery.com` via [Namecheap](https://namecheap.com) or directly through Vercel
+2. In Vercel → Project Settings → Domains → Add `mashaerjewellery.com`
 3. Update DNS records as instructed by Vercel
-4. Update `NEXT_PUBLIC_SITE_URL` in Vercel env vars to `https://mashaer-jewellery.com`
+4. Update `NEXT_PUBLIC_SITE_URL` in Vercel env vars to `https://mashaerjewellery.com`
 
 ---
 
@@ -665,7 +667,7 @@ if (profile?.role !== "admin") redirect("/");
 1. Go to Stripe Dashboard → Activate account with UAE business documents
 2. Go to PayPal Dashboard → Get live Client ID and Secret
 3. Switch to **live keys** in Vercel environment variables for both Stripe and PayPal
-4. Configure webhook in Stripe Dashboard → `https://mashaer-jewellery.com/api/webhook`
+4. Configure webhook in Stripe Dashboard → `https://mashaerjewellery.com/api/webhook`
 5. Test with a real transaction
 
 ---
@@ -703,7 +705,7 @@ Monthly recurring: $0 until you hit massive scale.
 | Vercel Hobby                   | Free                          |
 | Supabase Free Tier             | Free                          |
 | GitHub                         | Free                          |
-| Domain (~mashaer-jewellery.com) | ~$12/year                     |
+| Domain (~mashaerjewellery.com) | ~$12/year                     |
 | Stripe (Apple Pay/Mastercard)  | 2.9% + 1 AED per transaction  |
 | PayPal                         | ~3.9% + fixed per transaction |
 
@@ -724,4 +726,4 @@ Monthly recurring: $0 until you hit massive scale.
 ---
 
 Built with love for MASHAER JEWELLERY
-**mashaer-jewellery.com**
+**mashaerjewellery.com**
