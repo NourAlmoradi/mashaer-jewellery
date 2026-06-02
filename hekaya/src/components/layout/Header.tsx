@@ -17,7 +17,7 @@ export function Header() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-5 bg-white/85 shadow-[0_1px_0_rgba(0,0,0,0.05)] backdrop-blur-xl">
+      <header className="fixed inset-x-0 top-0 z-30 bg-white/85 shadow-[0_1px_0_rgba(0,0,0,0.05)] backdrop-blur-xl">
         <div className="container-h flex h-[72px] items-center justify-between gap-4">
           {/* Mobile menu button */}
           <button
