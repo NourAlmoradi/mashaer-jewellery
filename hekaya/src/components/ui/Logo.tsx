@@ -69,12 +69,12 @@ export function Logo({
           y="222"
           textAnchor="middle"
           fontFamily="Inter, sans-serif"
-          fontSize="8"
-          letterSpacing="3"
+          fontSize="7"
+          letterSpacing="1.5"
           fill={text}
           opacity="0.6"
         >
-          FEELINGS THAT LAST
+          SOME FEELINGS DESERVE ETERNITY
         </text>
       </svg>
     );

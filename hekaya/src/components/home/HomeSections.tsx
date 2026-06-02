@@ -123,6 +123,9 @@ export function Hero() {
             <img
               src={slide.image}
               alt=""
+              loading={index === 0 ? "eager" : "lazy"}
+              fetchPriority={index === 0 ? "high" : "auto"}
+              decoding="async"
               className="h-full w-full object-cover"
             />
           </motion.div>
@@ -139,27 +142,20 @@ export function Hero() {
         />
       </div>
 
-      {/* Slide-keyed halo accents */}
-      <AnimatePresence mode="sync">
-        <motion.div
-          key={`halo-${index}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.6 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.2 }}
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-        >
-          <div
-            className="absolute -left-20 top-1/3 h-[520px] w-[520px] rounded-full blur-[140px]"
-            style={{ background: slide.haloFrom }}
-          />
-          <div
-            className="absolute -right-20 bottom-0 h-[460px] w-[460px] rounded-full blur-[140px]"
-            style={{ background: slide.haloTo }}
-          />
-        </motion.div>
-      </AnimatePresence>
+      {/* Slide-keyed halo accents (static layers, CSS colour crossfade) */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-60"
+      >
+        <div
+          className="absolute -left-20 top-1/3 h-[480px] w-[480px] rounded-full blur-[100px] transition-[background] duration-1000"
+          style={{ background: slide.haloFrom }}
+        />
+        <div
+          className="absolute -right-20 bottom-0 h-[420px] w-[420px] rounded-full blur-[100px] transition-[background] duration-1000"
+          style={{ background: slide.haloTo }}
+        />
+      </div>
 
       {/* Prev / Next arrows */}
       <button
@@ -429,6 +425,8 @@ export function CollectionShowcase() {
                       <img
                         src={c.image}
                         alt={tx(c.name)}
+                        loading="lazy"
+                        decoding="async"
                         className="h-full w-full object-cover"
                       />
                     ) : (
@@ -481,17 +479,10 @@ export function CollectionShowcase() {
                     "bottom-3 left-3 border-b-2 border-l-2",
                     "bottom-3 right-3 border-b-2 border-r-2",
                   ].map((cls, idx) => (
-                    <motion.span
+                    <span
                       key={idx}
                       aria-hidden
-                      initial={{ opacity: 0, scale: 0.4 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={inViewOnce}
-                      transition={{
-                        duration: 0.5,
-                        delay: baseDelay + 0.5 + idx * 0.05,
-                      }}
-                      className={`pointer-events-none absolute h-7 w-7 border-[var(--color-primary)] ${cls}`}
+                      className={`pointer-events-none absolute h-7 w-7 border-[var(--color-primary)] opacity-90 ${cls}`}
                     />
                   ))}
 
@@ -715,7 +706,7 @@ export function QRBanner() {
                 {t("memory_title")}
               </p>
               <p className="mt-1 text-xs text-[var(--color-ink-muted)]">
-                mashaer-jewellery.com/memory
+                mashaerjewellery.com/memory
               </p>
               <div className="divider-gold w-12" />
               <p className="text-[10px] uppercase tracking-[0.3em] text-[var(--color-primary-dark)]">

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, ShoppingBag, User, Search } from "lucide-react";
+import { Menu, ShoppingBag, User } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useT } from "@/lib/useT";
@@ -53,13 +53,6 @@ export function Header() {
           {/* Right actions */}
           <div className="flex items-center gap-1.5">
             <LanguageSwitcher className="hidden sm:inline-flex" />
-            <Link
-              href="/products"
-              className="hidden rounded-full p-2 text-[var(--color-ink)] transition hover:bg-[var(--color-bg-secondary)] sm:inline-flex"
-              aria-label={t("nav_search")}
-            >
-              <Search className="h-5 w-5" />
-            </Link>
             <Link
               href="/account"
               className="hidden rounded-full p-2 text-[var(--color-ink)] transition hover:bg-[var(--color-bg-secondary)] sm:inline-flex"

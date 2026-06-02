@@ -138,8 +138,8 @@ export default function CheckoutClient() {
   }, []);
 
   const sub = subtotal();
-  // Free over 500 AED; otherwise use the admin-configured emirate rate.
-  const ship = sub > 500 ? 0 : rateForEmirate(shipping.emirate);
+  // Delivery is charged by emirate (admin-configured). No free-delivery threshold.
+  const ship = rateForEmirate(shipping.emirate);
   const total = sub + ship;
 
   if (!hydrated) {

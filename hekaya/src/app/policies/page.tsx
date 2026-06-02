@@ -78,7 +78,7 @@ const ShippingAr = () => (
     <p>نقوم بشحن جميع طلبيات مشاعر بعناية فائقة ضمن صناديق هدية أنيقة.</p>
     <ul>
       <li>التوصيل داخل الإمارات: ٢ – ٤ أيام عمل.</li>
-      <li>الشحن مجاني للطلبات فوق ٥٠٠ درهم، وإلا ٣٠ درهم.</li>
+      <li>تحتسب رسوم الشحن حسب الإمارة عند إتمام الطلب.</li>
       <li>كل طلب مغلّف بصندوق هدية مع بطاقة ذكرى.</li>
     </ul>
   </>
@@ -89,7 +89,7 @@ const ShippingEn = () => (
     <p>Every Mashaer order ships in our signature gift packaging.</p>
     <ul>
       <li>UAE delivery: 2 – 4 business days.</li>
-      <li>Free over AED 500, otherwise AED 30 flat.</li>
+      <li>Shipping is calculated by emirate at checkout.</li>
       <li>All orders include a gift box & memory card.</li>
     </ul>
   </>
@@ -98,12 +98,12 @@ const ReturnsAr = () => (
   <>
     <h2>الاستبدال والإرجاع</h2>
     <p>
-      يمكنك إرجاع أو استبدال القطعة خلال ١٤ يومًا من الاستلام بشرط أن تكون
-      بحالتها الأصلية.
+      نظرًا للطابع الشخصي لقطعنا، جميع المبيعات نهائية ولا تقبل الإرجاع أو
+      الاستبدال.
     </p>
     <ul>
-      <li>القطع المخصّصة (مع ذكرى QR مفعّلة) لا تقبل الإرجاع.</li>
-      <li>تُعاد المبالغ خلال ٧ أيام عمل.</li>
+      <li>يُرجى مراجعة المقاس والتفاصيل بعناية قبل إتمام الطلب.</li>
+      <li>في حال وصول قطعة بها عيب تصنيع، تواصلي معنا خلال ٤٨ ساعة.</li>
     </ul>
   </>
 );
@@ -111,14 +111,15 @@ const ReturnsEn = () => (
   <>
     <h2>Returns & Exchanges</h2>
     <p>
-      You may return or exchange within 14 days of receipt, provided items are
-      in original condition.
+      Because every piece is personal, all sales are final — we do not accept
+      returns or exchanges.
     </p>
     <ul>
+      <li>Please review size and details carefully before ordering.</li>
       <li>
-        Personalised pieces (with activated QR Memory) are non-returnable.
+        If an item arrives with a manufacturing defect, contact us within 48
+        hours.
       </li>
-      <li>Refunds processed within 7 business days.</li>
     </ul>
   </>
 );

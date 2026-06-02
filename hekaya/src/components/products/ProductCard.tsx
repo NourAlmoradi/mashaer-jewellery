@@ -21,7 +21,7 @@ export function ProductCard({
   product: Product;
   index?: number;
 }) {
-  const { tx, locale } = useT();
+  const { t, tx, locale } = useT();
   const category = findCategory(product.categoryId);
   const toggle = useWishlistStore((s) => s.toggle);
   const inWishlist = useWishlistStore((s) => s.ids.includes(product.id));
@@ -41,6 +41,8 @@ export function ProductCard({
             <img
               src={product.images[0]}
               alt={product.name.en || product.name.ar}
+              loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
@@ -64,15 +66,7 @@ export function ProductCard({
               e.preventDefault();
               e.stopPropagation();
               toggle(product.id);
-              toast(
-                inWishlist
-                  ? locale === "ar"
-                    ? "أزيل من المفضلة"
-                    : "Removed from wishlist"
-                  : locale === "ar"
-                    ? "أضيف للمفضلة"
-                    : "Saved to wishlist",
-              );
+              toast(inWishlist ? t("wishlist_removed") : t("wishlist_added"));
             }}
             className="absolute top-3 ltr:right-3 rtl:left-3 grid h-10 w-10 place-items-center rounded-full bg-white/90 shadow-sm ring-1 ring-black/5 backdrop-blur transition hover:bg-white sm:opacity-0 sm:group-hover:opacity-100"
             aria-label="Add to wishlist"

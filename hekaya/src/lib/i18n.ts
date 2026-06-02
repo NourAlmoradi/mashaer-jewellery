@@ -5,8 +5,8 @@ export const translations = {
   brand: { ar: "مشاعر", en: "Mashaer" },
   brandFull: { ar: "مجوهرات مشاعر", en: "Mashaer Jewellery" },
   tagline: {
-    ar: "في كل قطعة… مشاعر تبقى",
-    en: "Feelings That Last, In Every Piece",
+    ar: "بعض المشاعر تستحق الخلود",
+    en: "Some Feelings Deserve Eternity",
   },
 
   // Nav
@@ -245,6 +245,8 @@ export const translations = {
   my_memories: { ar: "ذكرياتي", en: "My Memories" },
   my_addresses: { ar: "عناويني", en: "My Addresses" },
   my_wishlist: { ar: "قائمة المفضلة", en: "Wishlist" },
+  wishlist_added: { ar: "أضيف للمفضلة", en: "Saved to wishlist" },
+  wishlist_removed: { ar: "أزيل من المفضلة", en: "Removed from wishlist" },
 
   // Admin — sidebar / shell
   admin_title: { ar: "لوحة التحكم", en: "Admin Panel" },
@@ -465,8 +467,8 @@ export const translations = {
   pdp_tab_shipping: { ar: "الشحن", en: "Shipping" },
   pdp_tab_care: { ar: "العناية", en: "Jewellery Care" },
   pdp_shipping_copy: {
-    ar: "شحن مجاني داخل الإمارات للطلبات فوق 500 د.إ، توصيل خلال 2-4 أيام عمل. شحن دولي متاح إلى دول الخليج.",
-    en: "Free shipping within UAE on orders over AED 500 · delivered in 2-4 business days. International shipping available across the GCC.",
+    ar: "التوصيل داخل الإمارات خلال 2-4 أيام عمل، وتحتسب رسوم الشحن حسب الإمارة عند إتمام الطلب.",
+    en: "Delivered within the UAE in 2-4 business days · shipping is calculated by emirate at checkout.",
   },
   pdp_care_copy: {
     ar: "خزّني القطعة في الكيس المخمل المرفق، وامسحيها بقطعة قماش ناعمة. تجنّبي العطور والكلور والاحتكاك المباشر.",

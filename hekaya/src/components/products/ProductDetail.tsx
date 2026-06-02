@@ -19,6 +19,7 @@ import {
   kindFromCategory,
 } from "@/components/ui/PlaceholderJewel";
 import { useCartStore } from "@/stores/cart.store";
+import { useWishlistStore } from "@/stores/wishlist.store";
 import { toast } from "sonner";
 import { products, findCategory } from "@/data/products";
 import { ProductCard } from "./ProductCard";
@@ -26,6 +27,8 @@ import { ProductCard } from "./ProductCard";
 export function ProductDetail({ product }: { product: Product }) {
   const { t, tx, locale } = useT();
   const { addItem, setOpen } = useCartStore();
+  const toggleWishlist = useWishlistStore((s) => s.toggle);
+  const inWishlist = useWishlistStore((s) => s.ids.includes(product.id));
   const [qty, setQty] = useState(1);
   const [selectedVariation, setSelectedVariation] = useState(
     product.variations?.[0]?.id,
@@ -258,13 +261,18 @@ export function ProductDetail({ product }: { product: Product }) {
               {t("buy_now")}
             </button>
             <button
-              onClick={() =>
-                toast(locale === "ar" ? "أضيف للمفضلة" : "Saved to wishlist")
-              }
-              className="btn btn-outline btn-lg !px-4"
-              aria-label="Wishlist"
+              onClick={() => {
+                toggleWishlist(product.id);
+                toast(inWishlist ? t("wishlist_removed") : t("wishlist_added"));
+              }}
+              className={cn(
+                "btn btn-lg !px-4",
+                inWishlist ? "btn-gold" : "btn-outline",
+              )}
+              aria-label={t("my_wishlist")}
+              aria-pressed={inWishlist}
             >
-              <Heart className="h-4 w-4" />
+              <Heart className={cn("h-4 w-4", inWishlist && "fill-current")} />
             </button>
           </div>
 

@@ -30,7 +30,7 @@ export type AdminSettingsState = {
 
 const defaults: Pick<AdminSettingsState, "store" | "shipping"> = {
   store: {
-    email: "hello@mashaer-jewellery.com",
+    email: "hello@mashaerjewellery.com",
     phone: "+971 50 000 0000",
     whatsapp: "+971 50 000 0000",
     instagram: "@mashaerjewellery",

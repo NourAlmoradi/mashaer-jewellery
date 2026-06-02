@@ -207,9 +207,6 @@ export default function MemoryPage({
               {t("unlock")}
             </button>
           </form>
-          <p className="mt-4 text-xs text-[var(--color-ink-faint)]">
-            {locale === "ar" ? "تلميح للتجربة:" : "Demo hint:"} {memory.pin}
-          </p>
         </motion.div>
       </Wrapper>
     );

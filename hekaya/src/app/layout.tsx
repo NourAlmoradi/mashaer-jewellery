@@ -37,8 +37,7 @@ const notoArabic = Noto_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title:
-    "Mashaer Jewellery — Feelings That Last, In Every Piece | مجوهرات مشاعر",
+  title: "Mashaer Jewellery — Some Feelings Deserve Eternity | مجوهرات مشاعر",
   description:
     "Premium children's jewellery for the UAE — every piece comes with a private QR Memory card to keep your moments forever. مجوهرات أطفال فاخرة مع بطاقة ذكرى رقمية.",
   keywords: [
@@ -52,7 +51,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Mashaer Jewellery",
-    description: "Feelings That Last, In Every Piece — في كل قطعة… مشاعر تبقى",
+    description: "Some Feelings Deserve Eternity — بعض المشاعر تستحق الخلود",
     type: "website",
   },
 };

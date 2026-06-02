@@ -125,7 +125,7 @@ export function Footer() {
           <ul className="space-y-2 pt-2 text-sm text-white/60">
             <li className="flex items-center gap-2">
               <Mail className="h-3.5 w-3.5 shrink-0 text-[var(--color-primary)]" />
-              hello@mashaer-jewellery.com
+              hello@mashaerjewellery.com
             </li>
             <li className="flex items-center gap-2">
               <Phone className="h-3.5 w-3.5 shrink-0 text-[var(--color-primary)]" />
