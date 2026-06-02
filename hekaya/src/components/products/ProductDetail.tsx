@@ -19,7 +19,7 @@ import {
   kindFromCategory,
 } from "@/components/ui/PlaceholderJewel";
 import { useCartStore } from "@/stores/cart.store";
-import { useWishlistStore } from "@/stores/wishlist.store";
+import { useWishlistToggle } from "@/lib/useWishlistToggle";
 import { toast } from "sonner";
 import { products, findCategory } from "@/data/products";
 import { ProductCard } from "./ProductCard";
@@ -27,8 +27,7 @@ import { ProductCard } from "./ProductCard";
 export function ProductDetail({ product }: { product: Product }) {
   const { t, tx, locale } = useT();
   const { addItem, setOpen } = useCartStore();
-  const toggleWishlist = useWishlistStore((s) => s.toggle);
-  const inWishlist = useWishlistStore((s) => s.ids.includes(product.id));
+  const { inWishlist, toggle: toggleWishlist } = useWishlistToggle(product.id);
   const [qty, setQty] = useState(1);
   const [selectedVariation, setSelectedVariation] = useState(
     product.variations?.[0]?.id,
@@ -114,7 +113,7 @@ export function ProductDetail({ product }: { product: Product }) {
             <div className="mt-3 grid grid-cols-4 gap-3">
               {product.images.slice(0, 4).map((src, i) => (
                 <button
-                  key={i}
+                  key={src}
                   onClick={() => setActiveImage(i)}
                   className={cn(
                     "aspect-square overflow-hidden rounded ring-1 transition",
@@ -262,8 +261,7 @@ export function ProductDetail({ product }: { product: Product }) {
             </button>
             <button
               onClick={() => {
-                toggleWishlist(product.id);
-                toast(inWishlist ? t("wishlist_removed") : t("wishlist_added"));
+                toggleWishlist();
               }}
               className={cn(
                 "btn btn-lg !px-4",

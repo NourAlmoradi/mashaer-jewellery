@@ -36,10 +36,20 @@ const notoArabic = Noto_Sans_Arabic({
   display: "swap",
 });
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+  "https://mashaerjewellery.com";
+
 export const metadata: Metadata = {
-  title: "Mashaer Jewellery — Some Feelings Deserve Eternity | مجوهرات مشاعر",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default:
+      "Mashaer Jewellery — Some Feelings Deserve Eternity | مجوهرات مشاعر",
+    template: "%s | Mashaer Jewellery",
+  },
   description:
     "Premium children's jewellery for the UAE — every piece comes with a private QR Memory card to keep your moments forever. مجوهرات أطفال فاخرة مع بطاقة ذكرى رقمية.",
+  applicationName: "Mashaer Jewellery",
   keywords: [
     "jewellery",
     "UAE",
@@ -49,11 +59,39 @@ export const metadata: Metadata = {
     "مجوهرات",
     "مشاعر",
   ],
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "Mashaer Jewellery",
     description: "Some Feelings Deserve Eternity — بعض المشاعر تستحق الخلود",
     type: "website",
+    url: SITE_URL,
+    siteName: "Mashaer Jewellery",
+    locale: "ar_AE",
+    alternateLocale: "en_AE",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mashaer Jewellery",
+    description: "Some Feelings Deserve Eternity — بعض المشاعر تستحق الخلود",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Mashaer Jewellery",
+  alternateName: "مجوهرات مشاعر",
+  url: SITE_URL,
+  logo: `${SITE_URL}/Logo.png`,
+  slogan: "Some Feelings Deserve Eternity",
+  areaServed: "AE",
+  email: "hello@mashaerjewellery.com",
 };
 
 export default async function RootLayout({
@@ -74,6 +112,12 @@ export default async function RootLayout({
       className={`${cormorant.variable} ${inter.variable} ${amiri.variable} ${notoArabic.variable}`}
     >
       <body className="min-h-screen bg-[var(--color-bg)] text-[var(--color-ink)] antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationJsonLd),
+          }}
+        />
         <Providers initialLocale={locale}>
           <SiteChrome>{children}</SiteChrome>
         </Providers>

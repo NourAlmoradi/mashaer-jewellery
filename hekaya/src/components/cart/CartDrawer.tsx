@@ -4,7 +4,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Plus, Minus, Trash2, ShoppingBag } from "lucide-react";
 import { useT } from "@/lib/useT";
-import { useCartStore } from "@/stores/cart.store";
+import { useCartStore, useCartSubtotal } from "@/stores/cart.store";
 import { formatPrice } from "@/lib/utils";
 import {
   PlaceholderJewel,
@@ -14,8 +14,12 @@ import { products } from "@/data/products";
 
 export function CartDrawer() {
   const { t, tx, locale, dir } = useT();
-  const { items, isOpen, setOpen, removeItem, updateQty, subtotal } =
-    useCartStore();
+  const items = useCartStore((s) => s.items);
+  const isOpen = useCartStore((s) => s.isOpen);
+  const setOpen = useCartStore((s) => s.setOpen);
+  const removeItem = useCartStore((s) => s.removeItem);
+  const updateQty = useCartStore((s) => s.updateQty);
+  const subtotal = useCartSubtotal();
   const fromSide = dir === "rtl" ? "-100%" : "100%";
 
   return (
@@ -177,7 +181,7 @@ export function CartDrawer() {
                       {t("cart_subtotal")}
                     </span>
                     <span className="font-display text-xl font-semibold">
-                      {formatPrice(subtotal(), locale)}
+                      {formatPrice(subtotal, locale)}
                     </span>
                   </div>
                   <p className="mt-1 text-xs text-[var(--color-ink-faint)]">

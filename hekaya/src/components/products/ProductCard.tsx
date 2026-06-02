@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Heart, QrCode } from "lucide-react";
@@ -11,20 +12,18 @@ import {
   kindFromCategory,
 } from "@/components/ui/PlaceholderJewel";
 import { findCategory } from "@/data/products";
-import { toast } from "sonner";
-import { useWishlistStore } from "@/stores/wishlist.store";
+import { useWishlistToggle } from "@/lib/useWishlistToggle";
 
-export function ProductCard({
+function ProductCardBase({
   product,
   index = 0,
 }: {
   product: Product;
   index?: number;
 }) {
-  const { t, tx, locale } = useT();
+  const { tx, locale } = useT();
   const category = findCategory(product.categoryId);
-  const toggle = useWishlistStore((s) => s.toggle);
-  const inWishlist = useWishlistStore((s) => s.ids.includes(product.id));
+  const { inWishlist, toggle } = useWishlistToggle(product.id);
 
   return (
     <motion.div
@@ -65,8 +64,7 @@ export function ProductCard({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              toggle(product.id);
-              toast(inWishlist ? t("wishlist_removed") : t("wishlist_added"));
+              toggle();
             }}
             className="absolute top-3 ltr:right-3 rtl:left-3 grid h-10 w-10 place-items-center rounded-full bg-white/90 shadow-sm ring-1 ring-black/5 backdrop-blur transition hover:bg-white sm:opacity-0 sm:group-hover:opacity-100"
             aria-label="Add to wishlist"
@@ -101,3 +99,5 @@ export function ProductCard({
     </motion.div>
   );
 }
+
+export const ProductCard = memo(ProductCardBase);

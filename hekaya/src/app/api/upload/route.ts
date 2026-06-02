@@ -28,6 +28,37 @@ const EXT: Record<string, string> = {
 
 export const runtime = "nodejs";
 
+/**
+ * Naive in-memory rate limiter (per server instance). Good enough to blunt
+ * accidental floods in dev / single-instance hosting. Replace with a shared
+ * store (e.g. Upstash) once Supabase + real auth land.
+ */
+const RATE_LIMIT = 20; // requests
+const RATE_WINDOW_MS = 60_000; // per minute
+const hits = new Map<string, { count: number; resetAt: number }>();
+
+function rateLimited(key: string): boolean {
+  const now = Date.now();
+  const entry = hits.get(key);
+  if (!entry || now > entry.resetAt) {
+    hits.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return false;
+  }
+  entry.count += 1;
+  return entry.count > RATE_LIMIT;
+}
+
+/** Reject cross-site POSTs (basic CSRF guard) by comparing Origin to Host. */
+function sameOrigin(req: Request): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return true; // non-browser / same-origin fetches may omit it
+  try {
+    return new URL(origin).host === req.headers.get("host");
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(req: Request) {
   // Refuse on read-only filesystems (most serverless runtimes).
   if (process.env.VERCEL || process.env.NEXT_RUNTIME === "edge") {
@@ -37,6 +68,22 @@ export async function POST(req: Request) {
           "Upload stub is dev-only. On Vercel, switch to Supabase Storage.",
       },
       { status: 503 },
+    );
+  }
+
+  if (!sameOrigin(req)) {
+    return NextResponse.json({ error: "Cross-origin denied" }, { status: 403 });
+  }
+
+  // TODO(Phase 2): replace with Supabase auth — gate to authenticated users.
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "local";
+  if (rateLimited(ip)) {
+    return NextResponse.json(
+      { error: "Too many uploads, slow down." },
+      { status: 429 },
     );
   }
 

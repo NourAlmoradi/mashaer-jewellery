@@ -567,3 +567,26 @@ html[dir="rtl"] .prose-h h2 {
   background: var(--color-blush-soft);
   color: var(--color-ink);
 }
+
+/* ----- Accessibility: keyboard focus ring ----- */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+/* Don't show the ring for mouse/touch users that don't need it */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ----- Accessibility: respect reduced-motion globally ----- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

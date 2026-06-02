@@ -29,17 +29,38 @@ export function formatDate(
   }).format(d);
 }
 
+/**
+ * Cryptographically-strong random bytes with a graceful fallback.
+ * Uses Web Crypto (browser + Node 19+); falls back to Math.random only when
+ * `crypto.getRandomValues` is unavailable (very old runtimes).
+ */
+function randomValues(len: number): Uint8Array {
+  const out = new Uint8Array(len);
+  const c = typeof globalThis !== "undefined" ? globalThis.crypto : undefined;
+  if (c?.getRandomValues) {
+    c.getRandomValues(out);
+  } else {
+    for (let i = 0; i < len; i++) out[i] = Math.floor(Math.random() * 256);
+  }
+  return out;
+}
+
 export function generateOrderId(): string {
   const ts = Date.now().toString(36).toUpperCase();
-  const rnd = Math.random().toString(36).slice(2, 6).toUpperCase();
+  const bytes = randomValues(3);
+  const rnd = Array.from(bytes, (b) => b.toString(36).toUpperCase())
+    .join("")
+    .slice(0, 4)
+    .padEnd(4, "0");
   return `HK-${ts}-${rnd}`;
 }
 
 export function generateToken(len = 8): string {
-  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  // Ambiguity-free alphabet (no 0/o/1/l/i) for human-readable QR tokens.
+  const chars = "abcdefghjkmnpqrstuvwxyz23456789";
+  const bytes = randomValues(len);
   let out = "";
-  for (let i = 0; i < len; i++)
-    out += chars[Math.floor(Math.random() * chars.length)];
+  for (let i = 0; i < len; i++) out += chars[bytes[i] % chars.length];
   return out;
 }
 

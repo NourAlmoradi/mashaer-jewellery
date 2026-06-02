@@ -44,8 +44,7 @@ const HERO_SLIDES: HeroSlide[] = [
     secondaryCta: { href: "/qr", labelAr: "اكتشف QR", labelEn: "Discover QR" },
     haloFrom: "rgba(244,228,220,0.55)",
     haloTo: "rgba(201,169,110,0.28)",
-    image:
-      "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=900&q=80&auto=format&fit=crop",
+    image: "",
   },
   {
     eyebrowKey: "hero_slide2_eyebrow",
@@ -56,8 +55,7 @@ const HERO_SLIDES: HeroSlide[] = [
     secondaryCta: { href: "/products", labelAr: "تصفّحي", labelEn: "Browse" },
     haloFrom: "rgba(201,169,110,0.32)",
     haloTo: "rgba(244,228,220,0.45)",
-    image:
-      "https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=900&q=80&auto=format&fit=crop",
+    image: "",
   },
   {
     eyebrowKey: "hero_slide3_eyebrow",
@@ -68,8 +66,7 @@ const HERO_SLIDES: HeroSlide[] = [
     secondaryCta: { href: "/about", labelAr: "قصتنا", labelEn: "Our Story" },
     haloFrom: "rgba(232,201,189,0.5)",
     haloTo: "rgba(201,169,110,0.25)",
-    image:
-      "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=900&q=80&auto=format&fit=crop",
+    image: "",
   },
 ];
 
@@ -119,15 +116,17 @@ export function Hero() {
             className="absolute inset-0"
             aria-hidden
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={slide.image}
-              alt=""
-              loading={index === 0 ? "eager" : "lazy"}
-              fetchPriority={index === 0 ? "high" : "auto"}
-              decoding="async"
-              className="h-full w-full object-cover"
-            />
+            {slide.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={slide.image}
+                alt=""
+                loading={index === 0 ? "eager" : "lazy"}
+                fetchPriority={index === 0 ? "high" : "auto"}
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
+            ) : null}
           </motion.div>
         </AnimatePresence>
 

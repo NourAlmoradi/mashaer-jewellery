@@ -14,7 +14,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { useT } from "@/lib/useT";
-import { useCartStore } from "@/stores/cart.store";
+import { useCartStore, useCartSubtotal } from "@/stores/cart.store";
 import { useDataStore } from "@/stores/data.store";
 import { useAdminSettings } from "@/stores/adminSettings.store";
 import { formatPrice, generateOrderId, generateToken, cn } from "@/lib/utils";
@@ -60,7 +60,11 @@ function loadSavedAddresses(): SavedAddress[] {
 export default function CheckoutClient() {
   const { t, locale, dir } = useT();
   const router = useRouter();
-  const { items, subtotal, qrChoice, setQrChoice, clear } = useCartStore();
+  const items = useCartStore((s) => s.items);
+  const subtotal = useCartSubtotal();
+  const qrChoice = useCartStore((s) => s.qrChoice);
+  const setQrChoice = useCartStore((s) => s.setQrChoice);
+  const clear = useCartStore((s) => s.clear);
   const addOrder = useDataStore((s) => s.addOrder);
   const shippingRates = useAdminSettings((s) => s.shipping);
 
@@ -137,7 +141,7 @@ export default function CheckoutClient() {
     setSavedAddresses(loadSavedAddresses());
   }, []);
 
-  const sub = subtotal();
+  const sub = subtotal;
   // Delivery is charged by emirate (admin-configured). No free-delivery threshold.
   const ship = rateForEmirate(shipping.emirate);
   const total = sub + ship;

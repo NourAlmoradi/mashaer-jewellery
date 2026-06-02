@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { toast } from "sonner";
 import type { Collection, Memory, Order, Product } from "@/types";
 
 type DataState = {
@@ -49,7 +50,7 @@ const safeStorage: Storage = {
     try {
       localStorage.setItem(name, value);
     } catch {
-      // Quota exceeded — evict photos and retry
+      // Quota exceeded — evict photos and retry once.
       try {
         const parsed = JSON.parse(value);
         if (parsed?.state?.memories) {
@@ -58,8 +59,14 @@ const safeStorage: Storage = {
           }
         }
         localStorage.setItem(name, JSON.stringify(parsed));
+        toast.warning(
+          "Storage was full — some saved memory photos were removed to keep your data safe.",
+        );
       } catch {
-        /* silent — state works in memory, just won't persist this save */
+        // Could not persist at all: warn the user so they don't assume it saved.
+        toast.error(
+          "Couldn't save locally (storage full). Your latest changes may be lost on refresh.",
+        );
       }
     }
   },

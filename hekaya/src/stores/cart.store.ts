@@ -68,3 +68,13 @@ export const useCartStore = create<CartState>()(
     { name: "mashaer-cart" },
   ),
 );
+
+/**
+ * Derived selector hooks — subscribe only to `items` so consuming
+ * components re-render solely when the relevant total changes.
+ */
+export const useCartCount = () =>
+  useCartStore((s) => s.items.reduce((sum, i) => sum + i.qty, 0));
+
+export const useCartSubtotal = () =>
+  useCartStore((s) => s.items.reduce((sum, i) => sum + i.price * i.qty, 0));
