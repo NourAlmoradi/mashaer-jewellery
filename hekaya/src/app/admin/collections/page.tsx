@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -17,9 +17,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useT } from "@/lib/useT";
-import { useDataStore } from "@/stores/data.store";
-import { collections as initialCollections } from "@/data/products";
-import { products as allProducts } from "@/data/products";
+import { useCatalogStore } from "@/stores/catalog.store";
+import { useCollections } from "@/lib/useCollections";
+import { useProducts } from "@/lib/useProducts";
 import { PlaceholderJewel } from "@/components/ui/PlaceholderJewel";
 import { cn } from "@/lib/utils";
 import type { Collection } from "@/types";
@@ -35,35 +35,17 @@ function readAsDataUrl(file: File): Promise<string> {
   });
 }
 
-function slugify(input: string) {
-  return input
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\u0600-\u06FF\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
-}
-
 export default function AdminCollections() {
   const { t, locale } = useT();
-  const collections = useDataStore((s) => s.collections);
-  const seedCollections = useDataStore((s) => s.seedCollections);
-  const addCollection = useDataStore((s) => s.addCollection);
-  const updateCollection = useDataStore((s) => s.updateCollection);
-  const cascadeDeleteCollection = useDataStore(
-    (s) => s.cascadeDeleteCollection,
-  );
-  const reorderCollections = useDataStore((s) => s.reorderCollections);
-  const hiddenProductIds = useDataStore((s) => s.hiddenProductIds);
+  const collections = useCollections({ includeInactive: true });
+  const allProducts = useProducts();
+  const saveCollection = useCatalogStore((s) => s.saveCollection);
+  const deleteCatalogProduct = useCatalogStore((s) => s.deleteProduct);
+  const deleteCatalogCollection = useCatalogStore((s) => s.deleteCollection);
 
   const [editing, setEditing] = useState<Collection | null>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-
-  // Seed once on mount if empty
-  useEffect(() => {
-    if (collections.length === 0) seedCollections(initialCollections);
-  }, [collections.length, seedCollections]);
 
   const sorted = useMemo(
     () => [...collections].sort((a, b) => a.sortOrder - b.sortOrder),
@@ -82,9 +64,7 @@ export default function AdminCollections() {
   }, [sorted, query]);
 
   const productCount = (id: string) =>
-    allProducts.filter(
-      (p) => p.collection === id && !hiddenProductIds.includes(p.id),
-    ).length;
+    allProducts.filter((p) => p.collection === id).length;
 
   const openNew = () => {
     setEditing({
@@ -108,34 +88,26 @@ export default function AdminCollections() {
     ? collections.some((c) => c.id === editing.id)
     : false;
 
-  const save = () => {
+  const save = async () => {
     if (!editing) return;
     if (!editing.name.ar || !editing.name.en) {
       toast.error(locale === "ar" ? "أكمل الاسم" : "Name is required");
       return;
     }
-    const id = editing.id || slugify(editing.name.en) || `col-${Date.now()}`;
-    if (!isExisting && collections.some((c) => c.id === id)) {
-      toast.error(
-        locale === "ar"
-          ? "المعرّف مستخدم بالفعل"
-          : "A collection with this ID already exists",
-      );
+    try {
+      await saveCollection(editing, !isExisting);
+    } catch {
+      toast.error(locale === "ar" ? "تعذّر الحفظ" : "Could not save");
       return;
-    }
-    if (isExisting) {
-      updateCollection(editing.id, editing);
-    } else {
-      addCollection({ ...editing, id });
     }
     setOpen(false);
     setEditing(null);
     toast.success(locale === "ar" ? "تم الحفظ" : "Saved");
   };
 
-  const remove = (c: Collection) => {
+  const remove = async (c: Collection) => {
     const linkedIds = allProducts
-      .filter((p) => p.collection === c.id && !hiddenProductIds.includes(p.id))
+      .filter((p) => p.collection === c.id)
       .map((p) => p.id);
     const count = linkedIds.length;
     const msg =
@@ -147,7 +119,13 @@ export default function AdminCollections() {
           ? "هل أنت متأكد من الحذف؟"
           : "Are you sure you want to delete?";
     if (!confirm(msg)) return;
-    cascadeDeleteCollection(c.id, linkedIds);
+    try {
+      for (const id of linkedIds) await deleteCatalogProduct(id);
+      await deleteCatalogCollection(c.id);
+    } catch {
+      toast.error(locale === "ar" ? "تعذّر الحذف" : "Could not delete");
+      return;
+    }
     toast.success(
       count > 0
         ? locale === "ar"
@@ -159,17 +137,27 @@ export default function AdminCollections() {
     );
   };
 
-  const move = (id: string, dir: -1 | 1) => {
-    const ids = sorted.map((c) => c.id);
-    const i = ids.indexOf(id);
+  const move = async (id: string, dir: -1 | 1) => {
+    const i = sorted.findIndex((c) => c.id === id);
     const j = i + dir;
-    if (i < 0 || j < 0 || j >= ids.length) return;
-    [ids[i], ids[j]] = [ids[j], ids[i]];
-    reorderCollections(ids);
+    if (i < 0 || j < 0 || j >= sorted.length) return;
+    const a = sorted[i];
+    const b = sorted[j];
+    try {
+      await saveCollection({ ...a, sortOrder: b.sortOrder }, false);
+      await saveCollection({ ...b, sortOrder: a.sortOrder }, false);
+    } catch {
+      toast.error(locale === "ar" ? "تعذّر التحديث" : "Could not update");
+    }
   };
 
-  const toggleActive = (c: Collection) =>
-    updateCollection(c.id, { isActive: !c.isActive });
+  const toggleActive = async (c: Collection) => {
+    try {
+      await saveCollection({ ...c, isActive: !c.isActive }, false);
+    } catch {
+      toast.error(locale === "ar" ? "تعذّر التحديث" : "Could not update");
+    }
+  };
 
   return (
     <>
@@ -381,33 +369,6 @@ export default function AdminCollections() {
                     })
                   }
                 />
-
-                <div className="sm:col-span-2">
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-white/50">
-                    {locale === "ar" ? "المعرّف (slug)" : "ID / Slug"}
-                  </label>
-                  <input
-                    dir="ltr"
-                    value={editing.id}
-                    placeholder={
-                      slugify(editing.name.en) || "auto-generated-from-name"
-                    }
-                    disabled={isExisting}
-                    onChange={(e) =>
-                      setEditing({ ...editing, id: slugify(e.target.value) })
-                    }
-                    className="w-full rounded-md border border-white/10 bg-[#0a0a0a] px-3 py-2.5 text-sm text-white focus:border-[#c9a96e]/40 focus:outline-none disabled:opacity-60"
-                  />
-                  <p className="mt-1 text-[11px] text-white/40">
-                    {isExisting
-                      ? locale === "ar"
-                        ? "لا يمكن تغيير المعرّف بعد الإنشاء."
-                        : "ID cannot be changed after creation."
-                      : locale === "ar"
-                        ? "يستخدم في الروابط مثل /products?collection=..."
-                        : "Used in links like /products?collection=..."}
-                  </p>
-                </div>
 
                 <div className="sm:col-span-2">
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-white/50">

@@ -146,6 +146,7 @@ export const translations = {
   sort_pop: { ar: "الأكثر مبيعًا", en: "Best Sellers" },
   all: { ar: "الكل", en: "All" },
   results: { ar: "نتيجة", en: "results" },
+  products_count_label: { ar: "قطعة", en: "pieces" },
   no_results: { ar: "لا توجد نتائج", en: "No results found" },
   clear_filters: { ar: "مسح الفلاتر", en: "Clear filters" },
 

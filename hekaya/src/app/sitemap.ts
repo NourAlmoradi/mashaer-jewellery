@@ -1,12 +1,26 @@
 import type { MetadataRoute } from "next";
-import { products, collections } from "@/data/products";
+import { createClient } from "@/lib/supabase/server";
+import { fetchCollections, fetchProducts } from "@/lib/supabase/catalog";
+import type { Collection, Product } from "@/types";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
   "https://mashaerjewellery.com";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+
+  let products: Product[] = [];
+  let collections: Collection[] = [];
+  try {
+    const supabase = await createClient();
+    [products, collections] = await Promise.all([
+      fetchProducts(supabase),
+      fetchCollections(supabase),
+    ]);
+  } catch {
+    // DB unreachable at build/request time — emit static routes only.
+  }
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
@@ -53,12 +67,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  const productRoutes: MetadataRoute.Sitemap = products.map((p) => ({
-    url: `${SITE_URL}/product/${p.slug}`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.8,
-  }));
+  const productRoutes: MetadataRoute.Sitemap = products
+    .filter((p) => p.isActive)
+    .map((p) => ({
+      url: `${SITE_URL}/product/${p.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    }));
 
   const collectionRoutes: MetadataRoute.Sitemap = collections
     .filter((c) => c.isActive)

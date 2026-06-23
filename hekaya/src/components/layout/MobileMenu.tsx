@@ -10,9 +10,11 @@ import { Logo } from "@/components/ui/Logo";
 export function MobileMenu({
   open,
   onClose,
+  isAdmin = false,
 }: {
   open: boolean;
   onClose: () => void;
+  isAdmin?: boolean;
 }) {
   const { t, dir } = useT();
   const fromSide = dir === "rtl" ? "100%" : "-100%";
@@ -25,7 +27,7 @@ export function MobileMenu({
     { href: "/about", key: "nav_about" },
     { href: "/contact", key: "nav_contact" },
     { href: "/account", key: "nav_account" },
-    { href: "/admin", key: "nav_admin" },
+    ...(isAdmin ? ([{ href: "/admin", key: "nav_admin" }] as const) : []),
   ];
 
   return (

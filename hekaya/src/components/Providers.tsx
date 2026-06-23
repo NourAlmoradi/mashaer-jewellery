@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { Toaster } from "sonner";
 import { useLocaleStore } from "@/stores/locale.store";
+import { AuthProvider } from "@/lib/supabase/AuthProvider";
 import type { Locale } from "@/types";
 
 export function Providers({
@@ -20,17 +21,8 @@ export function Providers({
     seeded.current = true;
   }
 
-  const locale = useLocaleStore((s) => s.locale);
-
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.documentElement.lang = locale;
-      document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
-    }
-  }, [locale]);
-
   return (
-    <>
+    <AuthProvider>
       {children}
       <Toaster
         position="top-center"
@@ -44,6 +36,6 @@ export function Providers({
           },
         }}
       />
-    </>
+    </AuthProvider>
   );
 }

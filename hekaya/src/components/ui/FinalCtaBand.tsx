@@ -52,15 +52,6 @@ export function FinalCtaBand({
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.6 }}
         >
-          {/* Centered sparkle icon */}
-          <svg
-            viewBox="0 0 24 24"
-            aria-hidden
-            className="mx-auto h-9 w-9 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.25)]"
-            fill="currentColor"
-          >
-            <path d="M12 2l1.9 6.4 6.4 1.9-6.4 1.9L12 18.6l-1.9-6.4L3.7 10.3l6.4-1.9L12 2z" />
-          </svg>
           {eyebrow && (
             <div className="mt-4">
               <Eyebrow tone="light">{eyebrow}</Eyebrow>

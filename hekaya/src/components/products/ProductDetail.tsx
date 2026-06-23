@@ -21,7 +21,8 @@ import {
 import { useCartStore } from "@/stores/cart.store";
 import { useWishlistToggle } from "@/lib/useWishlistToggle";
 import { toast } from "sonner";
-import { products, findCategory } from "@/data/products";
+import { useCategory } from "@/lib/useCategories";
+import { useProducts } from "@/lib/useProducts";
 import { ProductCard } from "./ProductCard";
 
 export function ProductDetail({ product }: { product: Product }) {
@@ -36,7 +37,8 @@ export function ProductDetail({ product }: { product: Product }) {
   const [tab, setTab] = useState<"description" | "shipping" | "care">(
     "description",
   );
-  const category = findCategory(product.categoryId);
+  const category = useCategory(product.categoryId);
+  const allProducts = useProducts();
   const materialLabel = product.material
     ? tx(product.material)
     : t("pdp_material_default");
@@ -63,7 +65,7 @@ export function ProductDetail({ product }: { product: Product }) {
     if (openCart) setOpen(true);
   };
 
-  const related = products
+  const related = allProducts
     .filter((p) => p.id !== product.id && p.categoryId === product.categoryId)
     .slice(0, 4);
 

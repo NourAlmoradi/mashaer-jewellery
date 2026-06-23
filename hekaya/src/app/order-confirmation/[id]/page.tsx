@@ -5,7 +5,8 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { CheckCircle2, Copy, Download, QrCode, Package } from "lucide-react";
 import { useT } from "@/lib/useT";
-import { useDataStore } from "@/stores/data.store";
+import { createClient } from "@/lib/supabase/client";
+import { fetchOrderById } from "@/lib/supabase/orders";
 import { formatPrice } from "@/lib/utils";
 import { generateQrDataUrl, memoryUrlFor } from "@/lib/qr";
 import { toast } from "sonner";
@@ -13,7 +14,8 @@ import {
   PlaceholderJewel,
   kindFromCategory,
 } from "@/components/ui/PlaceholderJewel";
-import { findProduct } from "@/data/products";
+import { useProducts } from "@/lib/useProducts";
+import type { Order } from "@/types";
 
 export default function OrderConfirmation({
   params,
@@ -22,7 +24,9 @@ export default function OrderConfirmation({
 }) {
   const { id } = use(params);
   const { t, locale } = useT();
-  const order = useDataStore((s) => s.orders.find((o) => o.id === id));
+  const allProducts = useProducts();
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loadingOrder, setLoadingOrder] = useState(true);
   const [qrImages, setQrImages] = useState<
     {
       token: string;
@@ -32,6 +36,23 @@ export default function OrderConfirmation({
       dataUrl: string;
     }[]
   >([]);
+
+  useEffect(() => {
+    let active = true;
+    fetchOrderById(createClient(), id)
+      .then((o) => {
+        if (active) setOrder(o);
+      })
+      .catch(() => {
+        if (active) setOrder(null);
+      })
+      .finally(() => {
+        if (active) setLoadingOrder(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [id]);
 
   useEffect(() => {
     if (!order) return;
@@ -45,6 +66,14 @@ export default function OrderConfirmation({
       }),
     ).then(setQrImages);
   }, [order]);
+
+  if (loadingOrder) {
+    return (
+      <div className="container-h flex min-h-[60vh] items-center justify-center py-20">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-primary-dark)] border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!order) {
     return (
@@ -106,7 +135,9 @@ export default function OrderConfirmation({
           <div className="mx-auto mt-12 max-w-3xl space-y-6">
             {qrImages.map((q, idx) => {
               const product =
-                q.productId !== "all" ? findProduct(q.productId) : null;
+                q.productId !== "all"
+                  ? allProducts.find((p) => p.id === q.productId)
+                  : null;
               const jewel = product
                 ? kindFromCategory(product.categoryId)
                 : "gem";

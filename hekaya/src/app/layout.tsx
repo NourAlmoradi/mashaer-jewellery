@@ -88,7 +88,7 @@ const organizationJsonLd = {
   name: "Mashaer Jewellery",
   alternateName: "مجوهرات مشاعر",
   url: SITE_URL,
-  logo: `${SITE_URL}/Logo.png`,
+  logo: `${SITE_URL}/logo.jpeg`,
   slogan: "Some Feelings Deserve Eternity",
   areaServed: "AE",
   email: "hello@mashaerjewellery.com",

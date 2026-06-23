@@ -3,15 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import {
   LogOut,
   Package,
   Heart,
   MapPin,
   QrCode,
-  User,
   LayoutGrid,
+  LayoutDashboard,
   ShoppingBag,
   Plus,
   Pencil,
@@ -19,87 +18,80 @@ import {
   X,
 } from "lucide-react";
 import { useT } from "@/lib/useT";
-import { useDataStore } from "@/stores/data.store";
+import { useOrdersStore } from "@/stores/orders.store";
 import { useWishlistStore } from "@/stores/wishlist.store";
 import { useCartStore } from "@/stores/cart.store";
-import { products } from "@/data/products";
+import { useAuth } from "@/lib/supabase/useAuth";
+import { AuthForm } from "@/components/account/AuthForm";
+import { createClient } from "@/lib/supabase/client";
+import { fetchMyMemories, type PublicMemory } from "@/lib/supabase/memories";
+import { useProducts } from "@/lib/useProducts";
 import { formatDate, formatPrice, cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-const LS_KEY = "mashaer-mock-user";
-const ADDR_KEY = "mashaer-mock-addresses";
+import { useAddressesStore } from "@/stores/addresses.store";
+import type { Address, AddressInput } from "@/lib/supabase/addresses";
+import { EMIRATES, emirateLabel } from "@/lib/emirates";
 
 type Tab = "overview" | "orders" | "memories" | "addresses" | "wishlist";
 
-type Address = {
-  id: string;
-  name: string;
-  phone: string;
-  line1: string;
-  city: string;
-  country: string;
-};
-
-const DEFAULT_ADDRESSES: Address[] = [
-  {
-    id: "addr-default",
-    name: "Sara Al Maktoum",
-    phone: "+971 50 123 4567",
-    line1: "فيلا 12، شارع الجميرا",
-    city: "دبي",
-    country: "الإمارات",
-  },
-];
-
-function loadAddresses(): Address[] {
-  if (typeof window === "undefined") return DEFAULT_ADDRESSES;
-  try {
-    const raw = localStorage.getItem(ADDR_KEY);
-    if (raw) return JSON.parse(raw) as Address[];
-  } catch {
-    /* ignore */
-  }
-  return DEFAULT_ADDRESSES;
-}
-
-function saveAddresses(addresses: Address[]) {
-  try {
-    localStorage.setItem(ADDR_KEY, JSON.stringify(addresses));
-  } catch {
-    /* ignore */
-  }
-}
-
-const EMPTY_FORM: Omit<Address, "id"> = {
-  name: "",
+const EMPTY_FORM: AddressInput = {
+  fullName: "",
   phone: "",
-  line1: "",
+  addressLine: "",
   city: "",
-  country: "",
+  emirate: "dubai",
+  postalCode: "",
 };
 
 export default function AccountPage() {
   const { t, locale } = useT();
   const searchParams = useSearchParams();
-  const orders = useDataStore((s) => s.orders);
-  const memories = useDataStore((s) => s.memories);
+  const { user, profile, loading, signOut } = useAuth();
+  const orders = useOrdersStore((s) => s.orders);
+  const ordersLoaded = useOrdersStore((s) => s.loaded);
+  const loadOrders = useOrdersStore((s) => s.load);
+  const [memoryEntries, setMemoryEntries] = useState<PublicMemory[]>([]);
   const wishlistIds = useWishlistStore((s) => s.ids);
   const wishlistToggle = useWishlistStore((s) => s.toggle);
+  const wishlistLoaded = useWishlistStore((s) => s.loaded);
+  const loadWishlist = useWishlistStore((s) => s.load);
   const addItemToCart = useCartStore((s) => s.addItem);
   const openCart = useCartStore((s) => s.setOpen);
-  const [loggedIn, setLoggedIn] = useState(false);
+  const products = useProducts();
   const [tab, setTab] = useState<Tab>("overview");
 
-  // Addresses state
-  const [addresses, setAddresses] = useState<Address[]>([]);
-  const [addrForm, setAddrForm] = useState<Omit<Address, "id">>(EMPTY_FORM);
+  // Addresses (Supabase-backed)
+  const addresses = useAddressesStore((s) => s.addresses);
+  const addressesLoaded = useAddressesStore((s) => s.loaded);
+  const loadAddresses = useAddressesStore((s) => s.load);
+  const addAddress = useAddressesStore((s) => s.add);
+  const editAddress = useAddressesStore((s) => s.edit);
+  const removeAddress = useAddressesStore((s) => s.remove);
+  const [addrForm, setAddrForm] = useState<AddressInput>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null); // null = new
   const [showAddrForm, setShowAddrForm] = useState(false);
 
   useEffect(() => {
-    setLoggedIn(localStorage.getItem(LS_KEY) === "1");
-    setAddresses(loadAddresses());
-  }, []);
+    if (user && !addressesLoaded) void loadAddresses();
+  }, [user, addressesLoaded, loadAddresses]);
+
+  useEffect(() => {
+    if (!wishlistLoaded) void loadWishlist();
+  }, [wishlistLoaded, loadWishlist]);
+
+  useEffect(() => {
+    if (user && !ordersLoaded) void loadOrders();
+  }, [user, ordersLoaded, loadOrders]);
+
+  useEffect(() => {
+    if (!user) {
+      setMemoryEntries([]);
+      return;
+    }
+    fetchMyMemories(createClient())
+      .then(setMemoryEntries)
+      .catch(() => setMemoryEntries([]));
+  }, [user]);
 
   // Deep-link support: /account?tab=wishlist|orders|memories|addresses|overview
   useEffect(() => {
@@ -115,13 +107,29 @@ export default function AccountPage() {
     }
   }, [searchParams]);
 
-  const login = () => {
-    localStorage.setItem(LS_KEY, "1");
-    setLoggedIn(true);
+  const logout = async () => {
+    await signOut();
   };
-  const logout = () => {
-    localStorage.removeItem(LS_KEY);
-    setLoggedIn(false);
+
+  const deleteAccount = async () => {
+    if (
+      !confirm(
+        locale === "ar"
+          ? "سيتم حذف حسابك وكل بياناتك (الطلبات، الذكريات، العناوين) نهائيًا. هل أنت متأكد؟"
+          : "Your account and all of its data (orders, memories, addresses) will be permanently deleted. Are you sure?",
+      )
+    )
+      return;
+    try {
+      const res = await fetch("/api/account/delete", { method: "POST" });
+      if (!res.ok) throw new Error("Failed");
+      await signOut();
+      toast.success(locale === "ar" ? "تم حذف الحساب" : "Account deleted");
+    } catch {
+      toast.error(
+        locale === "ar" ? "تعذّر حذف الحساب" : "Could not delete account",
+      );
+    }
   };
 
   // Address helpers
@@ -132,11 +140,12 @@ export default function AccountPage() {
   };
   const openEditForm = (addr: Address) => {
     setAddrForm({
-      name: addr.name,
+      fullName: addr.fullName,
       phone: addr.phone,
-      line1: addr.line1,
+      addressLine: addr.addressLine,
       city: addr.city,
-      country: addr.country,
+      emirate: addr.emirate,
+      postalCode: addr.postalCode ?? "",
     });
     setEditingId(addr.id);
     setShowAddrForm(true);
@@ -146,52 +155,34 @@ export default function AccountPage() {
     setEditingId(null);
     setAddrForm(EMPTY_FORM);
   };
-  const saveAddr = () => {
-    if (!addrForm.name.trim() || !addrForm.line1.trim()) return;
-    let updated: Address[];
-    if (editingId) {
-      updated = addresses.map((a) =>
-        a.id === editingId ? { ...a, ...addrForm } : a,
+  const saveAddr = async () => {
+    if (!addrForm.fullName.trim() || !addrForm.addressLine.trim()) return;
+    try {
+      if (editingId) await editAddress(editingId, addrForm);
+      else await addAddress(addrForm);
+      cancelForm();
+    } catch {
+      toast.error(
+        locale === "ar" ? "تعذّر حفظ العنوان" : "Could not save address",
       );
-    } else {
-      updated = [...addresses, { id: `addr-${Date.now()}`, ...addrForm }];
     }
-    setAddresses(updated);
-    saveAddresses(updated);
-    cancelForm();
   };
   const deleteAddr = (id: string) => {
-    const updated = addresses.filter((a) => a.id !== id);
-    setAddresses(updated);
-    saveAddresses(updated);
+    void removeAddress(id);
   };
 
-  if (!loggedIn) {
+  if (loading) {
     return (
-      <div className="container-h py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mx-auto max-w-md rounded-xl bg-white p-8 text-center shadow-md ring-1 ring-[var(--color-border)]"
-        >
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary-dark)]">
-            <User className="h-7 w-7" />
-          </div>
-          <h1 className="mt-4 font-display text-3xl font-semibold">
-            {t("login")}
-          </h1>
-          <p className="mt-3 text-sm text-[var(--color-ink-muted)]">
-            {t("login_demo_note")}
-          </p>
-          <button onClick={login} className="btn btn-gold btn-lg mt-6 w-full">
-            {t("login_demo_btn")}
-          </button>
-        </motion.div>
+      <div className="container-h flex min-h-[60vh] items-center justify-center py-20">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-primary-dark)] border-t-transparent" />
       </div>
     );
   }
 
-  const memoryEntries = Object.entries(memories);
+  if (!user) {
+    return <AuthForm />;
+  }
+
   const itemsPurchased = orders.reduce(
     (sum, o) => sum + o.items.reduce((s, it) => s + it.qty, 0),
     0,
@@ -206,12 +197,27 @@ export default function AccountPage() {
             {t("welcome_back")}
           </p>
           <h1 className="font-display text-3xl font-semibold sm:text-4xl">
-            Sara Al Maktoum
+            {profile?.fullName || user.email}
           </h1>
         </div>
-        <button onClick={logout} className="btn btn-ghost">
-          <LogOut className="h-4 w-4" /> {t("logout")}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {profile?.isAdmin && (
+            <Link href="/admin" className="btn btn-gold">
+              <LayoutDashboard className="h-4 w-4" />
+              {locale === "ar" ? "لوحة التحكم" : "Admin Dashboard"}
+            </Link>
+          )}
+          <button onClick={logout} className="btn btn-ghost">
+            <LogOut className="h-4 w-4" /> {t("logout")}
+          </button>
+          <button
+            onClick={deleteAccount}
+            className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+          >
+            <Trash2 className="h-4 w-4" />
+            {locale === "ar" ? "حذف الحساب" : "Delete account"}
+          </button>
+        </div>
       </div>
 
       <div className="mt-8 flex flex-wrap gap-2 border-b border-[var(--color-border)]">
@@ -392,10 +398,10 @@ export default function AccountPage() {
                   }
                 />
               )}
-              {memoryEntries.slice(0, 6).map(([token, m]) => (
+              {memoryEntries.slice(0, 6).map((m) => (
                 <Link
-                  key={token}
-                  href={`/memory/${token}`}
+                  key={m.token}
+                  href={`/memory/${m.token}`}
                   className="rounded-lg bg-white p-5 ring-1 ring-[var(--color-border)] transition hover:shadow-md"
                 >
                   <p className="font-display text-lg font-semibold">
@@ -405,7 +411,7 @@ export default function AccountPage() {
                     {m.message}
                   </p>
                   <p className="mt-3 font-mono text-xs text-[var(--color-ink-faint)]">
-                    {token}
+                    {m.token}
                   </p>
                 </Link>
               ))}
@@ -455,9 +461,9 @@ export default function AccountPage() {
                     </label>
                     <input
                       className="w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                      value={addrForm.name}
+                      value={addrForm.fullName}
                       onChange={(e) =>
-                        setAddrForm((f) => ({ ...f, name: e.target.value }))
+                        setAddrForm((f) => ({ ...f, fullName: e.target.value }))
                       }
                       placeholder={
                         locale === "ar" ? "الاسم الكامل" : "Full Name"
@@ -483,9 +489,12 @@ export default function AccountPage() {
                     </label>
                     <input
                       className="w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                      value={addrForm.line1}
+                      value={addrForm.addressLine}
                       onChange={(e) =>
-                        setAddrForm((f) => ({ ...f, line1: e.target.value }))
+                        setAddrForm((f) => ({
+                          ...f,
+                          addressLine: e.target.value,
+                        }))
                       }
                       placeholder={
                         locale === "ar" ? "الشارع والمبنى" : "Street, Building"
@@ -507,22 +516,29 @@ export default function AccountPage() {
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-semibold uppercase tracking-wide text-[var(--color-ink-muted)]">
-                      {locale === "ar" ? "الدولة" : "Country"}
+                      {locale === "ar" ? "الإمارة" : "Emirate"}
                     </label>
-                    <input
+                    <select
                       className="w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                      value={addrForm.country}
+                      value={addrForm.emirate}
                       onChange={(e) =>
-                        setAddrForm((f) => ({ ...f, country: e.target.value }))
+                        setAddrForm((f) => ({ ...f, emirate: e.target.value }))
                       }
-                      placeholder={locale === "ar" ? "الإمارات" : "UAE"}
-                    />
+                    >
+                      {EMIRATES.map((em) => (
+                        <option key={em.key} value={em.key}>
+                          {locale === "ar" ? em.ar : em.en}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 <div className="flex gap-3 pt-1">
                   <button
                     onClick={saveAddr}
-                    disabled={!addrForm.name.trim() || !addrForm.line1.trim()}
+                    disabled={
+                      !addrForm.fullName.trim() || !addrForm.addressLine.trim()
+                    }
                     className="btn btn-gold btn-sm disabled:opacity-50"
                   >
                     {locale === "ar" ? "حفظ" : "Save"}
@@ -550,13 +566,15 @@ export default function AccountPage() {
                 className="rounded-lg bg-white p-5 ring-1 ring-[var(--color-border)] flex items-start justify-between gap-4"
               >
                 <div>
-                  <p className="font-semibold">{addr.name}</p>
+                  <p className="font-semibold">{addr.fullName}</p>
                   <p className="text-sm text-[var(--color-ink-muted)]">
-                    {addr.line1}
+                    {addr.addressLine}
                   </p>
-                  {(addr.city || addr.country) && (
+                  {(addr.city || addr.emirate) && (
                     <p className="text-sm text-[var(--color-ink-muted)]">
-                      {[addr.city, addr.country].filter(Boolean).join("، ")}
+                      {[addr.city, emirateLabel(addr.emirate, locale)]
+                        .filter(Boolean)
+                        .join("، ")}
                     </p>
                   )}
                   {addr.phone && (

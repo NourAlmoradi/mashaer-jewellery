@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronRight, Search, X, Check } from "lucide-react";
 import { useT } from "@/lib/useT";
-import { useDataStore } from "@/stores/data.store";
-import { mockOrders } from "@/data/products";
+import { useOrders } from "@/lib/useOrders";
+import { useOrdersStore } from "@/stores/orders.store";
 import { formatDate, formatPrice, cn } from "@/lib/utils";
 import type { Order, OrderStatus } from "@/types";
 
@@ -30,20 +30,12 @@ type Filter = "all" | OrderStatus;
 
 export default function AdminOrders() {
   const { t, locale } = useT();
-  const storeOrders = useDataStore((s) => s.orders);
-  const updateStatus = useDataStore((s) => s.updateOrderStatus);
-  const upsertOrders = useDataStore((s) => s.upsertOrders);
+  const all = useOrders();
+  const updateStatus = useOrdersStore((s) => s.setStatus);
   const [selected, setSelected] = useState<Order | null>(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-
-  // Hydrate the store with mock orders on first visit so admin can control everything.
-  useEffect(() => {
-    upsertOrders(mockOrders);
-  }, [upsertOrders]);
-
-  const all: Order[] = useMemo(() => storeOrders, [storeOrders]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

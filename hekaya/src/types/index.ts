@@ -116,14 +116,6 @@ export type Order = {
   createdAt: string;
 };
 
-export type Memory = {
-  token: string;
-  orderId?: string;
-  productId?: string;
-  pin: string;
-  title: string;
-  message: string;
-  photos: string[]; // data URLs (mock)
-  createdAt: string;
-  updatedAt: string;
-};
+// Memory rows are modelled by `PublicMemory` / `MemoryMeta` in
+// src/lib/supabase/memories.ts (the PIN never leaves the database, so the app
+// type deliberately has no `pin` field).

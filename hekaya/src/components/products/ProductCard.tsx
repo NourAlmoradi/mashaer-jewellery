@@ -11,7 +11,7 @@ import {
   PlaceholderJewel,
   kindFromCategory,
 } from "@/components/ui/PlaceholderJewel";
-import { findCategory } from "@/data/products";
+import { useCategory } from "@/lib/useCategories";
 import { useWishlistToggle } from "@/lib/useWishlistToggle";
 
 function ProductCardBase({
@@ -22,7 +22,7 @@ function ProductCardBase({
   index?: number;
 }) {
   const { tx, locale } = useT();
-  const category = findCategory(product.categoryId);
+  const category = useCategory(product.categoryId);
   const { inWishlist, toggle } = useWishlistToggle(product.id);
 
   return (

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, ShoppingBag, User } from "lucide-react";
+import { Menu, ShoppingBag, User, LayoutDashboard } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useT } from "@/lib/useT";
 import { useCartStore } from "@/stores/cart.store";
+import { useAuth } from "@/lib/supabase/useAuth";
 import { MobileMenu } from "./MobileMenu";
 
 export function Header() {
@@ -14,6 +15,8 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const setCartOpen = useCartStore((s) => s.setOpen);
   const count = useCartStore((s) => s.items.reduce((sum, i) => sum + i.qty, 0));
+  const { profile } = useAuth();
+  const isAdmin = profile?.isAdmin ?? false;
 
   return (
     <>
@@ -48,6 +51,15 @@ export function Header() {
             <NavLink href="/qr">{t("nav_qr")}</NavLink>
             <NavLink href="/about">{t("nav_about")}</NavLink>
             <NavLink href="/contact">{t("nav_contact")}</NavLink>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-primary)]/40 bg-[var(--color-primary-soft)] px-3.5 py-1.5 text-[13px] font-semibold text-[var(--color-primary-dark)] transition hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
+              >
+                <LayoutDashboard className="h-3.5 w-3.5" />
+                {t("nav_admin")}
+              </Link>
+            )}
           </nav>
 
           {/* Right actions */}
@@ -75,7 +87,11 @@ export function Header() {
           </div>
         </div>
       </header>
-      <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <MobileMenu
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        isAdmin={isAdmin}
+      />
       <div className="h-[72px]" aria-hidden />
     </>
   );

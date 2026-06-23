@@ -1,11 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Eye, KeyRound, QrCode, Search, Trash2 } from "lucide-react";
 import { useT } from "@/lib/useT";
-import { useDataStore } from "@/stores/data.store";
-import { products, mockOrders } from "@/data/products";
+import { useOrders } from "@/lib/useOrders";
+import { useProducts } from "@/lib/useProducts";
+import { createClient } from "@/lib/supabase/client";
+import {
+  fetchAllMemories,
+  adminResetMemoryPin,
+  adminDeleteMemory,
+  saveMemory as dbSaveMemory,
+  type PublicMemory,
+} from "@/lib/supabase/memories";
 import {
   PlaceholderJewel,
   kindFromCategory,
@@ -29,56 +37,70 @@ type Row = {
 
 export default function AdminQrPage() {
   const { t, locale } = useT();
-  const storeOrders = useDataStore((s) => s.orders);
-  const memories = useDataStore((s) => s.memories);
-  const resetMemoryPin = useDataStore((s) => s.resetMemoryPin);
-  const deleteMemory = useDataStore((s) => s.deleteMemory);
-  const saveMemory = useDataStore((s) => s.saveMemory);
+  const storeOrders = useOrders();
+  const products = useProducts();
+  const [memories, setMemories] = useState<Record<string, PublicMemory>>({});
   const [query, setQuery] = useState("");
 
-  const handleResetPin = (token: string) => {
+  const reloadMemories = async () => {
+    try {
+      const all = await fetchAllMemories(createClient());
+      setMemories(
+        Object.fromEntries(all.map((m) => [m.token, m])),
+      );
+    } catch {
+      /* ignore — RLS or network */
+    }
+  };
+
+  useEffect(() => {
+    void reloadMemories();
+  }, []);
+
+  const handleResetPin = async (token: string) => {
     const newPin = window.prompt(t("admin_qr_reset_pin_prompt"), "");
     if (!newPin) return;
     if (!/^\d{4}$/.test(newPin)) {
       toast.error(locale === "ar" ? "PIN غير صالح" : "Invalid PIN");
       return;
     }
-    const existing = memories[token];
-    const now = new Date().toISOString();
-    if (existing) {
-      resetMemoryPin(token, newPin);
-    } else {
-      // Pre-seed an empty memory with the new PIN so the customer can fill it later.
-      saveMemory({
-        token,
-        pin: newPin,
-        title: "",
-        message: "",
-        photos: [],
-        createdAt: now,
-        updatedAt: now,
-      });
+    try {
+      if (memories[token]) {
+        await adminResetMemoryPin(createClient(), token, newPin);
+      } else {
+        // Pre-seed an empty memory with the new PIN (admin bypasses token check).
+        await dbSaveMemory(createClient(), {
+          token,
+          pin: newPin,
+          title: "",
+          message: "",
+          photos: [],
+        });
+      }
+      await reloadMemories();
+      toast.success(t("admin_qr_reset_pin_done"));
+    } catch {
+      toast.error(locale === "ar" ? "تعذّر التحديث" : "Could not update");
     }
-    toast.success(t("admin_qr_reset_pin_done"));
   };
 
-  const handleDelete = (token: string) => {
+  const handleDelete = async (token: string) => {
     if (!memories[token]) {
       toast.info(t("admin_qr_no_memory"));
       return;
     }
     if (!confirm(t("admin_qr_delete_confirm"))) return;
-    deleteMemory(token);
-    toast.success(locale === "ar" ? "تم الحذف" : "Deleted");
+    try {
+      await adminDeleteMemory(createClient(), token);
+      await reloadMemories();
+      toast.success(locale === "ar" ? "تم الحذف" : "Deleted");
+    } catch {
+      toast.error(locale === "ar" ? "تعذّر الحذف" : "Could not delete");
+    }
   };
 
   const rows: Row[] = useMemo(() => {
-    // Dedupe: store may already contain mockOrders (seeded from /admin/orders).
-    const map = new Map<string, (typeof storeOrders)[number]>();
-    for (const o of [...storeOrders, ...mockOrders]) {
-      if (!map.has(o.id)) map.set(o.id, o);
-    }
-    const allOrders = Array.from(map.values());
+    const allOrders = storeOrders;
     return allOrders.flatMap((o) =>
       o.qrTokens.map((token, i) => {
         const memory = memories[token];
@@ -101,7 +123,7 @@ export default function AdminQrPage() {
         };
       }),
     );
-  }, [storeOrders, memories, locale, t]);
+  }, [storeOrders, memories, locale, t, products]);
 
   const totalGenerated = rows.length;
   const setUp = rows.filter((r) => r.hasMemory).length;
@@ -247,7 +269,7 @@ export default function AdminQrPage() {
                         <Eye className="h-4 w-4" />
                       </Link>
                       <button
-                        onClick={() => handleResetPin(r.token)}
+                        onClick={() => void handleResetPin(r.token)}
                         className="grid h-8 w-8 place-items-center rounded-md text-amber-300 hover:bg-amber-500/10"
                         aria-label={t("admin_qr_reset_pin")}
                         title={t("admin_qr_reset_pin")}
@@ -255,7 +277,7 @@ export default function AdminQrPage() {
                         <KeyRound className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(r.token)}
+                        onClick={() => void handleDelete(r.token)}
                         className="grid h-8 w-8 place-items-center rounded-md text-rose-400 hover:bg-rose-500/10"
                         aria-label={t("admin_qr_delete_memory")}
                         title={t("admin_qr_delete_memory")}
@@ -330,14 +352,14 @@ export default function AdminQrPage() {
                     <Eye className="h-4 w-4" />
                   </Link>
                   <button
-                    onClick={() => handleResetPin(r.token)}
+                    onClick={() => void handleResetPin(r.token)}
                     className="grid h-9 w-9 place-items-center rounded-md text-amber-300 ring-1 ring-amber-400/20 hover:bg-amber-500/10"
                     aria-label={t("admin_qr_reset_pin")}
                   >
                     <KeyRound className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => handleDelete(r.token)}
+                    onClick={() => void handleDelete(r.token)}
                     className="grid h-9 w-9 place-items-center rounded-md text-rose-400 ring-1 ring-rose-400/20 hover:bg-rose-500/10"
                     aria-label={t("admin_qr_delete_memory")}
                   >

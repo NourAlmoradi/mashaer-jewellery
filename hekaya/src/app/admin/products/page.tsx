@@ -4,10 +4,13 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, Pencil, Trash2, Search, QrCode } from "lucide-react";
 import { useT } from "@/lib/useT";
-import { products as initialProducts, categories } from "@/data/products";
 import { useCollections } from "@/lib/useCollections";
-import { useDataStore } from "@/stores/data.store";
+import { useCategories } from "@/lib/useCategories";
+import { useCatalogStore } from "@/stores/catalog.store";
 import { useProducts } from "@/lib/useProducts";
+import { createClient } from "@/lib/supabase/client";
+import { uploadProductImage, deleteImagesByUrl } from "@/lib/supabase/storage";
+import { prepareImage, ImageError } from "@/lib/image";
 import {
   PlaceholderJewel,
   kindFromCategory,
@@ -19,15 +22,20 @@ import { toast } from "sonner";
 export default function AdminProducts() {
   const { t, locale } = useT();
   const allCollections = useCollections({ includeInactive: true });
+  const categories = useCategories();
   const merged = useProducts();
-  const upsertProduct = useDataStore((s) => s.upsertProduct);
-  const removeProduct = useDataStore((s) => s.removeProduct);
-  const toggleActiveStore = useDataStore((s) => s.toggleProductActive);
+  const saveProduct = useCatalogStore((s) => s.saveProduct);
+  const deleteCatalogProduct = useCatalogStore((s) => s.deleteProduct);
+  const setCatalogProductActive = useCatalogStore((s) => s.setProductActive);
   const [editing, setEditing] = useState<Product | null>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [uploading, setUploading] = useState(false);
+  // Images present when the modal opened — used to clean up only the images that
+  // were uploaded *this* session if the admin removes them again.
+  const [origImages, setOrigImages] = useState<string[]>([]);
 
-  const isSeed = (id: string) => initialProducts.some((p) => p.id === id);
+  const isNewProduct = (id: string) => !merged.some((p) => p.id === id);
 
   const visible = merged;
 
@@ -50,7 +58,7 @@ export default function AdminProducts() {
       description: { ar: "", en: "" },
       price: 0,
       categoryId: categories[0]?.id ?? "cat-rings",
-      collection: "everyday",
+      collection: allCollections[0]?.id ?? "",
       images: [],
       placeholderTone: "gold",
       isActive: true,
@@ -62,6 +70,7 @@ export default function AdminProducts() {
       availableAges: ["adults"],
       createdAt: new Date().toISOString(),
     });
+    setOrigImages([]);
     setOpen(true);
   };
 
@@ -69,22 +78,54 @@ export default function AdminProducts() {
     if (!editing || !files || files.length === 0) return;
     const slots = Math.max(0, 4 - editing.images.length);
     const picked = Array.from(files).slice(0, slots);
-    const dataUrls = await Promise.all(
-      picked.map(
-        (f) =>
-          new Promise<string>((resolve, reject) => {
-            const r = new FileReader();
-            r.onload = () => resolve(String(r.result));
-            r.onerror = reject;
-            r.readAsDataURL(f);
-          }),
-      ),
-    );
-    setEditing({ ...editing, images: [...editing.images, ...dataUrls] });
+    if (picked.length === 0) return;
+    setUploading(true);
+    try {
+      const supabase = createClient();
+      const urls: string[] = [];
+      for (const f of picked) {
+        try {
+          // Validate + downscale to ≤1600px at high quality, then upload the
+          // URL (not base64) to the public product-images bucket.
+          const blob = await prepareImage(f, { maxDim: 1600, quality: 0.92 });
+          urls.push(await uploadProductImage(supabase, blob));
+        } catch (e) {
+          if (e instanceof ImageError && e.code === "not-image") {
+            toast.error(
+              locale === "ar" ? "الملف ليس صورة" : "That file isn't an image",
+            );
+          } else if (e instanceof ImageError && e.code === "too-large") {
+            toast.error(
+              locale === "ar"
+                ? "الصورة كبيرة جدًا (الحد 12 ميغابايت)"
+                : "Image too large (12 MB max)",
+            );
+          } else {
+            toast.error(
+              locale === "ar" ? "تعذّر رفع الصورة" : "Could not upload image",
+            );
+          }
+        }
+      }
+      if (urls.length) {
+        setEditing((cur) =>
+          cur ? { ...cur, images: [...cur.images, ...urls] } : cur,
+        );
+      }
+    } finally {
+      setUploading(false);
+    }
   };
 
   const removeImage = (idx: number) => {
     if (!editing) return;
+    const url = editing.images[idx];
+    // Only delete from the bucket if this image was uploaded in this session
+    // (not part of the saved product) — avoids orphaning an in-use file if the
+    // admin later cancels the edit.
+    if (url && !origImages.includes(url)) {
+      void deleteImagesByUrl(createClient(), [url]).catch(() => {});
+    }
     setEditing({
       ...editing,
       images: editing.images.filter((_, i) => i !== idx),
@@ -93,31 +134,46 @@ export default function AdminProducts() {
 
   const openEdit = (p: Product) => {
     setEditing({ ...p });
+    setOrigImages(p.images ?? []);
     setOpen(true);
   };
 
-  const save = () => {
+  const save = async () => {
     if (!editing) return;
     if (!editing.name.ar || !editing.name.en || !editing.price) {
       toast.error(locale === "ar" ? "أكمل الحقول" : "Complete required fields");
       return;
     }
-    upsertProduct(editing, isSeed(editing.id));
+    try {
+      await saveProduct(editing, isNewProduct(editing.id));
+    } catch {
+      toast.error(locale === "ar" ? "تعذّر الحفظ" : "Could not save");
+      return;
+    }
     setOpen(false);
     setEditing(null);
     toast.success(locale === "ar" ? "تم الحفظ" : "Saved");
   };
 
-  const remove = (id: string) => {
+  const remove = async (id: string) => {
     if (!confirm(locale === "ar" ? "هل أنت متأكد؟" : "Are you sure?")) return;
-    removeProduct(id, isSeed(id));
+    try {
+      await deleteCatalogProduct(id);
+    } catch {
+      toast.error(locale === "ar" ? "تعذّر الحذف" : "Could not delete");
+      return;
+    }
     toast.success(locale === "ar" ? "تم الحذف" : "Deleted");
   };
 
-  const toggleActive = (id: string) => {
+  const toggleActive = async (id: string) => {
     const p = merged.find((x) => x.id === id);
     if (!p) return;
-    toggleActiveStore(id, isSeed(id), p.isActive);
+    try {
+      await setCatalogProductActive(id, !p.isActive);
+    } catch {
+      toast.error(locale === "ar" ? "تعذّر التحديث" : "Could not update");
+    }
   };
 
   return (
@@ -391,9 +447,7 @@ export default function AdminProducts() {
             >
               <div className="flex items-center justify-between border-b border-white/5 px-6 py-5">
                 <h3 className="font-display text-2xl font-semibold">
-                  {initialProducts.find((x) => x.id === editing.id)
-                    ? t("edit")
-                    : t("add_product")}
+                  {!isNewProduct(editing.id) ? t("edit") : t("add_product")}
                 </h3>
                 <button
                   onClick={() => setOpen(false)}
@@ -681,17 +735,35 @@ export default function AdminProducts() {
                       </div>
                     ))}
                     {editing.images.length < 4 && (
-                      <label className="grid aspect-square cursor-pointer place-items-center rounded-md border border-dashed border-white/15 bg-[#0a0a0a] text-xs text-white/50 transition hover:border-[#c9a96e]/50 hover:text-white">
+                      <label
+                        className={cn(
+                          "grid aspect-square place-items-center rounded-md border border-dashed border-white/15 bg-[#0a0a0a] text-xs text-white/50 transition hover:border-[#c9a96e]/50 hover:text-white",
+                          uploading
+                            ? "cursor-wait opacity-60"
+                            : "cursor-pointer",
+                        )}
+                      >
                         <span className="text-center leading-tight">
-                          <Plus className="mx-auto h-5 w-5" />
+                          {uploading ? (
+                            <span className="mx-auto block h-5 w-5 animate-spin rounded-full border-2 border-[#c9a96e]/30 border-t-[#c9a96e]" />
+                          ) : (
+                            <Plus className="mx-auto h-5 w-5" />
+                          )}
                           <span className="mt-1 block">
-                            {locale === "ar" ? "إضافة" : "Add"}
+                            {uploading
+                              ? locale === "ar"
+                                ? "جارٍ الرفع…"
+                                : "Uploading…"
+                              : locale === "ar"
+                                ? "إضافة"
+                                : "Add"}
                           </span>
                         </span>
                         <input
                           type="file"
                           accept="image/*"
                           multiple
+                          disabled={uploading}
                           className="sr-only"
                           onChange={(e) => {
                             onPickImages(e.target.files);

@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Search, Mail, Phone, Package } from "lucide-react";
 import { useT } from "@/lib/useT";
-import { useDataStore } from "@/stores/data.store";
-import { mockOrders } from "@/data/products";
+import { useOrders } from "@/lib/useOrders";
 import { formatPrice, formatDate, cn } from "@/lib/utils";
 import type { Order } from "@/types";
 
@@ -59,14 +58,8 @@ function aggregateCustomers(orders: Order[]): Customer[] {
 
 export default function AdminCustomers() {
   const { locale } = useT();
-  const orders = useDataStore((s) => s.orders);
-  const upsertOrders = useDataStore((s) => s.upsertOrders);
+  const orders = useOrders();
   const [query, setQuery] = useState("");
-
-  // Make sure mock orders are visible the first time the admin opens this page.
-  useEffect(() => {
-    upsertOrders(mockOrders);
-  }, [upsertOrders]);
 
   const customers = useMemo(() => aggregateCustomers(orders), [orders]);
 

@@ -1,6 +1,35 @@
 import { cn } from "@/lib/utils";
 
 /**
+ * Petal path geometry is static, so compute it once at module load instead of
+ * on every render. Each ring is an array of pre-built SVG path `d` strings.
+ */
+function buildPetals(
+  count: number,
+  inner: number,
+  outer: number,
+  ctrl: number,
+  spread: number,
+  angleOffset = 0,
+) {
+  return Array.from({ length: count }).map((_, i) => {
+    const angle = (i * Math.PI * 2) / count + angleOffset;
+    const x1 = 200 + Math.cos(angle) * inner;
+    const y1 = 200 + Math.sin(angle) * inner;
+    const x2 = 200 + Math.cos(angle) * outer;
+    const y2 = 200 + Math.sin(angle) * outer;
+    const cx1 = 200 + Math.cos(angle - spread) * ctrl;
+    const cy1 = 200 + Math.sin(angle - spread) * ctrl;
+    const cx2 = 200 + Math.cos(angle + spread) * ctrl;
+    const cy2 = 200 + Math.sin(angle + spread) * ctrl;
+    return `M${x1} ${y1} C ${cx1} ${cy1}, ${x2} ${y2}, ${x2} ${y2} C ${cx2} ${cy2}, ${x1} ${y1}, ${x1} ${y1} Z`;
+  });
+}
+
+const OUTER_PETALS = buildPetals(24, 30, 130, 95, 0.18);
+const INNER_PETALS = buildPetals(16, 15, 80, 55, 0.22, Math.PI / 16);
+
+/**
  * Decorative floral SVG used as a faint backdrop on light sections.
  * Pure SVG line drawing — no external assets, scales freely.
  */
@@ -34,42 +63,14 @@ export function FloralPattern({
         <path d="M200 280 C 225 278, 240 268, 242 250 C 222 252, 205 264, 200 280 Z" />
 
         {/* Chrysanthemum-style petals — outer ring */}
-        {Array.from({ length: 24 }).map((_, i) => {
-          const angle = (i * Math.PI * 2) / 24;
-          const x1 = 200 + Math.cos(angle) * 30;
-          const y1 = 200 + Math.sin(angle) * 30;
-          const x2 = 200 + Math.cos(angle) * 130;
-          const y2 = 200 + Math.sin(angle) * 130;
-          const cx1 = 200 + Math.cos(angle - 0.18) * 95;
-          const cy1 = 200 + Math.sin(angle - 0.18) * 95;
-          const cx2 = 200 + Math.cos(angle + 0.18) * 95;
-          const cy2 = 200 + Math.sin(angle + 0.18) * 95;
-          return (
-            <path
-              key={`outer-${i}`}
-              d={`M${x1} ${y1} C ${cx1} ${cy1}, ${x2} ${y2}, ${x2} ${y2} C ${cx2} ${cy2}, ${x1} ${y1}, ${x1} ${y1} Z`}
-            />
-          );
-        })}
+        {OUTER_PETALS.map((d, i) => (
+          <path key={`outer-${i}`} d={d} />
+        ))}
 
         {/* Inner petals */}
-        {Array.from({ length: 16 }).map((_, i) => {
-          const angle = (i * Math.PI * 2) / 16 + Math.PI / 16;
-          const x1 = 200 + Math.cos(angle) * 15;
-          const y1 = 200 + Math.sin(angle) * 15;
-          const x2 = 200 + Math.cos(angle) * 80;
-          const y2 = 200 + Math.sin(angle) * 80;
-          const cx1 = 200 + Math.cos(angle - 0.22) * 55;
-          const cy1 = 200 + Math.sin(angle - 0.22) * 55;
-          const cx2 = 200 + Math.cos(angle + 0.22) * 55;
-          const cy2 = 200 + Math.sin(angle + 0.22) * 55;
-          return (
-            <path
-              key={`inner-${i}`}
-              d={`M${x1} ${y1} C ${cx1} ${cy1}, ${x2} ${y2}, ${x2} ${y2} C ${cx2} ${cy2}, ${x1} ${y1}, ${x1} ${y1} Z`}
-            />
-          );
-        })}
+        {INNER_PETALS.map((d, i) => (
+          <path key={`inner-${i}`} d={d} />
+        ))}
 
         {/* Center */}
         <circle cx="200" cy="200" r="10" />

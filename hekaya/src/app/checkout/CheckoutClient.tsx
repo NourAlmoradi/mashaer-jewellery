@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 import { useT } from "@/lib/useT";
 import { useCartStore, useCartSubtotal } from "@/stores/cart.store";
-import { useDataStore } from "@/stores/data.store";
+import { useOrdersStore } from "@/stores/orders.store";
+import { useAuth } from "@/lib/supabase/useAuth";
 import { useAdminSettings } from "@/stores/adminSettings.store";
 import { formatPrice, generateOrderId, generateToken, cn } from "@/lib/utils";
 import type { OrderItem, ShippingAddress } from "@/types";
@@ -24,7 +25,10 @@ import {
   PlaceholderJewel,
   kindFromCategory,
 } from "@/components/ui/PlaceholderJewel";
-import { findProduct } from "@/data/products";
+import { useProducts } from "@/lib/useProducts";
+import { useAddressesStore } from "@/stores/addresses.store";
+import type { Address } from "@/lib/supabase/addresses";
+import { emirateLabel } from "@/lib/emirates";
 
 const EMIRATES = [
   { ar: "أبوظبي", en: "Abu Dhabi" },
@@ -36,27 +40,6 @@ const EMIRATES = [
   { ar: "الفجيرة", en: "Fujairah" },
 ];
 
-// Saved-address shape mirrors the one in account/page.tsx
-type SavedAddress = {
-  id: string;
-  name: string;
-  phone: string;
-  line1: string;
-  city: string;
-  country: string;
-};
-const ADDR_KEY = "mashaer-mock-addresses";
-
-function loadSavedAddresses(): SavedAddress[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(ADDR_KEY);
-    return raw ? (JSON.parse(raw) as SavedAddress[]) : [];
-  } catch {
-    return [];
-  }
-}
-
 export default function CheckoutClient() {
   const { t, locale, dir } = useT();
   const router = useRouter();
@@ -65,7 +48,9 @@ export default function CheckoutClient() {
   const qrChoice = useCartStore((s) => s.qrChoice);
   const setQrChoice = useCartStore((s) => s.setQrChoice);
   const clear = useCartStore((s) => s.clear);
-  const addOrder = useDataStore((s) => s.addOrder);
+  const addOrder = useOrdersStore((s) => s.addOrder);
+  const { user } = useAuth();
+  const allProducts = useProducts();
   const shippingRates = useAdminSettings((s) => s.shipping);
 
   // Map an emirate label (AR or EN) to the admin-configured rate.
@@ -107,28 +92,19 @@ export default function CheckoutClient() {
   const [placing, setPlacing] = useState(false);
   const [placed, setPlaced] = useState(false); // guard: order submitted, cart cleared
 
-  // Saved addresses (read once after hydration to avoid SSR/CSR mismatch)
-  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  // Saved addresses from the account address book (Supabase-backed).
+  const savedAddresses = useAddressesStore((s) => s.addresses);
+  const loadAddresses = useAddressesStore((s) => s.load);
   const [usedAddressId, setUsedAddressId] = useState<string | null>(null);
 
-  const applySavedAddress = (a: SavedAddress) => {
-    // Map free-text "city" onto the emirate <select> when it obviously matches.
-    const cityLower = a.city.toLowerCase();
-    const matchedEmirate = EMIRATES.find(
-      (em) =>
-        cityLower.includes(em.ar) || cityLower.includes(em.en.toLowerCase()),
-    );
+  const applySavedAddress = (a: Address) => {
     setShipping((s) => ({
       ...s,
-      fullName: a.name,
+      fullName: a.fullName,
       phone: a.phone,
-      addressLine: a.line1,
+      addressLine: a.addressLine,
       city: a.city,
-      emirate: matchedEmirate
-        ? locale === "ar"
-          ? matchedEmirate.ar
-          : matchedEmirate.en
-        : s.emirate,
+      emirate: emirateLabel(a.emirate, locale),
     }));
     setUsedAddressId(a.id);
   };
@@ -138,8 +114,8 @@ export default function CheckoutClient() {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     setHydrated(true);
-    setSavedAddresses(loadSavedAddresses());
-  }, []);
+    void loadAddresses();
+  }, [loadAddresses]);
 
   const sub = subtotal;
   // Delivery is charged by emirate (admin-configured). No free-delivery threshold.
@@ -210,46 +186,55 @@ export default function CheckoutClient() {
     setStep((s) => (s === 3 ? s : ((s + 1) as 1 | 2 | 3)));
   };
 
-  const placeOrder = () => {
+  const placeOrder = async () => {
+    if (!user) {
+      toast.error(
+        locale === "ar"
+          ? "يجب تسجيل الدخول لإتمام الطلب"
+          : "Please sign in to place your order",
+      );
+      router.push("/account");
+      return;
+    }
     setPlacing(true);
-    setTimeout(() => {
-      const id = generateOrderId();
-      const orderItems: OrderItem[] = items.map((i) => ({
-        productId: i.productId,
-        name: i.name,
-        qty: i.qty,
-        price: i.price,
-        variationLabel: i.variationLabel,
-      }));
+    const id = generateOrderId();
+    const orderItems: OrderItem[] = items.map((i) => ({
+      productId: i.productId,
+      name: i.name,
+      qty: i.qty,
+      price: i.price,
+      variationLabel: i.variationLabel,
+    }));
 
-      let tokens: string[];
-      let tokenLabels: string[];
-      let tokenProductIds: string[];
+    let tokens: string[];
+    let tokenLabels: string[];
+    let tokenProductIds: string[];
 
-      if (qrChoice === "per_order") {
-        tokens = [generateToken()];
-        tokenLabels = [locale === "ar" ? "جميع المنتجات" : "All Items"];
-        tokenProductIds = ["all"];
-      } else {
-        tokens = [];
-        tokenLabels = [];
-        tokenProductIds = [];
-        items.forEach((i) => {
-          const baseName = i.name[locale];
-          const variation = i.variationLabel?.[locale];
-          for (let n = 1; n <= i.qty; n++) {
-            tokens.push(generateToken());
-            const label =
-              i.qty > 1
-                ? `${baseName}${variation ? ` · ${variation}` : ""} #${n}`
-                : `${baseName}${variation ? ` · ${variation}` : ""}`;
-            tokenLabels.push(label);
-            tokenProductIds.push(i.productId);
-          }
-        });
-      }
+    if (qrChoice === "per_order") {
+      tokens = [generateToken()];
+      tokenLabels = [locale === "ar" ? "جميع المنتجات" : "All Items"];
+      tokenProductIds = ["all"];
+    } else {
+      tokens = [];
+      tokenLabels = [];
+      tokenProductIds = [];
+      items.forEach((i) => {
+        const baseName = i.name[locale];
+        const variation = i.variationLabel?.[locale];
+        for (let n = 1; n <= i.qty; n++) {
+          tokens.push(generateToken());
+          const label =
+            i.qty > 1
+              ? `${baseName}${variation ? ` · ${variation}` : ""} #${n}`
+              : `${baseName}${variation ? ` · ${variation}` : ""}`;
+          tokenLabels.push(label);
+          tokenProductIds.push(i.productId);
+        }
+      });
+    }
 
-      addOrder({
+    try {
+      const ok = await addOrder({
         id,
         customerName: shipping.fullName,
         email: shipping.email,
@@ -257,7 +242,8 @@ export default function CheckoutClient() {
         subtotal: sub,
         shipping: ship,
         total,
-        status: "paid",
+        // No payment is captured yet (Phase 3) — the server forces 'pending'.
+        status: "pending",
         qrChoice,
         qrTokens: tokens,
         qrTokenLabels: tokenLabels,
@@ -266,11 +252,28 @@ export default function CheckoutClient() {
         paymentMethod: payment,
         createdAt: new Date().toISOString(),
       });
-      clear();
-      setPlaced(true);
-      // replace() so the back button doesn't return to the checkout flow
-      router.replace(`/order-confirmation/${id}`);
-    }, 1100);
+      if (!ok) throw new Error("not-signed-in");
+    } catch {
+      setPlacing(false);
+      toast.error(
+        locale === "ar"
+          ? "تعذّر إتمام الطلب، حاول مرة أخرى"
+          : "Could not place the order, please try again",
+      );
+      return;
+    }
+    // Fire-and-forget: send confirmation + memory + admin emails. The route
+    // re-fetches the order server-side, so we only pass the id + locale.
+    // Never block checkout UX if the mail provider is slow.
+    void fetch("/api/email/order", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ orderId: id, locale }),
+    }).catch(() => {});
+    clear();
+    setPlaced(true);
+    // replace() so the back button doesn't return to the checkout flow
+    router.replace(`/order-confirmation/${id}`);
   };
 
   const steps = [t("step_shipping"), t("step_review"), t("step_payment")];
@@ -366,10 +369,10 @@ export default function CheckoutClient() {
                             )}
                           >
                             <p className="font-semibold text-gray-800">
-                              {a.name}
+                              {a.fullName}
                             </p>
                             <p className="mt-0.5 text-[11px] leading-snug text-gray-500">
-                              {a.line1}
+                              {a.addressLine}
                               {a.city ? `، ${a.city}` : ""}
                             </p>
                             <p className="text-[11px] text-gray-400">
@@ -464,7 +467,7 @@ export default function CheckoutClient() {
                 {/* Items */}
                 <ul className="divide-y divide-gray-100">
                   {items.map((item) => {
-                    const p = findProduct(item.slug);
+                    const p = allProducts.find((x) => x.slug === item.slug);
                     return (
                       <li
                         key={`${item.productId}-${item.variationId ?? ""}`}

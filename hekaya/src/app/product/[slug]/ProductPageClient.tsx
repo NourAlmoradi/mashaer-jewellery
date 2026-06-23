@@ -2,8 +2,7 @@
 
 import { use } from "react";
 import { notFound } from "next/navigation";
-import { findProduct } from "@/data/products";
-import { useProductBySlug } from "@/lib/useProducts";
+import { useProductBySlug, useCatalogLoading } from "@/lib/useProducts";
 import { ProductDetail } from "@/components/products/ProductDetail";
 
 export default function ProductPageClient({
@@ -12,10 +11,18 @@ export default function ProductPageClient({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  // Prefer store-merged product (so admin edits / custom products win),
-  // then fall back to the static seed.
-  const fromStore = useProductBySlug(slug);
-  const product = fromStore ?? findProduct(slug);
+  const loading = useCatalogLoading();
+  const product = useProductBySlug(slug);
+
+  // Wait for the catalog to load before deciding the product is missing,
+  // otherwise a valid product would briefly 404 on first render.
+  if (loading) {
+    return (
+      <div className="container-h flex min-h-[60vh] items-center justify-center py-20">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-primary-dark)] border-t-transparent" />
+      </div>
+    );
+  }
   if (!product) notFound();
   return <ProductDetail product={product} />;
 }

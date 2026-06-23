@@ -10,10 +10,11 @@ import {
   PlaceholderJewel,
   kindFromCategory,
 } from "@/components/ui/PlaceholderJewel";
-import { products } from "@/data/products";
+import { useProducts } from "@/lib/useProducts";
 
 export function CartDrawer() {
   const { t, tx, locale, dir } = useT();
+  const products = useProducts();
   const items = useCartStore((s) => s.items);
   const isOpen = useCartStore((s) => s.isOpen);
   const setOpen = useCartStore((s) => s.setOpen);

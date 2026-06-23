@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -20,13 +20,27 @@ import {
 import { Logo } from "@/components/ui/Logo";
 import { useT } from "@/lib/useT";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/supabase/useAuth";
 import { toast } from "sonner";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const { t, locale } = useT();
   const pathname = usePathname();
   const router = useRouter();
+  const { user, profile, loading, signOut: authSignOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Gate the whole admin area on a real admin profile.
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      router.replace("/account");
+      return;
+    }
+    if (profile && !profile.isAdmin) {
+      router.replace("/");
+    }
+  }, [loading, user, profile, router]);
 
   const items = [
     {
@@ -73,13 +87,23 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     },
   ];
 
-  const signOut = () => {
+  const signOut = async () => {
+    await authSignOut();
     toast.success(t("admin_signed_out"));
     setMobileOpen(false);
     router.push("/");
   };
 
   const ChevronInline = locale === "ar" ? ChevronLeft : ChevronRight;
+
+  // Block render until we've confirmed an admin session.
+  if (loading || !user || (profile && !profile.isAdmin)) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-[#0f0f0f] text-white">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#c9a96e] border-t-transparent" />
+      </div>
+    );
+  }
 
   const Sidebar = (
     <div className="flex h-full flex-col bg-[#0a0a0a] text-white">

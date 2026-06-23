@@ -6,25 +6,44 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Plus, QrCode, Pencil, Eye, Calendar } from "lucide-react";
 import { useT } from "@/lib/useT";
-import { useDataStore } from "@/stores/data.store";
-import { findProduct } from "@/data/products";
+import { createClient } from "@/lib/supabase/client";
+import { fetchMyMemories, type PublicMemory } from "@/lib/supabase/memories";
+import { useProducts } from "@/lib/useProducts";
 import { generateQrDataUrl, memoryUrlFor } from "@/lib/qr";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { formatDate } from "@/lib/utils";
-import type { Memory } from "@/types";
 
 // Brand gold — matches --color-primary in globals.css
 const QR_COLOR = "#C9A96E";
 
 export default function MyMemoriesPage() {
   const { t, locale, tx } = useT();
-  const memories = useDataStore((s) => s.memories);
+  const allProducts = useProducts();
   const qrColor = QR_COLOR;
+  const [memories, setMemories] = useState<PublicMemory[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    fetchMyMemories(createClient())
+      .then((m) => {
+        if (active) setMemories(m);
+      })
+      .catch(() => {
+        if (active) setMemories([]);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const entries = useMemo(
     () =>
-      Object.entries(memories).sort(
-        ([, a], [, b]) =>
+      [...memories].sort(
+        (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       ),
     [memories],
@@ -48,7 +67,11 @@ export default function MyMemoriesPage() {
         </Link>
       </div>
 
-      {entries.length === 0 ? (
+      {loading ? (
+        <div className="mt-16 flex justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-primary-dark)] border-t-transparent" />
+        </div>
+      ) : entries.length === 0 ? (
         <div className="mt-12 rounded-xl bg-white p-12 text-center ring-1 ring-[var(--color-border)]">
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary-dark)]">
             <QrCode className="h-7 w-7" />
@@ -62,18 +85,23 @@ export default function MyMemoriesPage() {
         </div>
       ) : (
         <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {entries.map(([token, m], i) => (
-            <MemoryCard
-              key={token}
-              token={token}
-              memory={m}
-              qrColor={qrColor}
-              index={i}
-              locale={locale}
-              tx={tx}
-              t={t}
-            />
-          ))}
+          {entries.map((m, i) => {
+            const product = m.productId
+              ? allProducts.find((p) => p.id === m.productId)
+              : undefined;
+            return (
+              <MemoryCard
+                key={m.token}
+                token={m.token}
+                memory={m}
+                productName={product ? tx(product.name) : undefined}
+                qrColor={qrColor}
+                index={i}
+                locale={locale}
+                t={t}
+              />
+            );
+          })}
         </div>
       )}
     </div>
@@ -83,18 +111,18 @@ export default function MyMemoriesPage() {
 function MemoryCard({
   token,
   memory,
+  productName,
   qrColor,
   index,
   locale,
-  tx,
   t,
 }: {
   token: string;
-  memory: Memory;
+  memory: PublicMemory;
+  productName?: string;
   qrColor: string;
   index: number;
   locale: "ar" | "en";
-  tx: (b: { ar: string; en: string }) => string;
   t: ReturnType<typeof useT>["t"];
 }) {
   const [qrUrl, setQrUrl] = useState<string | null>(null);
@@ -113,8 +141,6 @@ function MemoryCard({
     };
   }, [token, qrColor]);
 
-  const product = memory.productId ? findProduct(memory.productId) : undefined;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -130,11 +156,11 @@ function MemoryCard({
           <h3 className="mt-2 truncate font-display text-lg font-semibold">
             {memory.title}
           </h3>
-          {product && (
+          {productName && (
             <p className="mt-1 text-xs text-[var(--color-ink-muted)]">
               {t("memory_linked_product")}{" "}
               <span className="font-medium text-[var(--color-ink)]">
-                {tx(product.name)}
+                {productName}
               </span>
             </p>
           )}

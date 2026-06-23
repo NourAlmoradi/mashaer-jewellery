@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Lock,
@@ -15,11 +16,20 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useT } from "@/lib/useT";
-import { useDataStore } from "@/stores/data.store";
-import { findProduct } from "@/data/products";
+import { createClient } from "@/lib/supabase/client";
+import {
+  getMemoryMeta,
+  unlockMemory,
+  fetchMemoryByToken,
+  saveMemory as dbSaveMemory,
+  type PublicMemory,
+  type MemoryMeta,
+} from "@/lib/supabase/memories";
+import { useProducts } from "@/lib/useProducts";
 import { Logo } from "@/components/ui/Logo";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { prepareImageDataUrl } from "@/lib/image";
 
 export default function MemoryPage({
   params,
@@ -28,11 +38,17 @@ export default function MemoryPage({
 }) {
   const { token } = use(params);
   const { t, tx, locale } = useT();
-  const { saveMemory } = useDataStore();
-  const memory = useDataStore((s) => s.memories[token]);
+  const searchParams = useSearchParams();
+  const allProducts = useProducts();
+  // `meta` = "a memory exists" (public, no content). `memory` = the unlocked
+  // private content, available only after the PIN (or to the owner/admin).
+  const [meta, setMeta] = useState<MemoryMeta | null>(null);
+  const [memory, setMemory] = useState<PublicMemory | null>(null);
+  const [loadingMemory, setLoadingMemory] = useState(true);
 
   const [unlocked, setUnlocked] = useState(false);
   const [pinInput, setPinInput] = useState("");
+  const [unlockedPin, setUnlockedPin] = useState("");
   const [editing, setEditing] = useState(false);
 
   // Form state
@@ -41,76 +57,119 @@ export default function MemoryPage({
   const [messageField, setMessageField] = useState("");
   const [pinField, setPinField] = useState("");
 
-  useEffect(() => {
-    if (memory) {
-      setPhotos(memory.photos);
-      setTitleField(memory.title);
-      setMessageField(memory.message);
-    }
-  }, [memory]);
+  const applyContent = (m: PublicMemory) => {
+    setMemory(m);
+    setPhotos(m.photos);
+    setTitleField(m.title);
+    setMessageField(m.message);
+  };
 
-  const handleUnlock = (e: React.FormEvent) => {
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const supabase = createClient();
+      try {
+        const m = await getMemoryMeta(supabase, token);
+        if (!active) return;
+        setMeta(m);
+        if (m) {
+          // The order owner (or an admin) may read the content directly via
+          // RLS — skip the PIN gate for them. Everyone else must enter the PIN.
+          const owned = await fetchMemoryByToken(supabase, token);
+          if (!active) return;
+          if (owned) {
+            applyContent(owned);
+            setUnlocked(true);
+          }
+        }
+      } catch {
+        if (active) setMeta(null);
+      } finally {
+        if (active) setLoadingMemory(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [token]);
+
+  // Deep link from "My Memories" → /memory/[token]?edit=1 opens the editor
+  // straight away, but only once the content is actually unlocked.
+  useEffect(() => {
+    if (unlocked && searchParams.get("edit") === "1") setEditing(true);
+  }, [unlocked, searchParams]);
+
+  const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (memory && pinInput === memory.pin) {
-      setUnlocked(true);
-      toast.success(t("welcome_back"));
-    } else {
-      toast.error(t("wrong_pin"));
+    try {
+      const content = await unlockMemory(createClient(), token, pinInput);
+      if (content) {
+        applyContent(content);
+        setUnlocked(true);
+        setUnlockedPin(pinInput);
+        toast.success(t("welcome_back"));
+      } else {
+        toast.error(t("wrong_pin"));
+      }
+    } catch (err) {
+      // unlock_memory throws "Wrong PIN", or "Too many wrong attempts…" once
+      // the server locks the memory for 15 minutes after 5 misses.
+      const msg = (err as Error)?.message ?? "";
+      if (/wrong pin/i.test(msg)) {
+        toast.error(t("wrong_pin"));
+      } else {
+        toast.error(
+          locale === "ar"
+            ? "محاولات خاطئة كثيرة — حاول مجددًا بعد قليل"
+            : "Too many wrong attempts — try again later",
+        );
+      }
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [photoBusy, setPhotoBusy] = useState(false);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    const arr = Array.from(files).slice(0, 3 - photos.length);
-    arr.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const raw = ev.target?.result as string;
-        if (!raw) return;
-        const img = new Image();
-        img.onload = () => {
-          const MAX = 800;
-          const scale = Math.min(1, MAX / Math.max(img.width, img.height));
-          const canvas = document.createElement("canvas");
-          canvas.width = Math.round(img.width * scale);
-          canvas.height = Math.round(img.height * scale);
-          canvas
-            .getContext("2d")!
-            .drawImage(img, 0, 0, canvas.width, canvas.height);
-          const compressed = canvas.toDataURL("image/jpeg", 0.7);
-
-          // Best-effort: try to upload to /api/upload so the photo is
-          // served as a real URL instead of bloating localStorage.
-          // Falls back to the inline data URL if the endpoint is unavailable
-          // (e.g. on Vercel where the dev stub returns 503).
-          (async () => {
-            try {
-              const blob = await (await fetch(compressed)).blob();
-              const fd = new FormData();
-              fd.append("file", blob, "memory.jpg");
-              const res = await fetch("/api/upload", {
-                method: "POST",
-                body: fd,
-              });
-              if (res.ok) {
-                const { url } = (await res.json()) as { url: string };
-                setPhotos((p) => [...p, url].slice(0, 3));
-                return;
-              }
-            } catch {
-              /* fall through to data URL */
-            }
-            setPhotos((p) => [...p, compressed].slice(0, 3));
-          })();
-        };
-        img.src = raw;
-      };
-      reader.readAsDataURL(file);
-    });
+    const picked = Array.from(files).slice(0, 3 - photos.length);
+    if (picked.length === 0) return;
+    setPhotoBusy(true);
+    try {
+      for (const file of picked) {
+        if (!file.type.startsWith("image/")) {
+          toast.error(
+            locale === "ar" ? "الملف ليس صورة" : "That file isn't an image",
+          );
+          continue;
+        }
+        try {
+          // Compress to ≤1280px JPEG, then upload to the memory-photos bucket
+          // via the server route (which validates the token). Store the URL.
+          const dataUrl = await prepareImageDataUrl(file, {
+            maxDim: 1280,
+            quality: 0.85,
+          });
+          const res = await fetch("/api/memory/upload", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ token, dataUrl }),
+          });
+          const json = (await res.json()) as { url?: string };
+          if (!res.ok || !json.url) throw new Error("upload-failed");
+          setPhotos((p) => [...p, json.url!].slice(0, 3));
+        } catch {
+          toast.error(
+            locale === "ar" ? "تعذّر رفع الصورة" : "Could not upload photo",
+          );
+        }
+      }
+    } finally {
+      setPhotoBusy(false);
+    }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!titleField.trim() || !messageField.trim()) {
       toast.error(
         locale === "ar"
@@ -120,7 +179,7 @@ export default function MemoryPage({
       return;
     }
     if (
-      !memory &&
+      !meta &&
       (!pinField || pinField.length !== 4 || !/^\d{4}$/.test(pinField))
     ) {
       toast.error(
@@ -128,22 +187,59 @@ export default function MemoryPage({
       );
       return;
     }
-    saveMemory({
-      token,
-      pin: memory?.pin ?? pinField,
-      title: titleField.trim(),
-      message: messageField.trim(),
-      photos,
-      createdAt: memory?.createdAt ?? new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-    setEditing(false);
-    setUnlocked(true);
-    toast.success(t("memory_saved"));
+    // First-time setup uses the freshly chosen PIN; edits reuse the unlock PIN
+    // (the order owner/admin may have none — the server lets them edit anyway).
+    const pinToUse = meta ? unlockedPin : pinField;
+    try {
+      const supabase = createClient();
+      await dbSaveMemory(supabase, {
+        token,
+        pin: pinToUse,
+        title: titleField.trim(),
+        message: messageField.trim(),
+        photos,
+      });
+      // Re-read the saved content: owner/admin via RLS, otherwise via the PIN.
+      const fresh =
+        (await fetchMemoryByToken(supabase, token)) ??
+        (await unlockMemory(supabase, token, pinToUse));
+      if (fresh) {
+        applyContent(fresh);
+        setMeta({
+          token: fresh.token,
+          orderId: fresh.orderId,
+          productId: fresh.productId,
+          productLabel: fresh.productLabel,
+          createdAt: fresh.createdAt,
+          updatedAt: fresh.updatedAt,
+        });
+      }
+      setUnlockedPin(pinToUse);
+      setEditing(false);
+      setUnlocked(true);
+      toast.success(t("memory_saved"));
+    } catch {
+      toast.error(
+        locale === "ar"
+          ? "تعذّر حفظ الذكرى"
+          : "Could not save the memory",
+      );
+    }
   };
 
+  if (loadingMemory) {
+    return (
+      <Wrapper>
+        <Header />
+        <div className="mt-16 flex justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-primary-dark)] border-t-transparent" />
+        </div>
+      </Wrapper>
+    );
+  }
+
   // ── 1. No memory yet → setup
-  if (!memory) {
+  if (!meta) {
     return (
       <Wrapper>
         <Header />
@@ -170,6 +266,7 @@ export default function MemoryPage({
           setPinField={setPinField}
           onPhotoUpload={handlePhotoUpload}
           onSave={handleSave}
+          busy={photoBusy}
           isNew
         />
       </Wrapper>
@@ -239,6 +336,7 @@ export default function MemoryPage({
           setPinField={setPinField}
           onPhotoUpload={handlePhotoUpload}
           onSave={handleSave}
+          busy={photoBusy}
           isNew={false}
         />
       </Wrapper>
@@ -246,8 +344,9 @@ export default function MemoryPage({
   }
 
   // ── 4. Unlocked view
+  if (!memory) return null;
   const linkedProduct = memory.productId
-    ? findProduct(memory.productId)
+    ? allProducts.find((p) => p.id === memory.productId)
     : undefined;
   const createdDate = memory.createdAt ? memory.createdAt.slice(0, 10) : "";
 
@@ -320,6 +419,7 @@ function MemoryForm({
   onPhotoUpload,
   onSave,
   isNew,
+  busy,
 }: {
   photos: string[];
   setPhotos: (p: string[]) => void;
@@ -332,6 +432,7 @@ function MemoryForm({
   onPhotoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSave: () => void;
   isNew: boolean;
+  busy?: boolean;
 }) {
   const { t } = useT();
   return (
@@ -362,13 +463,25 @@ function MemoryForm({
                 </button>
               </>
             ) : (
-              <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center text-[var(--color-ink-faint)] transition hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-primary)]">
-                <Camera className="h-6 w-6" />
-                <span className="mt-1 text-xs">+</span>
+              <label
+                className={cn(
+                  "flex h-full w-full flex-col items-center justify-center text-[var(--color-ink-faint)] transition hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-primary)]",
+                  busy ? "cursor-wait opacity-60" : "cursor-pointer",
+                )}
+              >
+                {busy ? (
+                  <span className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--color-primary)]/30 border-t-[var(--color-primary)]" />
+                ) : (
+                  <>
+                    <Camera className="h-6 w-6" />
+                    <span className="mt-1 text-xs">+</span>
+                  </>
+                )}
                 <input
                   type="file"
                   accept="image/*"
                   multiple
+                  disabled={busy}
                   className="hidden"
                   onChange={onPhotoUpload}
                 />

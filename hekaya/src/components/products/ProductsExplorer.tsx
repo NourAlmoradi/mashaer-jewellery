@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import { useT } from "@/lib/useT";
-import { categories } from "@/data/products";
+import { useCategories } from "@/lib/useCategories";
 import { useCollections } from "@/lib/useCollections";
 import { useProducts } from "@/lib/useProducts";
 import { ProductCard } from "./ProductCard";
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 
 export function ProductsExplorer() {
   const { t, tx } = useT();
+  const categories = useCategories();
   const collections = useCollections();
   const products = useProducts();
   const params = useSearchParams();

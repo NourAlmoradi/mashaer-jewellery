@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -24,8 +24,9 @@ import {
   Cell,
 } from "recharts";
 import { useT } from "@/lib/useT";
-import { useDataStore } from "@/stores/data.store";
-import { mockOrders } from "@/data/products";
+import { useOrders } from "@/lib/useOrders";
+import { createClient } from "@/lib/supabase/client";
+import { fetchAllMemories } from "@/lib/supabase/memories";
 import { formatPrice, formatDate, cn } from "@/lib/utils";
 import type { OrderStatus } from "@/types";
 
@@ -49,55 +50,89 @@ const STATUS_PILL: Record<OrderStatus, string> = {
 
 export default function AdminDashboard() {
   const { t, locale } = useT();
-  const storeOrders = useDataStore((s) => s.orders);
-  const memories = useDataStore((s) => s.memories);
+  const allOrders = useOrders();
+  const [activeQr, setActiveQr] = useState(0);
 
-  const allOrders = useMemo(
-    () => [...storeOrders, ...mockOrders],
-    [storeOrders],
-  );
-  const totalRevenue =
-    allOrders.reduce((s, o) => s + o.total, 0) +
-    // Add baseline mock revenue so dashboard has realistic numbers
-    24600;
-  const totalOrders = allOrders.length + 140;
-  const activeQr = Object.keys(memories).length + 87;
-  const newCustomers = 23;
+  useEffect(() => {
+    fetchAllMemories(createClient())
+      .then((m) => setActiveQr(m.length))
+      .catch(() => setActiveQr(0));
+  }, []);
+
+  const totalRevenue = allOrders.reduce((s, o) => s + o.total, 0);
+  const totalOrders = allOrders.length;
+  const newCustomers = new Set(
+    allOrders.map((o) => (o.email || "").toLowerCase()).filter(Boolean),
+  ).size;
+
+  // Month-over-month deltas computed from real orders (current vs previous
+  // calendar month). Null when there is no previous-month baseline.
+  const deltas = useMemo(() => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfPrev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    let curOrders = 0,
+      prevOrders = 0,
+      curRevenue = 0,
+      prevRevenue = 0;
+    const curCustomers = new Set<string>();
+    const prevCustomers = new Set<string>();
+    for (const o of allOrders) {
+      const d = new Date(o.createdAt);
+      const email = (o.email || "").toLowerCase();
+      if (d >= startOfMonth) {
+        curOrders++;
+        curRevenue += o.total;
+        if (email) curCustomers.add(email);
+      } else if (d >= startOfPrev) {
+        prevOrders++;
+        prevRevenue += o.total;
+        if (email) prevCustomers.add(email);
+      }
+    }
+    const pct = (cur: number, prev: number) =>
+      prev > 0 ? Math.round(((cur - prev) / prev) * 100) : null;
+    return {
+      orders: pct(curOrders, prevOrders),
+      revenue: pct(curRevenue, prevRevenue),
+      customers: pct(curCustomers.size, prevCustomers.size),
+    };
+  }, [allOrders]);
 
   const stats = [
     {
       label: t("admin_total_orders"),
       value: totalOrders.toLocaleString(),
-      delta: 12,
+      delta: deltas.orders,
       Icon: Package,
     },
     {
       label: t("admin_total_revenue"),
       value: formatPrice(totalRevenue, locale),
-      delta: 18,
+      delta: deltas.revenue,
       Icon: DollarSign,
     },
     {
       label: t("admin_active_qr"),
       value: activeQr.toLocaleString(),
-      delta: 7,
+      delta: null,
       Icon: QrCode,
     },
     {
       label: t("admin_new_customers"),
       value: newCustomers.toLocaleString(),
-      delta: -3,
+      delta: deltas.customers,
       Icon: Users,
     },
   ];
 
-  // Orders-by-status data (real counts + mocked baseline so chart isn't empty)
+  // Orders-by-status data (real counts)
   const statusData = useMemo(() => {
-    const baseline: Record<string, number> = {
-      Pending: 8,
-      Processing: 27,
-      Shipped: 45,
-      Delivered: 60,
+    const counts: Record<string, number> = {
+      Pending: 0,
+      Processing: 0,
+      Shipped: 0,
+      Delivered: 0,
     };
     const labels: Record<string, OrderStatus> = {
       Pending: "pending",
@@ -107,18 +142,18 @@ export default function AdminDashboard() {
     };
     for (const o of allOrders) {
       const key = Object.keys(labels).find((k) => labels[k] === o.status);
-      if (key) baseline[key] = (baseline[key] ?? 0) + 1;
+      if (key) counts[key] += 1;
     }
-    return Object.entries(baseline).map(([name, value]) => ({
+    return Object.entries(counts).map(([name, value]) => ({
       name,
       value,
       fill: STATUS_COLORS[labels[name]],
     }));
   }, [allOrders]);
 
-  // Revenue trend: 12-month curve
+  // Revenue trend: real revenue summed per month over the last 12 months
   const revenueData = useMemo(() => {
-    const months =
+    const monthNames =
       locale === "ar"
         ? [
             "يناير",
@@ -148,11 +183,24 @@ export default function AdminDashboard() {
             "Nov",
             "Dec",
           ];
-    const baseline = [
-      3200, 3800, 4100, 5200, 4700, 5600, 7100, 7800, 6500, 8200, 9100, 8700,
-    ];
-    return months.map((m, i) => ({ month: m, revenue: baseline[i] }));
-  }, [locale]);
+    const now = new Date();
+    // Last 12 calendar months ending with the current one
+    const buckets = Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1);
+      return {
+        key: `${d.getFullYear()}-${d.getMonth()}`,
+        month: monthNames[d.getMonth()],
+        revenue: 0,
+      };
+    });
+    const byKey = new Map(buckets.map((b) => [b.key, b]));
+    for (const o of allOrders) {
+      const d = new Date(o.createdAt);
+      const b = byKey.get(`${d.getFullYear()}-${d.getMonth()}`);
+      if (b) b.revenue += o.total;
+    }
+    return buckets;
+  }, [allOrders, locale]);
 
   return (
     <>
@@ -166,7 +214,7 @@ export default function AdminDashboard() {
       {/* Stat cards */}
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
         {stats.map((s, i) => {
-          const positive = s.delta >= 0;
+          const positive = (s.delta ?? 0) >= 0;
           const TrendIcon = positive ? TrendingUp : TrendingDown;
           return (
             <motion.div
@@ -180,16 +228,18 @@ export default function AdminDashboard() {
                 <div className="grid h-9 w-9 place-items-center rounded-md bg-white/[0.04] text-[#c9a96e]">
                   <s.Icon className="h-5 w-5" />
                 </div>
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1 text-xs font-semibold",
-                    positive ? "text-emerald-400" : "text-rose-400",
-                  )}
-                >
-                  <TrendIcon className="h-3.5 w-3.5" />
-                  {positive ? "+" : ""}
-                  {s.delta}%
-                </span>
+                {s.delta !== null && (
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 text-xs font-semibold",
+                      positive ? "text-emerald-400" : "text-rose-400",
+                    )}
+                  >
+                    <TrendIcon className="h-3.5 w-3.5" />
+                    {positive ? "+" : ""}
+                    {s.delta}%
+                  </span>
+                )}
               </div>
               <p className="mt-5 font-display text-3xl font-semibold text-white">
                 {s.value}

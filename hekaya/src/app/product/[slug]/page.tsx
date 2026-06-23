@@ -1,5 +1,7 @@
+import { cache } from "react";
 import type { Metadata } from "next";
-import { products, findProduct } from "@/data/products";
+import { createClient } from "@/lib/supabase/server";
+import { fetchProductBySlug, fetchProducts } from "@/lib/supabase/catalog";
 import { formatPrice } from "@/lib/utils";
 import ProductPageClient from "./ProductPageClient";
 
@@ -7,8 +9,21 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
   "https://mashaerjewellery.com";
 
-export function generateStaticParams() {
-  return products.map((p) => ({ slug: p.slug }));
+// Shared per-request so `generateMetadata` and the page component hit the
+// database once instead of fetching the same product twice.
+const getProduct = cache(async (slug: string) => {
+  const supabase = await createClient();
+  return fetchProductBySlug(supabase, slug);
+});
+
+export async function generateStaticParams() {
+  try {
+    const supabase = await createClient();
+    const products = await fetchProducts(supabase);
+    return products.map((p) => ({ slug: p.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -17,7 +32,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = findProduct(slug);
+  const product = await getProduct(slug);
   if (!product) {
     return { title: "Product not found" };
   }
@@ -54,7 +69,7 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = findProduct(slug);
+  const product = await getProduct(slug);
 
   const jsonLd = product
     ? {

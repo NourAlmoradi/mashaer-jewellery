@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { createClient } from "@/lib/supabase/client";
 
 export type AdminStoreInfo = {
   email: string;
@@ -24,6 +24,8 @@ export type AdminShipping = {
 export type AdminSettingsState = {
   store: AdminStoreInfo;
   shipping: AdminShipping;
+  loaded: boolean;
+  load: () => Promise<void>;
   setStore: (s: Partial<AdminStoreInfo>) => void;
   setShipping: (sh: Partial<AdminShipping>) => void;
 };
@@ -47,26 +49,57 @@ const defaults: Pick<AdminSettingsState, "store" | "shipping"> = {
   },
 };
 
-export const useAdminSettings = create<AdminSettingsState>()(
-  persist(
-    (set) => ({
-      ...defaults,
-      setStore: (s) => set((cur) => ({ store: { ...cur.store, ...s } })),
-      setShipping: (sh) =>
-        set((cur) => ({ shipping: { ...cur.shipping, ...sh } })),
+type SettingsData = Pick<AdminSettingsState, "store" | "shipping">;
+
+/** Persist the current store + shipping to the single admin_settings row. */
+async function persistSettings(data: SettingsData) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("admin_settings")
+    .update({ data })
+    .eq("id", 1);
+  if (error) throw error;
+}
+
+export const useAdminSettings = create<AdminSettingsState>()((set, get) => ({
+  ...defaults,
+  loaded: false,
+  load: async () => {
+    if (get().loaded) return;
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("admin_settings")
+        .select("data")
+        .eq("id", 1)
+        .maybeSingle();
+      if (error) throw error;
+      const saved = (data?.data ?? {}) as Partial<SettingsData>;
+      set({
+        store: { ...defaults.store, ...saved.store },
+        shipping: { ...defaults.shipping, ...saved.shipping },
+        loaded: true,
+      });
+    } catch {
+      set({ loaded: true });
+    }
+  },
+  setStore: (s) =>
+    set((cur) => {
+      const store = { ...cur.store, ...s };
+      void persistSettings({ store, shipping: cur.shipping });
+      return { store };
     }),
-    {
-      name: "mashaer-admin-settings",
-      storage: createJSONStorage(() => localStorage),
-      version: 2,
-      // v1 had nameEn/nameAr/taglineEn/taglineAr/address, qr/notifications
-      // slices, and a different shipping shape. Drop everything and re-seed
-      // with the new defaults so persisted browsers don't crash on the new
-      // schema.
-      migrate: () => ({
-        store: defaults.store,
-        shipping: defaults.shipping,
-      }),
-    },
-  ),
-);
+  setShipping: (sh) =>
+    set((cur) => {
+      const shipping = { ...cur.shipping, ...sh };
+      void persistSettings({ store: cur.store, shipping });
+      return { shipping };
+    }),
+}));
+
+// Public consumers (Footer, Contact, Checkout) read these values, so load the
+// single settings row once as soon as the store is first used in the browser.
+if (typeof window !== "undefined") {
+  void useAdminSettings.getState().load();
+}

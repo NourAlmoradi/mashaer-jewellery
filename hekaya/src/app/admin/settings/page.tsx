@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Globe as GlobeRaw, Store as StoreRaw } from "lucide-react";
 import { useT } from "@/lib/useT";
@@ -72,6 +72,12 @@ function StoreTab() {
   const setStore = useAdminSettings((s) => s.setStore);
   const [form, setForm] = useState<AdminStoreInfo>(store);
 
+  // The settings row loads asynchronously; sync the draft when it arrives so
+  // saving can never overwrite the DB with the stale built-in defaults.
+  useEffect(() => {
+    setForm(store);
+  }, [store]);
+
   const update = <K extends keyof AdminStoreInfo>(k: K, v: AdminStoreInfo[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
@@ -121,6 +127,11 @@ function ShippingTab() {
   const shipping = useAdminSettings((s) => s.shipping);
   const setShipping = useAdminSettings((s) => s.setShipping);
   const [form, setForm] = useState<AdminShipping>(shipping);
+
+  // Same stale-draft guard as StoreTab.
+  useEffect(() => {
+    setForm(shipping);
+  }, [shipping]);
 
   const update = <K extends keyof AdminShipping>(k: K, v: AdminShipping[K]) =>
     setForm((f) => ({ ...f, [k]: v }));

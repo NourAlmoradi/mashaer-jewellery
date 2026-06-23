@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -15,6 +16,10 @@ export function PlaceholderJewel({
   tone = "#e8dfcc",
   className,
 }: Props) {
+  // Unique per instance so repeated cards don't share/override the same
+  // gradient definition (SVG element ids must be unique within a document).
+  const gradientId = useId();
+  const gold = `url(#${gradientId})`;
   return (
     <div
       className={cn(
@@ -27,7 +32,7 @@ export function PlaceholderJewel({
     >
       <svg viewBox="0 0 200 200" className="h-2/3 w-2/3">
         <defs>
-          <radialGradient id={`gold-${tone}`} cx="50%" cy="40%" r="60%">
+          <radialGradient id={gradientId} cx="50%" cy="40%" r="60%">
             <stop offset="0%" stopColor="#e8d4a3" />
             <stop offset="60%" stopColor="#c9a96e" />
             <stop offset="100%" stopColor="#8a7544" />
@@ -40,37 +45,31 @@ export function PlaceholderJewel({
               cy="120"
               r="50"
               fill="none"
-              stroke={`url(#gold-${tone})`}
+              stroke={gold}
               strokeWidth="6"
             />
-            <path d="M85 70 L100 40 L115 70 Z" fill={`url(#gold-${tone})`} />
+            <path d="M85 70 L100 40 L115 70 Z" fill={gold} />
             <circle cx="100" cy="55" r="5" fill="#fff" opacity="0.85" />
           </g>
         )}
         {kind === "necklace" && (
-          <g fill="none" stroke={`url(#gold-${tone})`} strokeWidth="2.5">
+          <g fill="none" stroke={gold} strokeWidth="2.5">
             <path d="M30 50 Q100 130 170 50" />
-            <circle
-              cx="100"
-              cy="135"
-              r="14"
-              fill={`url(#gold-${tone})`}
-              stroke="none"
-            />
+            <circle cx="100" cy="135" r="14" fill={gold} stroke="none" />
             <circle cx="100" cy="135" r="5" fill="#fff" opacity="0.7" />
           </g>
         )}
         {kind === "bracelet" && (
-          <g fill="none" stroke={`url(#gold-${tone})`} strokeWidth="4">
+          <g fill="none" stroke={gold} strokeWidth="4">
             <ellipse cx="100" cy="100" rx="65" ry="40" />
-            <circle cx="50" cy="100" r="6" fill={`url(#gold-${tone})`} />
-            <circle cx="100" cy="65" r="5" fill={`url(#gold-${tone})`} />
-            <circle cx="150" cy="100" r="6" fill={`url(#gold-${tone})`} />
-            <circle cx="100" cy="135" r="5" fill={`url(#gold-${tone})`} />
+            <circle cx="50" cy="100" r="6" fill={gold} />
+            <circle cx="100" cy="65" r="5" fill={gold} />
+            <circle cx="150" cy="100" r="6" fill={gold} />
+            <circle cx="100" cy="135" r="5" fill={gold} />
           </g>
         )}
         {kind === "earring" && (
-          <g fill={`url(#gold-${tone})`}>
+          <g fill={gold}>
             <circle cx="80" cy="60" r="6" />
             <path d="M80 65 Q60 95 80 130 Q100 95 80 65" opacity="0.85" />
             <circle cx="130" cy="60" r="6" />
@@ -81,7 +80,7 @@ export function PlaceholderJewel({
           <g>
             <path
               d="M100 40 L150 90 L100 160 L50 90 Z"
-              fill={`url(#gold-${tone})`}
+              fill={gold}
               opacity="0.9"
             />
             <path d="M100 40 L150 90 L100 100 Z" fill="#fff" opacity="0.25" />
