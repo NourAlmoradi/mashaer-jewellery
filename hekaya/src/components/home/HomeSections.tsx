@@ -10,7 +10,6 @@ import { useCollections } from "@/lib/useCollections";
 import { useProducts } from "@/lib/useProducts";
 import { ProductCard } from "@/components/products/ProductCard";
 import { FinalCtaBand } from "@/components/ui/FinalCtaBand";
-import { PlaceholderJewel } from "@/components/ui/PlaceholderJewel";
 import { FloralPattern } from "@/components/ui/FloralPattern";
 import { Logo } from "@/components/ui/Logo";
 
@@ -25,50 +24,54 @@ type HeroSlide = {
   subKey: TKey;
   primaryCta: { href: string; labelAr: string; labelEn: string };
   secondaryCta: { href: string; labelAr: string; labelEn: string };
-  haloFrom: string;
-  haloTo: string;
-  image: string;
 };
 
-const HERO_SLIDES: HeroSlide[] = [
+type HeroSlideExtra = HeroSlide & { image: string };
+
+const HERO_SLIDES: HeroSlideExtra[] = [
   {
     eyebrowKey: "hero_slide1_eyebrow",
     titleAKey: "hero_slide1_title_a",
     titleBKey: "hero_slide1_title_b",
     subKey: "hero_slide1_sub",
+    image: "/necklaces.png",
     primaryCta: {
       href: "/products",
       labelAr: "ابدأ التسوق",
       labelEn: "Start Shopping",
     },
     secondaryCta: { href: "/qr", labelAr: "اكتشف QR", labelEn: "Discover QR" },
-    haloFrom: "rgba(244,228,220,0.55)",
-    haloTo: "rgba(201,169,110,0.28)",
-    image: "",
   },
   {
     eyebrowKey: "hero_slide2_eyebrow",
     titleAKey: "hero_slide2_title_a",
     titleBKey: "hero_slide2_title_b",
     subKey: "hero_slide2_sub",
+    image: "/bracelets.png",
     primaryCta: { href: "/qr", labelAr: "كيف تعمل", labelEn: "How It Works" },
     secondaryCta: { href: "/products", labelAr: "تصفّحي", labelEn: "Browse" },
-    haloFrom: "rgba(201,169,110,0.32)",
-    haloTo: "rgba(244,228,220,0.45)",
-    image: "",
   },
   {
     eyebrowKey: "hero_slide3_eyebrow",
     titleAKey: "hero_slide3_title_a",
     titleBKey: "hero_slide3_title_b",
     subKey: "hero_slide3_sub",
+    image: "/earrings.png",
     primaryCta: { href: "/products", labelAr: "اكتشفي", labelEn: "Explore" },
     secondaryCta: { href: "/about", labelAr: "قصتنا", labelEn: "Our Story" },
-    haloFrom: "rgba(232,201,189,0.5)",
-    haloTo: "rgba(201,169,110,0.25)",
-    image: "",
   },
 ];
+
+// Cream-toned product photography reused as a graceful fallback for collection
+// cards that don't yet have their own image uploaded.
+const COLLECTION_FALLBACKS = [
+  "/necklaces.png",
+  "/bracelets.png",
+  "/earrings.png",
+];
+
+const TITLE_GRADIENT =
+  "linear-gradient(135deg,#b58a3e 0%,#c9a96e 40%,#a8853f 75%,#8a6a2f 100%)";
 
 export function Hero() {
   const { t, locale, dir } = useT();
@@ -95,114 +98,46 @@ export function Hero() {
 
   return (
     <section
-      className="relative -mt-[72px] overflow-hidden bg-[#1a1207] pt-[72px] text-white"
+      className="relative -mt-[72px] overflow-hidden bg-[#f2e3d3] pt-[72px] text-[var(--color-ink)]"
       onMouseEnter={() => (pausedRef.current = true)}
       onMouseLeave={() => (pausedRef.current = false)}
       onTouchStart={() => (pausedRef.current = true)}
       onTouchEnd={() => (pausedRef.current = false)}
     >
-      {/* FULL-BLEED BACKGROUND IMAGE (crossfade + Ken-Burns zoom) */}
-      <div className="absolute inset-0">
-        <AnimatePresence mode="sync">
-          <motion.div
-            key={`bg-${index}`}
-            initial={{ opacity: 0, scale: 1.08 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.04 }}
-            transition={{
-              opacity: { duration: 1.1, ease: [0.4, 0, 0.2, 1] },
-              scale: { duration: 6.5, ease: "linear" },
-            }}
-            className="absolute inset-0"
-            aria-hidden
-          >
-            {slide.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={slide.image}
-                alt=""
-                loading={index === 0 ? "eager" : "lazy"}
-                fetchPriority={index === 0 ? "high" : "auto"}
-                decoding="async"
-                className="h-full w-full object-cover"
-              />
-            ) : null}
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Dark gradient overlays for legibility */}
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-gradient-to-b from-[#1a1207]/40 via-[#1a1207]/55 to-[#1a1207]/85"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0 ltr:bg-gradient-to-r rtl:bg-gradient-to-l from-[#1a1207]/85 via-[#1a1207]/50 to-transparent"
-        />
+      {/* Backdrop — cream wash + soft light & gold accents (cheap CSS only) */}
+      <div aria-hidden className="absolute inset-0">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,#f8efe4_0%,#f4e6d6_55%,#ecd9c6_100%)]" />
+        <div className="absolute inset-0 [background-image:radial-gradient(circle_at_15%_15%,rgba(255,255,255,0.65),transparent_55%),radial-gradient(circle_at_85%_85%,rgba(201,169,110,0.16),transparent_60%)]" />
       </div>
+      <FloralPattern
+        className="absolute -top-24 h-[420px] w-[420px] ltr:-right-24 rtl:-left-24"
+        opacity={0.06}
+      />
 
-      {/* Slide-keyed halo accents (static layers, CSS colour crossfade) */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-60"
-      >
-        <div
-          className="absolute -left-20 top-1/3 h-[480px] w-[480px] rounded-full blur-[100px] transition-[background] duration-1000"
-          style={{ background: slide.haloFrom }}
-        />
-        <div
-          className="absolute -right-20 bottom-0 h-[420px] w-[420px] rounded-full blur-[100px] transition-[background] duration-1000"
-          style={{ background: slide.haloTo }}
-        />
-      </div>
-
-      {/* Prev / Next arrows */}
-      <button
-        type="button"
-        onClick={prev}
-        aria-label="Previous slide"
-        className="group absolute top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-black/30 text-white/90 backdrop-blur-md transition-all hover:scale-110 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white hover:shadow-[var(--shadow-gold)] ltr:left-4 rtl:right-4 sm:h-12 sm:w-12 md:ltr:left-8 md:rtl:right-8"
-      >
-        <ArrowRight
-          className={`h-5 w-5 transition-transform group-hover:-translate-x-0.5 ${dir === "rtl" ? "" : "rotate-180"}`}
-        />
-      </button>
-      <button
-        type="button"
-        onClick={next}
-        aria-label="Next slide"
-        className="group absolute top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-black/30 text-white/90 backdrop-blur-md transition-all hover:scale-110 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white hover:shadow-[var(--shadow-gold)] ltr:right-4 rtl:left-4 sm:h-12 sm:w-12 md:ltr:right-8 md:rtl:left-8"
-      >
-        <ArrowRight
-          className={`h-5 w-5 transition-transform group-hover:translate-x-0.5 ${dir === "rtl" ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {/* CONTENT */}
-      <div className="container-h relative flex min-h-[calc(100svh-72px)] items-center py-16 sm:py-20">
-        <div className="relative w-full max-w-2xl">
+      <div className="container-h relative grid items-center gap-10 py-12 sm:gap-12 sm:py-16 lg:min-h-[calc(100svh-72px)] lg:grid-cols-2 lg:gap-16 lg:py-20">
+        {/* ── TEXT (below image on mobile, source order on lg) ── */}
+        <div className="relative z-10 order-2 text-center lg:order-none lg:text-start">
           <AnimatePresence mode="wait">
             <motion.div
               key={`text-${index}`}
-              initial={{ opacity: 0, y: 22 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.65, ease: [0.4, 0, 0.2, 1] }}
+              exit={{ opacity: 0, y: -14 }}
+              transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
             >
-              <span className="inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.32em] text-[var(--color-primary)]">
+              <span className="inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.32em] text-[var(--color-primary-dark)]">
                 <Sparkles className="h-3.5 w-3.5" />
                 {t(slide.eyebrowKey)}
               </span>
 
               <h1 className="mt-5 font-display font-semibold">
-                <span className="fs-display-xl block text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.45)]">
+                <span className="fs-display-xl block text-[var(--color-ink)]">
                   {t(slide.titleAKey)}
                 </span>
                 <span
-                  className="fs-display-xl block drop-shadow-[0_2px_18px_rgba(0,0,0,0.45)]"
+                  className="fs-display-xl block"
                   style={{
-                    background:
-                      "linear-gradient(135deg,#f4e4dc 0%,#e0c078 35%,#c9a96e 70%,#a8853f 100%)",
+                    background: TITLE_GRADIENT,
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                     backgroundClip: "text",
@@ -212,11 +147,11 @@ export function Hero() {
                 </span>
               </h1>
 
-              <p className="fs-body-lg mt-5 max-w-lg text-white/80 drop-shadow-[0_1px_8px_rgba(0,0,0,0.5)]">
+              <p className="fs-body-lg mx-auto mt-5 max-w-lg text-[var(--color-ink-soft)] lg:mx-0">
                 {t(slide.subKey)}
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center gap-3">
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
                 <Link
                   href={slide.primaryCta.href}
                   className="group inline-flex min-h-12 items-center gap-2 rounded-full bg-[var(--color-primary)] px-7 text-[13px] font-semibold uppercase tracking-[0.22em] text-white shadow-[var(--shadow-gold)] transition hover:bg-[var(--color-primary-dark)]"
@@ -230,7 +165,7 @@ export function Hero() {
                 </Link>
                 <Link
                   href={slide.secondaryCta.href}
-                  className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/30 bg-white/5 px-7 text-[13px] font-semibold uppercase tracking-[0.22em] text-white/90 backdrop-blur transition hover:border-[var(--color-primary)] hover:bg-white/10 hover:text-white"
+                  className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[var(--color-ink)]/20 bg-white/70 px-7 text-[13px] font-semibold uppercase tracking-[0.22em] text-[var(--color-ink)] transition hover:border-[var(--color-primary)] hover:bg-white hover:text-[var(--color-primary-dark)]"
                 >
                   {locale === "ar"
                     ? slide.secondaryCta.labelAr
@@ -239,37 +174,107 @@ export function Hero() {
               </div>
             </motion.div>
           </AnimatePresence>
-        </div>
-      </div>
 
-      {/* SLIDE CONTROLS (bottom bar) */}
-      <div className="absolute inset-x-0 bottom-6 z-10 sm:bottom-10">
-        <div className="container-h flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            {HERO_SLIDES.map((_, i) => (
+          {/* Slider controls — arrows + animated progress + counter */}
+          <div className="mt-9 flex items-center justify-center gap-4 lg:mt-12 lg:justify-start">
+            <div className="flex items-center gap-2">
               <button
-                key={i}
-                onClick={() => setIndex(i)}
-                aria-label={`Go to slide ${i + 1}`}
-                className="group relative h-1.5 w-12 overflow-hidden rounded-full bg-white/20 sm:w-16"
+                type="button"
+                onClick={prev}
+                aria-label="Previous slide"
+                className="group grid h-10 w-10 place-items-center rounded-full border border-[var(--color-ink)]/10 bg-white/85 text-[var(--color-ink)] shadow-[var(--shadow-soft)] transition hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
               >
-                <span
-                  key={`fill-${index}-${i}`}
-                  className={`absolute inset-y-0 ltr:left-0 rtl:right-0 bg-[var(--color-primary)] ${
-                    i === index
-                      ? "animate-[heroProgress_6s_linear_forwards]"
-                      : i < index
-                        ? "w-full"
-                        : "w-0"
-                  }`}
+                <ArrowRight
+                  className={`h-4 w-4 ${dir === "rtl" ? "" : "rotate-180"}`}
                 />
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={next}
+                aria-label="Next slide"
+                className="group grid h-10 w-10 place-items-center rounded-full border border-[var(--color-ink)]/10 bg-white/85 text-[var(--color-ink)] shadow-[var(--shadow-soft)] transition hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
+              >
+                <ArrowRight
+                  className={`h-4 w-4 ${dir === "rtl" ? "rotate-180" : ""}`}
+                />
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              {HERO_SLIDES.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setIndex(i)}
+                  aria-label={`Go to slide ${i + 1}`}
+                  className="relative h-1.5 w-10 overflow-hidden rounded-full bg-[var(--color-ink)]/15 sm:w-12"
+                >
+                  <span
+                    key={`fill-${index}-${i}`}
+                    className={`absolute inset-y-0 ltr:left-0 rtl:right-0 bg-[var(--color-primary)] ${
+                      i === index
+                        ? "animate-[heroProgress_6s_linear_forwards]"
+                        : i < index
+                          ? "w-full"
+                          : "w-0"
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            <span className="text-[11px] font-medium uppercase tracking-[0.3em] text-[var(--color-ink-muted)]">
+              {String(index + 1).padStart(2, "0")}
+            </span>
           </div>
-          <span className="text-[11px] font-medium uppercase tracking-[0.3em] text-white/70">
-            {String(index + 1).padStart(2, "0")} /{" "}
-            {String(HERO_SLIDES.length).padStart(2, "0")}
-          </span>
+        </div>
+
+        {/* ── IMAGE (on top on mobile) — framed rotating jewelry photography ── */}
+        <div className="relative order-1 lg:order-none">
+          {/* soft gold halo behind the frame */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -z-10 mx-auto max-w-md scale-110 rounded-full bg-[radial-gradient(circle,rgba(201,169,110,0.28),transparent_70%)] blur-2xl"
+          />
+          <div className="relative mx-auto w-full max-w-xs sm:max-w-sm lg:max-w-md">
+            <Link
+              href={slide.primaryCta.href}
+              className="group relative block aspect-[4/5] overflow-hidden rounded-[2rem] shadow-[0_30px_70px_-25px_rgba(168,133,63,0.6)] ring-1 ring-[var(--color-primary)]/25"
+            >
+              {HERO_SLIDES.map((s, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={s.image}
+                  src={s.image}
+                  alt=""
+                  loading={i === 0 ? "eager" : "lazy"}
+                  fetchPriority={i === 0 ? "high" : "auto"}
+                  decoding="async"
+                  aria-hidden={i !== index}
+                  className={`absolute inset-0 h-full w-full object-cover transition-all duration-[1100ms] ease-out ${
+                    i === index ? "scale-100 opacity-100" : "scale-105 opacity-0"
+                  }`}
+                />
+              ))}
+              {/* legibility + warmth wash */}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1a1207]/35 via-transparent to-transparent" />
+              {/* gold corner brackets */}
+              {[
+                "left-4 top-4 border-l-2 border-t-2",
+                "right-4 top-4 border-r-2 border-t-2",
+                "bottom-4 left-4 border-b-2 border-l-2",
+                "bottom-4 right-4 border-b-2 border-r-2",
+              ].map((cls, idx) => (
+                <span
+                  key={idx}
+                  aria-hidden
+                  className={`pointer-events-none absolute h-8 w-8 border-white/70 ${cls}`}
+                />
+              ))}
+              {/* floating brand chip */}
+              <div className="absolute bottom-4 inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-ink)] shadow-sm backdrop-blur ltr:left-4 rtl:right-4">
+                <Logo color="dark" variant="mark" className="h-4 w-4" />
+                Mashaer
+              </div>
+            </Link>
+          </div>
         </div>
       </div>
     </section>
@@ -337,19 +342,13 @@ export function TrustBadges() {
  * ============================================================================*/
 
 export function CollectionShowcase() {
-  const { t, tx, locale, dir } = useT();
+  const { t, tx, dir } = useT();
   const collections = useCollections();
   const products = useProducts();
 
-  // Editorial asymmetric layout (lg+): first card large, others varied
-  const layout = [
-    "lg:col-span-2 lg:row-span-2", // hero card (square)
-    "lg:col-span-2 lg:row-span-1", // wide top-right
-    "lg:col-span-1 lg:row-span-1", // small bottom-right left
-    "lg:col-span-1 lg:row-span-1", // small bottom-right right
-  ];
-
   const inViewOnce = { once: true, margin: "-80px" } as const;
+
+  if (collections.length === 0) return null;
 
   return (
     <section className="section-fluid relative overflow-hidden bg-gradient-to-b from-[var(--color-cream)] via-white to-[var(--color-cream)]">
@@ -370,7 +369,7 @@ export function CollectionShowcase() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={inViewOnce}
           transition={{ duration: 0.6 }}
-          className="mb-14 flex flex-col items-center gap-3 text-center sm:mb-16"
+          className="mb-12 flex flex-col items-center gap-3 text-center sm:mb-14"
         >
           <span className="eyebrow">{t("collections_title")}</span>
           <h2 className="fs-display-lg font-display font-semibold">
@@ -382,14 +381,14 @@ export function CollectionShowcase() {
           </p>
         </motion.div>
 
-        {/* Editorial grid */}
-        <div className="mx-auto grid max-w-7xl auto-rows-[260px] grid-cols-1 gap-5 sm:grid-cols-2 sm:auto-rows-[280px] sm:gap-6 lg:grid-cols-4 lg:auto-rows-[280px]">
+        {/* Uniform cards in a centered wrap — stays balanced for any number of
+            collections the admin publishes (2, 3, 4, 6 …). */}
+        <div className="mx-auto flex max-w-6xl flex-wrap justify-center gap-5 sm:gap-6">
           {collections.map((c, i) => {
             const count = products.filter(
               (p) => p.collection === c.id && p.isActive,
             ).length;
-            const isFeatured = i === 0;
-            const baseDelay = i * 0.12;
+            const image = c.image ?? COLLECTION_FALLBACKS[i % COLLECTION_FALLBACKS.length];
             return (
               <motion.div
                 key={c.id}
@@ -397,81 +396,45 @@ export function CollectionShowcase() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={inViewOnce}
                 transition={{
-                  duration: 0.8,
-                  delay: baseDelay,
+                  duration: 0.6,
+                  delay: Math.min(i * 0.08, 0.4),
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className={`group ${layout[i] ?? ""}`}
+                className="group w-full sm:w-[330px] lg:w-[360px]"
               >
                 <Link
                   href={`/products?collection=${c.id}`}
-                  className="relative block h-full w-full overflow-hidden rounded-3xl shadow-[0_10px_40px_-18px_rgba(26,18,7,0.35)] ring-1 ring-[var(--color-blush-deep)]/30 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_25px_60px_-15px_rgba(168,133,63,0.45)] hover:ring-[var(--color-primary)]/60"
+                  className="relative block aspect-[4/5] w-full overflow-hidden rounded-3xl shadow-[0_10px_40px_-18px_rgba(26,18,7,0.35)] ring-1 ring-[var(--color-blush-deep)]/30 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_25px_60px_-15px_rgba(168,133,63,0.45)] hover:ring-[var(--color-primary)]/60"
                 >
-                  {/* Image — slow Ken-Burns zoom on scroll-in */}
-                  <motion.div
-                    initial={{ scale: 1.18 }}
-                    whileInView={{ scale: 1 }}
-                    viewport={inViewOnce}
-                    transition={{
-                      duration: 2.2,
-                      delay: baseDelay,
-                      ease: "easeOut",
-                    }}
-                    className="absolute inset-0"
-                  >
-                    {c.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={c.image}
-                        alt={tx(c.name)}
-                        loading="lazy"
-                        decoding="async"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <PlaceholderJewel kind="gem" tone={c.tone} />
-                    )}
-                  </motion.div>
+                  {/* Image */}
+                  <div className="absolute inset-0 overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={image}
+                      alt={tx(c.name)}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    />
+                  </div>
 
                   {/* Dark gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1a1207]/90 via-[#1a1207]/30 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1a1207]/90 via-[#1a1207]/25 to-transparent" />
                   {/* Subtle gold glow at top */}
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[var(--color-primary)]/15 to-transparent opacity-80" />
 
                   {/* Index numeral */}
-                  <motion.span
-                    initial={{ opacity: 0, x: dir === "rtl" ? 10 : -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={inViewOnce}
-                    transition={{ duration: 0.6, delay: baseDelay + 0.25 }}
-                    className="absolute top-5 font-display text-[11px] font-semibold uppercase tracking-[0.35em] text-white/75 ltr:left-6 rtl:right-6"
-                  >
+                  <span className="absolute top-5 font-display text-[11px] font-semibold uppercase tracking-[0.35em] text-white/75 ltr:left-6 rtl:right-6">
                     {String(i + 1).padStart(2, "0")} —
-                  </motion.span>
+                  </span>
 
-                  {/* Featured / count badge */}
-                  <motion.span
-                    initial={{ opacity: 0, y: -8 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={inViewOnce}
-                    transition={{ duration: 0.5, delay: baseDelay + 0.35 }}
-                    className={`absolute top-5 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ltr:right-6 rtl:left-6 ${
-                      isFeatured
-                        ? "bg-[var(--color-primary)] text-white shadow-[var(--shadow-gold)]"
-                        : "bg-white/95 text-[var(--color-ink)] backdrop-blur"
-                    }`}
-                  >
-                    <Sparkles
-                      className={`h-3 w-3 ${isFeatured ? "" : "text-[var(--color-primary)]"}`}
-                    />
-                    {isFeatured
-                      ? locale === "ar"
-                        ? "مميز"
-                        : "Featured"
-                      : count}
-                  </motion.span>
+                  {/* Live count badge */}
+                  <span className="absolute top-5 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-ink)] backdrop-blur ltr:right-6 rtl:left-6">
+                    <Sparkles className="h-3 w-3 text-[var(--color-primary)]" />
+                    {count} {t("products_count_label")}
+                  </span>
 
-                  {/* Gold corner brackets — animate in when in view */}
+                  {/* Gold corner brackets */}
                   {[
                     "left-3 top-3 border-l-2 border-t-2",
                     "right-3 top-3 border-r-2 border-t-2",
@@ -487,58 +450,27 @@ export function CollectionShowcase() {
 
                   {/* Content */}
                   <div className="absolute inset-x-0 bottom-0 p-5 text-white sm:p-6">
-                    <motion.h3
-                      initial={{ opacity: 0, y: 18 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={inViewOnce}
-                      transition={{ duration: 0.6, delay: baseDelay + 0.3 }}
-                      className={`font-display font-semibold leading-tight ${
-                        isFeatured
-                          ? "text-2xl sm:text-3xl lg:text-4xl"
-                          : "text-xl sm:text-2xl"
-                      }`}
-                    >
+                    <h3 className="font-display text-2xl font-semibold leading-tight sm:text-3xl">
                       {tx(c.name)}
-                    </motion.h3>
+                    </h3>
 
-                    {/* Gold underline grows when in view */}
-                    <motion.span
+                    {/* Gold underline — grows on hover */}
+                    <span
                       aria-hidden
-                      initial={{ scaleX: 0 }}
-                      whileInView={{ scaleX: 1 }}
-                      viewport={inViewOnce}
-                      transition={{
-                        duration: 0.9,
-                        delay: baseDelay + 0.5,
-                        ease: "easeOut",
-                      }}
-                      className="mt-3 block h-[2px] w-16 origin-left bg-[var(--color-primary)] rtl:origin-right sm:w-24"
+                      className="mt-3 block h-[2px] w-16 origin-left bg-[var(--color-primary)] transition-transform duration-500 ease-out group-hover:scale-x-125 rtl:origin-right sm:w-24"
                     />
 
-                    {/* Description fades in */}
-                    <motion.p
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={inViewOnce}
-                      transition={{ duration: 0.7, delay: baseDelay + 0.55 }}
-                      className="mt-3 line-clamp-2 max-w-md text-sm text-white/85"
-                    >
+                    <p className="mt-3 line-clamp-2 max-w-md text-sm text-white/85">
                       {tx(c.description)}
-                    </motion.p>
+                    </p>
 
                     {/* CTA pill */}
-                    <motion.span
-                      initial={{ opacity: 0, y: 12 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={inViewOnce}
-                      transition={{ duration: 0.6, delay: baseDelay + 0.7 }}
-                      className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white shadow-[var(--shadow-gold)] transition group-hover:bg-[var(--color-primary-dark)]"
-                    >
+                    <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white shadow-[var(--shadow-gold)] transition group-hover:bg-[var(--color-primary-dark)]">
                       {t("view_all")}
                       <ArrowRight
                         className={`h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 ${dir === "rtl" ? "rotate-180 group-hover:-translate-x-0.5" : ""}`}
                       />
-                    </motion.span>
+                    </span>
                   </div>
                 </Link>
               </motion.div>
@@ -576,7 +508,8 @@ export function CollectionShowcase() {
 export function FeaturedProducts() {
   const { t } = useT();
   const all = useProducts();
-  const featured = all.filter((p) => p.isActive).slice(0, 4);
+  const featured = all.filter((p) => p.isActive).slice(0, 8);
+  if (featured.length === 0) return null;
   return (
     <section className="bg-cream-diagonal section-fluid relative overflow-hidden">
       <FloralPattern
@@ -613,9 +546,16 @@ export function FeaturedProducts() {
           </Link>
         </motion.div>
 
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-5 sm:gap-6 lg:grid-cols-4 lg:gap-7">
+        {/* Centered wrap — 2-up on mobile, fixed-width centered cards on
+            desktop. Stays balanced whether there are 2, 3, 4 or 8 products. */}
+        <div className="mx-auto flex max-w-7xl flex-wrap justify-center gap-x-5 gap-y-8 sm:gap-x-6 lg:gap-x-7">
           {featured.map((p, i) => (
-            <ProductCard key={p.id} product={p} index={i} />
+            <div
+              key={p.id}
+              className="w-[calc(50%-0.625rem)] sm:w-[240px] lg:w-[260px]"
+            >
+              <ProductCard product={p} index={i} />
+            </div>
           ))}
         </div>
       </div>
