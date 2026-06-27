@@ -27,6 +27,8 @@ export type AuthValue = {
     password: string,
     fullName: string,
   ) => Promise<string | null>;
+  /** Start the Google OAuth flow (redirects away to Google). */
+  signInWithGoogle: () => Promise<string | null>;
   signOut: () => Promise<void>;
 };
 
@@ -117,6 +119,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const signInWithGoogle = useCallback(async () => {
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      // Supabase sends Google's response to this route, which exchanges the
+      // code for a session cookie and then redirects the user home.
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    return error?.message ?? null;
+  }, []);
+
   const signOut = useCallback(async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -124,7 +137,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, profile, loading, signIn, signUp, signOut }}
+      value={{
+        user,
+        profile,
+        loading,
+        signIn,
+        signUp,
+        signInWithGoogle,
+        signOut,
+      }}
     >
       {children}
     </AuthContext.Provider>

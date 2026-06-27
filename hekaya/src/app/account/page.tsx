@@ -93,6 +93,18 @@ export default function AccountPage() {
       .catch(() => setMemoryEntries([]));
   }, [user]);
 
+  // Surface OAuth failures: the /auth/callback route bounces back here with
+  // ?error=oauth when the Google code exchange fails.
+  useEffect(() => {
+    if (searchParams.get("error") === "oauth") {
+      toast.error(
+        locale === "ar"
+          ? "تعذّر تسجيل الدخول عبر Google. حاول مرة أخرى."
+          : "Google sign-in failed. Please try again.",
+      );
+    }
+  }, [searchParams, locale]);
+
   // Deep-link support: /account?tab=wishlist|orders|memories|addresses|overview
   useEffect(() => {
     const q = searchParams.get("tab");
