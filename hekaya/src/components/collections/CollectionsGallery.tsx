@@ -1,15 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import type { CSSProperties } from "react";
 import { ArrowRight } from "lucide-react";
 import { useT } from "@/lib/useT";
 import { useCollections } from "@/lib/useCollections";
 import { useProducts } from "@/lib/useProducts";
 import { PlaceholderJewel } from "@/components/ui/PlaceholderJewel";
 import { FloralPattern } from "@/components/ui/FloralPattern";
-
-const inViewOnce = { once: true, amount: 0.2 } as const;
+import { Reveal } from "@/components/ui/Reveal";
 
 export function CollectionsGallery() {
   const { t, tx, dir } = useT();
@@ -30,12 +29,7 @@ export function CollectionsGallery() {
 
       <div className="container-h relative py-14 lg:py-20">
         {/* Page header */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto mb-12 flex max-w-2xl flex-col items-center gap-3 text-center sm:mb-16"
-        >
+        <Reveal className="mx-auto mb-12 flex max-w-2xl flex-col items-center gap-3 text-center sm:mb-16">
           <span className="eyebrow">{t("collections_page_eyebrow")}</span>
           <h1 className="fs-display-lg font-display font-semibold">
             {t("collections_page_title")}
@@ -44,7 +38,7 @@ export function CollectionsGallery() {
           <p className="text-[var(--color-ink-muted)]">
             {t("collections_page_sub")}
           </p>
-        </motion.div>
+        </Reveal>
 
         {collections.length === 0 ? (
           <div className="mx-auto max-w-xl rounded-2xl border border-dashed border-[var(--color-border)] bg-white px-6 py-16 text-center">
@@ -60,33 +54,17 @@ export function CollectionsGallery() {
               ).length;
               const baseDelay = i * 0.08;
               return (
-                <motion.div
-                  key={c.id}
-                  initial={{ opacity: 0, y: 28 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={inViewOnce}
-                  transition={{
-                    duration: 0.7,
-                    delay: baseDelay,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                  className="group"
-                >
+                <Reveal key={c.id} delay={baseDelay} className="group">
                   <Link
                     href={`/products?collection=${c.id}`}
                     className="relative block h-[420px] w-full overflow-hidden rounded-3xl shadow-[0_10px_40px_-18px_rgba(26,18,7,0.35)] ring-1 ring-[var(--color-blush-deep)]/30 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_25px_60px_-15px_rgba(168,133,63,0.45)] hover:ring-[var(--color-primary)]/60"
                   >
-                    {/* Image */}
-                    <motion.div
-                      initial={{ scale: 1.15 }}
-                      whileInView={{ scale: 1 }}
-                      viewport={inViewOnce}
-                      transition={{
-                        duration: 2,
-                        delay: baseDelay,
-                        ease: "easeOut",
-                      }}
-                      className="absolute inset-0"
+                    {/* Image — slow CSS zoom-in (decorative, SSR-safe) */}
+                    <div
+                      className="kenburns-in absolute inset-0"
+                      style={
+                        { "--reveal-delay": `${baseDelay}s` } as CSSProperties
+                      }
                     >
                       {c.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -98,7 +76,7 @@ export function CollectionsGallery() {
                       ) : (
                         <PlaceholderJewel kind="gem" tone={c.tone} />
                       )}
-                    </motion.div>
+                    </div>
 
                     {/* Gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#1a1207]/92 via-[#1a1207]/40 to-transparent" />
@@ -138,7 +116,7 @@ export function CollectionsGallery() {
                       </span>
                     </div>
                   </Link>
-                </motion.div>
+                </Reveal>
               );
             })}
           </div>

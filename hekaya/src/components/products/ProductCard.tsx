@@ -2,7 +2,6 @@
 
 import { memo } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Heart, QrCode } from "lucide-react";
 import type { Product } from "@/types";
 import { useT } from "@/lib/useT";
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/PlaceholderJewel";
 import { useCategory } from "@/lib/useCategories";
 import { useWishlistToggle } from "@/lib/useWishlistToggle";
+import { Reveal } from "@/components/ui/Reveal";
 
 function ProductCardBase({
   product,
@@ -26,11 +26,8 @@ function ProductCardBase({
   const { inWishlist, toggle } = useWishlistToggle(product.id);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.5, delay: Math.min(index * 0.05, 0.4) }}
+    <Reveal
+      delay={Math.min(index * 0.05, 0.4)}
       className="product-card group relative"
     >
       <Link href={`/product/${product.slug}`} className="block">
@@ -96,7 +93,7 @@ function ProductCardBase({
           </div>
         </div>
       </Link>
-    </motion.div>
+    </Reveal>
   );
 }
 

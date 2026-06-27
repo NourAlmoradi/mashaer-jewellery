@@ -1,9 +1,9 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { QrCode, Camera, Lock, Heart, Sparkles, ScanLine } from "lucide-react";
 import { useT } from "@/lib/useT";
+import { Reveal } from "@/components/ui/Reveal";
 
 export default function QrInfoPage() {
   const { t, locale } = useT();
@@ -13,11 +13,7 @@ export default function QrInfoPage() {
       <section className="relative overflow-hidden bg-[var(--color-bg-dark)] py-24 text-white">
         <div className="absolute inset-0 opacity-50 [background-image:radial-gradient(circle_at_30%_50%,#c9a96e33,transparent_50%),radial-gradient(circle_at_80%_30%,#c9a96e22,transparent_50%)]" />
         <div className="container-h relative text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-          >
+          <Reveal>
             <span className="eyebrow text-[var(--color-primary)]">
               {t("qr_section_eyebrow")}
             </span>
@@ -30,7 +26,7 @@ export default function QrInfoPage() {
             <Link href="/products" className="btn btn-gold btn-lg mt-8">
               {t("hero_cta_shop")}
             </Link>
-          </motion.div>
+          </Reveal>
         </div>
       </section>
 
@@ -43,12 +39,9 @@ export default function QrInfoPage() {
               { Icon: Camera, t: t("qr_step2_t"), d: t("qr_step2_d") },
               { Icon: Heart, t: t("qr_step3_t"), d: t("qr_step3_d") },
             ].map((s, i) => (
-              <motion.div
+              <Reveal
                 key={s.t}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
+                delay={i * 0.1}
                 className="rounded-xl bg-white p-8 text-center shadow-sm ring-1 ring-[var(--color-border)]"
               >
                 <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary-dark)]">
@@ -60,7 +53,7 @@ export default function QrInfoPage() {
                 <p className="mt-2 text-sm text-[var(--color-ink-muted)]">
                   {s.d}
                 </p>
-              </motion.div>
+              </Reveal>
             ))}
           </div>
         </div>

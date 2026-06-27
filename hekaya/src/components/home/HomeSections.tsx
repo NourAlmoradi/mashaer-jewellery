@@ -12,6 +12,7 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { FinalCtaBand } from "@/components/ui/FinalCtaBand";
 import { FloralPattern } from "@/components/ui/FloralPattern";
 import { Logo } from "@/components/ui/Logo";
+import { Reveal } from "@/components/ui/Reveal";
 
 /* =============================================================================
  *  HERO — auto-rotating editorial slider (3 slides, text + jewel)
@@ -117,7 +118,10 @@ export function Hero() {
       <div className="container-h relative grid items-center gap-10 py-12 sm:gap-12 sm:py-16 lg:min-h-[calc(100svh-72px)] lg:grid-cols-2 lg:gap-16 lg:py-20">
         {/* ── TEXT (below image on mobile, source order on lg) ── */}
         <div className="relative z-10 order-2 text-center lg:order-none lg:text-start">
-          <AnimatePresence mode="wait">
+          {/* initial={false} → the first slide renders in its final (visible)
+              state on the server, so the hero text is never blank while the JS
+              bundle loads. Crossfades still play on subsequent slide changes. */}
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={`text-${index}`}
               initial={{ opacity: 0, y: 20 }}
@@ -305,12 +309,9 @@ export function TrustBadges() {
       <div className="container-h relative py-14 sm:py-20">
         <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 sm:grid-cols-2">
           {items.map(({ Icon, t: title, d }, i) => (
-            <motion.div
+            <Reveal
               key={title}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.55, delay: i * 0.08 }}
+              delay={i * 0.08}
               className="group relative flex items-start gap-5 rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] ring-1 ring-[var(--color-border)] transition hover:shadow-[var(--shadow-lift)] sm:p-8"
             >
               {/* Dual ring icon */}
@@ -329,7 +330,7 @@ export function TrustBadges() {
                   {d}
                 </p>
               </div>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -345,8 +346,6 @@ export function CollectionShowcase() {
   const { t, tx, dir } = useT();
   const collections = useCollections();
   const products = useProducts();
-
-  const inViewOnce = { once: true, margin: "-80px" } as const;
 
   if (collections.length === 0) return null;
 
@@ -364,13 +363,7 @@ export function CollectionShowcase() {
 
       <div className="container-h relative">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={inViewOnce}
-          transition={{ duration: 0.6 }}
-          className="mb-12 flex flex-col items-center gap-3 text-center sm:mb-14"
-        >
+        <Reveal className="mb-12 flex flex-col items-center gap-3 text-center sm:mb-14">
           <span className="eyebrow">{t("collections_title")}</span>
           <h2 className="fs-display-lg font-display font-semibold">
             {t("collections_title")}
@@ -379,7 +372,7 @@ export function CollectionShowcase() {
           <p className="max-w-xl text-[var(--color-ink-muted)]">
             {t("collections_sub")}
           </p>
-        </motion.div>
+        </Reveal>
 
         {/* Uniform cards in a centered wrap — stays balanced for any number of
             collections the admin publishes (2, 3, 4, 6 …). */}
@@ -390,16 +383,9 @@ export function CollectionShowcase() {
             ).length;
             const image = c.image ?? COLLECTION_FALLBACKS[i % COLLECTION_FALLBACKS.length];
             return (
-              <motion.div
+              <Reveal
                 key={c.id}
-                initial={{ opacity: 0, y: 32 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={inViewOnce}
-                transition={{
-                  duration: 0.6,
-                  delay: Math.min(i * 0.08, 0.4),
-                  ease: [0.22, 1, 0.36, 1],
-                }}
+                delay={Math.min(i * 0.08, 0.4)}
                 className="group w-full sm:w-[330px] lg:w-[360px]"
               >
                 <Link
@@ -473,19 +459,13 @@ export function CollectionShowcase() {
                     </span>
                   </div>
                 </Link>
-              </motion.div>
+              </Reveal>
             );
           })}
         </div>
 
         {/* Bottom CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={inViewOnce}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-12 flex justify-center"
-        >
+        <Reveal delay={0.2} className="mt-12 flex justify-center">
           <Link
             href="/collections"
             className="inline-flex items-center gap-2 rounded-full border border-[var(--color-primary)]/40 bg-white/70 px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.22em] text-[var(--color-ink)] backdrop-blur transition hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white hover:shadow-[var(--shadow-gold)]"
@@ -495,7 +475,7 @@ export function CollectionShowcase() {
               className={`h-4 w-4 ${dir === "rtl" ? "rotate-180" : ""}`}
             />
           </Link>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );
@@ -522,13 +502,7 @@ export function FeaturedProducts() {
         opacity={0.05}
       />
       <div className="container-h relative">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
-          className="mb-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"
-        >
+        <Reveal className="mb-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="w-full text-center sm:text-start">
             <span className="eyebrow">{t("featured_title")}</span>
             <h2 className="fs-display-lg mt-2 font-display font-semibold">
@@ -544,7 +518,7 @@ export function FeaturedProducts() {
           >
             {t("view_all")} →
           </Link>
-        </motion.div>
+        </Reveal>
 
         {/* Centered wrap — 2-up on mobile, fixed-width centered cards on
             desktop. Stays balanced whether there are 2, 3, 4 or 8 products. */}
@@ -573,12 +547,7 @@ export function QRBanner() {
     <section className="section-fluid relative overflow-hidden bg-[#1f1610] text-white">
       <div className="pointer-events-none absolute inset-0 opacity-70 [background-image:radial-gradient(circle_at_25%_45%,rgba(201,169,110,0.22),transparent_55%),radial-gradient(circle_at_80%_25%,rgba(201,138,122,0.18),transparent_55%)]" />
       <div className="container-h relative grid grid-cols-1 items-center gap-12 lg:grid-cols-[1.1fr_1fr]">
-        <motion.div
-          initial={{ opacity: 0, x: dir === "rtl" ? 30 : -30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7 }}
-        >
+        <Reveal variant="left">
           <span className="eyebrow text-[var(--color-primary)]">
             {t("qr_section_eyebrow")}
           </span>
@@ -595,12 +564,11 @@ export function QRBanner() {
               { n: "02", t: t("qr_step2_t"), d: t("qr_step2_d") },
               { n: "03", t: t("qr_step3_t"), d: t("qr_step3_d") },
             ].map((s, i) => (
-              <motion.li
+              <Reveal
+                as="li"
                 key={s.n}
-                initial={{ opacity: 0, x: dir === "rtl" ? 20 : -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
+                variant="left"
+                delay={i * 0.1}
                 className="flex gap-4"
               >
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] font-display text-sm font-bold text-[#1f1610] sm:h-13 sm:w-13">
@@ -610,7 +578,7 @@ export function QRBanner() {
                   <h4 className="font-display text-lg font-semibold">{s.t}</h4>
                   <p className="text-sm text-white/60">{s.d}</p>
                 </div>
-              </motion.li>
+              </Reveal>
             ))}
           </ol>
 
@@ -623,13 +591,10 @@ export function QRBanner() {
               className={`h-4 w-4 ${dir === "rtl" ? "flip-rtl" : ""}`}
             />
           </Link>
-        </motion.div>
+        </Reveal>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.92 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.8 }}
+        <Reveal
+          variant="scale"
           className="relative mx-auto w-full max-w-[300px] sm:max-w-sm"
         >
           <div className="relative aspect-[3/4] rotate-0 rounded-2xl bg-gradient-to-br from-white to-[#f5efe2] p-8 shadow-2xl ring-1 ring-white/10 transition-transform duration-500 lg:rotate-[-2deg] lg:hover:rotate-0">
@@ -653,7 +618,7 @@ export function QRBanner() {
               </p>
             </div>
           </div>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );
@@ -701,13 +666,7 @@ export function StoryStrip() {
         opacity={0.05}
       />
       <div className="container-h relative">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7 }}
-          className="mx-auto max-w-3xl text-center"
-        >
+        <Reveal className="mx-auto max-w-3xl text-center">
           <div className="divider-rose mx-auto">
             <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">
               Mashaer — مشاعر
@@ -738,7 +697,7 @@ export function StoryStrip() {
               {t("value_quiet")}
             </span>
           </div>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );

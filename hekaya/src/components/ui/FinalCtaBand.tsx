@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Eyebrow } from "./Eyebrow";
 import { FloralPattern } from "./FloralPattern";
+import { Reveal } from "./Reveal";
 
 /**
  * Reusable gold-gradient call-to-action band.
@@ -46,12 +46,7 @@ export function FinalCtaBand({
         opacity={0.1}
       />
       <div className="container-h relative text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
-        >
+        <Reveal>
           {eyebrow && (
             <div className="mt-4">
               <Eyebrow tone="light">{eyebrow}</Eyebrow>
@@ -72,7 +67,7 @@ export function FinalCtaBand({
             {ctaLabel}
             <span aria-hidden>→</span>
           </Link>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );

@@ -56,8 +56,8 @@ export const translations = {
   hero_slide3_title_a: { ar: "قطع تُلبس", en: "Worn Today," },
   hero_slide3_title_b: { ar: "وتُورث", en: "Inherited Tomorrow" },
   hero_slide3_sub: {
-    ar: "ذهب وفضة معتمدة، تصاميم هادئة الفخامة تستحقّ أن تُورث جيلًا بعد جيل.",
-    en: "Certified gold & silver, quietly luxurious designs made to be passed down.",
+    ar: "ذهب معتمد، تصاميم هادئة, الفخامة تستحقّ أن تُورث جيلًا بعد جيل.",
+    en: "Certified gold , quietly luxurious designs made to be passed down.",
   },
 
   // Trust

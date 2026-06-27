@@ -354,6 +354,101 @@ html[dir="rtl"] .font-display {
   animation: fadeUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
+/* ----- SSR-safe entrance reveals (progressive enhancement) -----
+   Content is visible by default. The fade/slide is a self-contained CSS
+   animation that runs from the stylesheet — it does NOT wait for the React /
+   Framer-Motion bundle to hydrate, so a slow first paint on mobile never shows
+   a blank page. Used by the <Reveal> component. */
+.reveal {
+  opacity: 1; /* fallback: stays visible if animations are unsupported */
+  animation: reveal-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) var(--reveal-delay, 0s)
+    both;
+}
+.reveal-left {
+  animation-name: reveal-left;
+}
+.reveal-right {
+  animation-name: reveal-right;
+}
+.reveal-scale {
+  animation-name: reveal-scale;
+}
+/* Horizontal slides enter from the opposite side in RTL */
+html[dir="rtl"] .reveal-left {
+  animation-name: reveal-right;
+}
+html[dir="rtl"] .reveal-right {
+  animation-name: reveal-left;
+}
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes reveal-left {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes reveal-right {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes reveal-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Decorative slow zoom-in (e.g. collection card imagery). Scale only — never
+   affects text legibility — and runs from CSS so it's SSR-safe. */
+@keyframes kenburns-in {
+  from {
+    transform: scale(1.15);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+.kenburns-in {
+  animation: kenburns-in 2s cubic-bezier(0.22, 1, 0.36, 1)
+    var(--reveal-delay, 0s) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kenburns-in {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
 /* Scrollbar polish */
 ::-webkit-scrollbar {
   width: 10px;

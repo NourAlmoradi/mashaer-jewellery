@@ -1,10 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Heart, Star, Shield, QrCode } from "lucide-react";
 import { useT } from "@/lib/useT";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { FinalCtaBand } from "@/components/ui/FinalCtaBand";
+import { Reveal } from "@/components/ui/Reveal";
 
 export default function AboutPage() {
   const { t } = useT();
@@ -29,11 +29,7 @@ export default function AboutPage() {
           }}
         />
         <div className="container-h relative text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
+          <Reveal>
             <Eyebrow tone="light">{t("about_eyebrow")}</Eyebrow>
             <h1 className="mt-6 font-display text-5xl font-semibold leading-tight sm:text-6xl lg:text-7xl">
               <span className="block text-white">{t("about_hero_l1")}</span>
@@ -44,7 +40,7 @@ export default function AboutPage() {
             <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/70 sm:text-lg">
               {t("about_hero_sub")}
             </p>
-          </motion.div>
+          </Reveal>
         </div>
       </section>
 
@@ -68,12 +64,9 @@ export default function AboutPage() {
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {values.map((v, i) => (
-              <motion.div
+              <Reveal
                 key={v.title}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ delay: i * 0.06 }}
+                delay={i * 0.06}
                 className="rounded-lg bg-white p-7 ring-1 ring-[var(--color-border)] transition hover:shadow-md"
               >
                 <div className="grid h-12 w-12 place-items-center rounded-md ring-1 ring-[var(--color-primary)]/40">
@@ -85,7 +78,7 @@ export default function AboutPage() {
                 <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink-muted)]">
                   {v.desc}
                 </p>
-              </motion.div>
+              </Reveal>
             ))}
           </div>
         </div>
