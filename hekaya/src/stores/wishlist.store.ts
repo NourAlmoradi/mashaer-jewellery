@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 type WishlistState = {
   ids: string[];
   loaded: boolean;
+  /** Guards against overlapping loads (e.g. page effect + auth listener). */
+  loading: boolean;
   /** Pull the signed-in user's wishlist from Supabase. */
   load: () => Promise<void>;
   /** Add/remove a product (optimistic local update + DB write). */
@@ -17,29 +19,40 @@ type WishlistState = {
 export const useWishlistStore = create<WishlistState>()((set, get) => ({
   ids: [],
   loaded: false,
+  loading: false,
   load: async () => {
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      set({ ids: [], loaded: true });
-      return;
+    // Skip if a load is already in flight so two callers don't both fetch.
+    if (get().loading) return;
+    set({ loading: true });
+    try {
+      const supabase = createClient();
+      // getSession() reads the cached session locally (no network round-trip),
+      // unlike getUser() which revalidates with the auth server every call.
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) {
+        set({ ids: [], loaded: true });
+        return;
+      }
+      const { data } = await supabase
+        .from("wishlist")
+        .select("product_id")
+        .eq("user_id", session.user.id);
+      set({
+        ids: (data ?? []).map((r) => r.product_id as string),
+        loaded: true,
+      });
+    } finally {
+      set({ loading: false });
     }
-    const { data } = await supabase
-      .from("wishlist")
-      .select("product_id")
-      .eq("user_id", user.id);
-    set({
-      ids: (data ?? []).map((r) => r.product_id as string),
-      loaded: true,
-    });
   },
   toggle: async (id) => {
     const supabase = createClient();
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
     const has = get().ids.includes(id);
     // Optimistic local update so the heart flips instantly.
     set((s) => ({
@@ -63,13 +76,16 @@ export const useWishlistStore = create<WishlistState>()((set, get) => ({
 }));
 
 // Keep the wishlist in sync with auth: reload on sign-in, clear on sign-out.
+// The callback runs while Supabase holds its auth lock, so any Supabase call
+// made directly here would deadlock until the lock times out. Defer with
+// setTimeout(0) so the work runs after the lock is released.
 if (typeof window !== "undefined") {
   const supabase = createClient();
   supabase.auth.onAuthStateChange((event) => {
     if (event === "SIGNED_OUT") {
       useWishlistStore.setState({ ids: [], loaded: true });
     } else {
-      void useWishlistStore.getState().load();
+      setTimeout(() => void useWishlistStore.getState().load(), 0);
     }
   });
 }

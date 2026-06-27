@@ -66,13 +66,16 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
 }));
 
 // Reload orders when auth changes (sign-in shows your orders, sign-out clears).
+// The callback runs while Supabase holds its auth lock, so any Supabase call
+// made directly here would deadlock until the lock times out. Defer with
+// setTimeout(0) so the work runs after the lock is released.
 if (typeof window !== "undefined") {
   const supabase = createClient();
   supabase.auth.onAuthStateChange((event) => {
     if (event === "SIGNED_OUT") {
       useOrdersStore.setState({ orders: [], loaded: true });
     } else {
-      void useOrdersStore.getState().refresh();
+      setTimeout(() => void useOrdersStore.getState().refresh(), 0);
     }
   });
 }

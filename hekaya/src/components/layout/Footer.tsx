@@ -149,7 +149,6 @@ export function Footer() {
             <PaymentBadge>VISA</PaymentBadge>
             <PaymentBadge>MASTER</PaymentBadge>
             <PaymentBadge>APPLE PAY</PaymentBadge>
-            <PaymentBadge>PAYPAL</PaymentBadge>
           </div>
         </div>
       </div>

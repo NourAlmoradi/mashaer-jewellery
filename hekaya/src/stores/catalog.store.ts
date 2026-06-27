@@ -121,11 +121,14 @@ export const useCatalogStore = create<CatalogState>()((set, get) => ({
 // after the public (active-only) catalog already loaded would keep seeing the
 // active-only list (RLS returns inactive rows only to admins). Signing out
 // drops back to the public view.
+// The callback runs while Supabase holds its auth lock, so any Supabase call
+// made directly here would deadlock until the lock times out. Defer with
+// setTimeout(0) so the work runs after the lock is released.
 if (typeof window !== "undefined") {
   const supabase = createClient();
   supabase.auth.onAuthStateChange((event) => {
     if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
-      void useCatalogStore.getState().refresh();
+      setTimeout(() => void useCatalogStore.getState().refresh(), 0);
     }
   });
 }

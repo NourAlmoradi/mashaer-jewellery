@@ -14,6 +14,8 @@ import {
 type AddressesState = {
   addresses: Address[];
   loaded: boolean;
+  /** Guards against overlapping loads (e.g. page effect + auth listener). */
+  loading: boolean;
   /** Pull the signed-in user's address book from Supabase. */
   load: () => Promise<void>;
   /** Add a new address (requires sign-in). */
@@ -28,29 +30,37 @@ type AddressesState = {
 export const useAddressesStore = create<AddressesState>()((set, get) => ({
   addresses: [],
   loaded: false,
+  loading: false,
   load: async () => {
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      set({ addresses: [], loaded: true });
-      return;
-    }
+    // Skip if a load is already in flight so two callers don't both fetch.
+    if (get().loading) return;
+    set({ loading: true });
     try {
+      const supabase = createClient();
+      // getSession() reads the cached session locally (no network round-trip),
+      // unlike getUser() which revalidates with the auth server every call.
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) {
+        set({ addresses: [], loaded: true });
+        return;
+      }
       const addresses = await fetchAddresses(supabase);
       set({ addresses, loaded: true });
     } catch {
       set({ loaded: true });
+    } finally {
+      set({ loading: false });
     }
   },
   add: async (input) => {
     const supabase = createClient();
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-    await createAddress(supabase, user.id, input);
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.user) return;
+    await createAddress(supabase, session.user.id, input);
     await get().load();
   },
   edit: async (id, input) => {
@@ -65,13 +75,16 @@ export const useAddressesStore = create<AddressesState>()((set, get) => ({
 }));
 
 // Keep the address book in sync with auth: reload on sign-in, clear on sign-out.
+// The callback runs while Supabase holds its auth lock, so any Supabase call
+// made directly here would deadlock until the lock times out. Defer with
+// setTimeout(0) so the work runs after the lock is released.
 if (typeof window !== "undefined") {
   const supabase = createClient();
   supabase.auth.onAuthStateChange((event) => {
     if (event === "SIGNED_OUT") {
       useAddressesStore.setState({ addresses: [], loaded: true });
     } else if (event === "SIGNED_IN") {
-      void useAddressesStore.getState().load();
+      setTimeout(() => void useAddressesStore.getState().load(), 0);
     }
   });
 }

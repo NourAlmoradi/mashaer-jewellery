@@ -78,8 +78,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (active) void loadProfile(data.user);
     });
 
+    // onAuthStateChange fires while Supabase holds its auth lock. loadProfile
+    // queries the `profiles` table, which needs that same lock — calling it
+    // directly here deadlocks until the lock times out (the cause of slow
+    // sign-in/sign-out). Defer with setTimeout(0) so it runs after release.
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (active) void loadProfile(session?.user ?? null);
+      if (active)
+        setTimeout(() => {
+          if (active) void loadProfile(session?.user ?? null);
+        }, 0);
     });
 
     return () => {
