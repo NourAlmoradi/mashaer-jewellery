@@ -17,7 +17,7 @@ import {
   ChevronLeft,
   LogOut,
 } from "lucide-react";
-import { Logo } from "@/components/ui/Logo";
+import { Monogram } from "@/components/ui/Logo";
 import { useT } from "@/lib/useT";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/supabase/useAuth";
@@ -114,9 +114,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           onClick={() => setMobileOpen(false)}
           className="flex flex-col items-center gap-2"
         >
-          <div className="grid h-16 w-16 place-items-center rounded-md bg-[#f5efe2] p-2 shadow-[0_4px_14px_rgba(201,169,110,0.15)]">
-            <Logo color="dark" variant="mark" className="h-12 w-12" />
-          </div>
+          <Monogram size={56} />
           <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/50">
             {t("admin_title")}
           </p>
@@ -194,11 +192,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <Link
-            href="/admin"
-            className="grid h-9 w-9 place-items-center rounded-md bg-[#f5efe2] p-1.5"
-          >
-            <Logo color="dark" variant="mark" className="h-7 w-7" />
+          <Link href="/admin" className="flex items-center">
+            <Monogram size={36} />
           </Link>
         </header>
 

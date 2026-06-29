@@ -113,19 +113,65 @@ export function Logo({
   // inline (header)
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
-      <span className="flex flex-col leading-tight">
+      <span className="flex flex-col leading-none">
         <span
-          className="font-display text-xl font-semibold tracking-wider"
+          className="font-display text-[22px] font-semibold leading-none tracking-[0.18em]"
           style={{ color: text }}
         >
           MASHAER
         </span>
-        <span
-          className="text-[9px] font-medium tracking-[0.3em] uppercase"
-          style={{ color: accent }}
-        >
-          Jewellery
+        {/* subtitle flanked by thin accent rules */}
+        <span className="mt-1 flex items-center gap-1.5">
+          <span
+            className="h-px flex-1"
+            style={{
+              background: `linear-gradient(to right, transparent, ${accent})`,
+            }}
+          />
+          <span
+            className="text-[13px] font-medium uppercase leading-none tracking-[0.42em]"
+            style={{ color: accent }}
+          >
+            Jewellery
+          </span>
+          <span
+            className="h-px flex-1"
+            style={{
+              background: `linear-gradient(to left, transparent, ${accent})`,
+            }}
+          />
         </span>
+      </span>
+    </span>
+  );
+}
+
+/**
+ * Monogram — the gold circular "M" badge used in the site header. Scales to any
+ * size via the `size` prop (the inner letter tracks the box). Shared so the
+ * header and admin show the exact same mark.
+ */
+export function Monogram({
+  size = 36,
+  className,
+}: {
+  size?: number;
+  className?: string;
+}) {
+  return (
+    <span
+      aria-hidden
+      style={{ width: size, height: size, fontSize: Math.round(size * 0.56) }}
+      className={cn(
+        "relative grid shrink-0 place-items-center overflow-hidden rounded-full bg-[linear-gradient(150deg,#f3e4c0_0%,#dcbf85_30%,#c9a96e_55%,#a8853f_100%)] shadow-[0_3px_8px_rgba(168,133,63,0.45),inset_0_1px_1px_rgba(255,255,255,0.7)] ring-1 ring-[var(--color-primary-dark)]/45",
+        className,
+      )}
+    >
+      {/* glossy shine sweep */}
+      <span className="pointer-events-none absolute inset-x-0 -top-1 h-1/2 rounded-t-full bg-gradient-to-b from-white/55 to-transparent" />
+      {/* refined italic monogram */}
+      <span className="font-display font-semibold italic leading-none tracking-tight text-white drop-shadow-[0_1px_1px_rgba(120,90,30,0.5)]">
+        M
       </span>
     </span>
   );

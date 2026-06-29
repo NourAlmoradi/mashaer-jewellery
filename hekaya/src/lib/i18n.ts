@@ -36,28 +36,28 @@ export const translations = {
   hero_cta_learn: { ar: "اكتشف ذكرى QR", en: "Discover QR Memory" },
 
   // Hero slides (3 auto-rotating)
-  hero_slide1_eyebrow: { ar: "مشاعر تبقى", en: "Feelings That Last" },
-  hero_slide1_title_a: { ar: "في كل قطعة", en: "A Feeling" },
-  hero_slide1_title_b: { ar: "مشاعر تبقى", en: "In Every Piece" },
+  hero_slide1_eyebrow: { ar: "رؤيتنا", en: "Our Vision" },
+  hero_slide1_title_a: { ar: "فخامةٌ", en: "Luxury" },
+  hero_slide1_title_b: { ar: "تنبض بالمشاعر", en: "That Feels" },
   hero_slide1_sub: {
-    ar: "مجوهرات مصممة بدقة، تحمل ذكرى رقمية محفوظة برمز QR لتبقى لحظاتكم خالدة.",
-    en: "Crafted jewellery with a private QR memory keepsake — moments worth keeping forever.",
+    ar: "أن نُصبح الدار الأرقى والأعمق إحساسًا في عالم مجوهرات الأطفال بالخليج والعالم العربي.",
+    en: "To become the most emotional and luxurious children's jewellery house across the Gulf and the Arab world.",
   },
 
-  hero_slide2_eyebrow: { ar: "ذكرى QR حصرية", en: "Exclusive QR Memory" },
-  hero_slide2_title_a: { ar: "امسحي،", en: "Scan, Share," },
-  hero_slide2_title_b: { ar: "احفظي، أهدي", en: "Keep Forever" },
+  hero_slide2_eyebrow: { ar: "إرثٌ يبقى", en: "A Lasting Legacy" },
+  hero_slide2_title_a: { ar: "لحظاتٌ عابرة", en: "Fleeting Moments," },
+  hero_slide2_title_b: { ar: "تصبح إرثًا", en: "Made Eternal" },
   hero_slide2_sub: {
-    ar: "بطاقة QR خاصة داخل كل علبة. ارفعي صورة ورسالة من القلب… واحفظيها للأبد.",
-    en: "A private QR card in every box. Upload a photo and a heartfelt note — sealed forever.",
+    ar: "نُحوّل أثمن اللحظات الإنسانية إلى إرثٍ فاخرٍ يُتوارث جيلًا بعد جيل.",
+    en: "We transform life's most precious moments into luxurious heirlooms, treasured for generations.",
   },
 
-  hero_slide3_eyebrow: { ar: "صناعة يدوية", en: "Handcrafted Quietly" },
-  hero_slide3_title_a: { ar: "قطع تُلبس", en: "Worn Today," },
-  hero_slide3_title_b: { ar: "وتُورث", en: "Inherited Tomorrow" },
+  hero_slide3_eyebrow: { ar: "لكل طفل", en: "For Every Child" },
+  hero_slide3_title_a: { ar: "تُلبَس اليوم", en: "Worn Today," },
+  hero_slide3_title_b: { ar: "وتُورَّث غدًا", en: "Inherited Tomorrow" },
   hero_slide3_sub: {
-    ar: "ذهب معتمد، تصاميم هادئة, الفخامة تستحقّ أن تُورث جيلًا بعد جيل.",
-    en: "Certified gold , quietly luxurious designs made to be passed down.",
+    ar: "كنوزٌ تُصاغ لأحبّ الصغار؛ تُلبَس بحبٍّ وتُورَّث بفخر.",
+    en: "Treasures crafted for the little ones — worn with love today, passed down with pride tomorrow.",
   },
 
   // Trust
@@ -399,9 +399,10 @@ export const translations = {
 
   // About
   about_title: { ar: "قصتنا", en: "Our Story" },
+  about_mission_eyebrow: { ar: "مهمتنا", en: "Our Mission" },
   about_intro: {
-    ar: "وُلدت مشاعر من قناعة صادقة بأن المجوهرات أعمق من الزينة — هي مشاعر تُلبَس وذكريات تُورَّث.",
-    en: "Mashaer was born from a sincere belief that jewellery is deeper than ornament — it is feeling you can wear and memory you can pass on.",
+    ar: "في مشاعر، نبتكر مجوهراتٍ فاخرةً للأطفال تحمل معنىً عاطفياً عميقاً — قطعٌ ترتبط بأحجار الميلاد، والقصص، والذكريات الرقمية المحمية — لتبقى أجمل اللحظات حيّةً إلى الأبد.",
+    en: "At Mashaer, we craft luxurious children's jewellery enriched with profound emotional meaning — pieces woven with birthstones, personal stories, and securely protected digital memories — so life's most precious moments live on, forever.",
   },
 
   // Contact

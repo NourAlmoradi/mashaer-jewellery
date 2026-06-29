@@ -44,12 +44,15 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Vision narrative */}
+      {/* Mission narrative */}
       <section className="section-pad">
         <div className="container-h mx-auto max-w-3xl text-center">
-          <p className="font-display text-2xl leading-relaxed text-[var(--color-ink-soft)] sm:text-3xl">
-            {t("about_intro")}
-          </p>
+          <Reveal>
+            <Eyebrow>{t("about_mission_eyebrow")}</Eyebrow>
+            <p className="mt-6 font-display text-2xl leading-relaxed text-[var(--color-ink-soft)] sm:text-3xl">
+              {t("about_intro")}
+            </p>
+          </Reveal>
         </div>
       </section>
 

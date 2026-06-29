@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, ShoppingBag, User, LayoutDashboard } from "lucide-react";
-import { Logo } from "@/components/ui/Logo";
+import { Logo, Monogram } from "@/components/ui/Logo";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useT } from "@/lib/useT";
 import { useCartStore } from "@/stores/cart.store";
@@ -37,9 +37,7 @@ export function Header() {
             className="flex items-center gap-2.5 transition hover:opacity-85"
             aria-label="Mashaer"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] font-display text-base font-bold text-white shadow-[var(--shadow-soft)] ring-1 ring-[var(--color-primary-dark)]/40">
-              M
-            </span>
+            <Monogram />
             <Logo />
           </Link>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, ShieldCheck, QrCode, Sparkles } from "lucide-react";
 import { useT } from "@/lib/useT";
@@ -35,7 +35,7 @@ const HERO_SLIDES: HeroSlideExtra[] = [
     titleAKey: "hero_slide1_title_a",
     titleBKey: "hero_slide1_title_b",
     subKey: "hero_slide1_sub",
-    image: "/necklaces.png",
+    image: "/logo.jpg",
     primaryCta: {
       href: "/products",
       labelAr: "ابدأ التسوق",
@@ -48,7 +48,7 @@ const HERO_SLIDES: HeroSlideExtra[] = [
     titleAKey: "hero_slide2_title_a",
     titleBKey: "hero_slide2_title_b",
     subKey: "hero_slide2_sub",
-    image: "/bracelets.png",
+    image: "/page.png",
     primaryCta: { href: "/qr", labelAr: "كيف تعمل", labelEn: "How It Works" },
     secondaryCta: { href: "/products", labelAr: "تصفّحي", labelEn: "Browse" },
   },
@@ -57,7 +57,7 @@ const HERO_SLIDES: HeroSlideExtra[] = [
     titleAKey: "hero_slide3_title_a",
     titleBKey: "hero_slide3_title_b",
     subKey: "hero_slide3_sub",
-    image: "/earrings.png",
+    image: "/child.png",
     primaryCta: { href: "/products", labelAr: "اكتشفي", labelEn: "Explore" },
     secondaryCta: { href: "/about", labelAr: "قصتنا", labelEn: "Our Story" },
   },
@@ -77,7 +77,6 @@ const TITLE_GRADIENT =
 export function Hero() {
   const { t, locale, dir } = useT();
   const [index, setIndex] = useState(0);
-  const pausedRef = useRef(false);
 
   const next = useCallback(
     () => setIndex((i) => (i + 1) % HERO_SLIDES.length),
@@ -89,9 +88,7 @@ export function Hero() {
   );
 
   useEffect(() => {
-    const id = window.setInterval(() => {
-      if (!pausedRef.current) next();
-    }, 6000);
+    const id = window.setInterval(next, 6000);
     return () => window.clearInterval(id);
   }, [next]);
 
@@ -100,10 +97,6 @@ export function Hero() {
   return (
     <section
       className="relative -mt-[72px] overflow-hidden bg-[#f2e3d3] pt-[72px] text-[var(--color-ink)]"
-      onMouseEnter={() => (pausedRef.current = true)}
-      onMouseLeave={() => (pausedRef.current = false)}
-      onTouchStart={() => (pausedRef.current = true)}
-      onTouchEnd={() => (pausedRef.current = false)}
     >
       {/* Backdrop — cream wash + soft light & gold accents (cheap CSS only) */}
       <div aria-hidden className="absolute inset-0">
@@ -240,7 +233,7 @@ export function Hero() {
           <div className="relative mx-auto w-full max-w-xs sm:max-w-sm lg:max-w-md">
             <Link
               href={slide.primaryCta.href}
-              className="group relative block aspect-[4/5] overflow-hidden rounded-[2rem] shadow-[0_30px_70px_-25px_rgba(168,133,63,0.6)] ring-1 ring-[var(--color-primary)]/25"
+              className="group relative block aspect-square overflow-hidden rounded-[2rem] bg-[linear-gradient(160deg,#f6ead9_0%,#ecd9c4_100%)] shadow-[0_30px_70px_-25px_rgba(168,133,63,0.6)] ring-1 ring-[var(--color-primary)]/25"
             >
               {HERO_SLIDES.map((s, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -252,7 +245,7 @@ export function Hero() {
                   fetchPriority={i === 0 ? "high" : "auto"}
                   decoding="async"
                   aria-hidden={i !== index}
-                  className={`absolute inset-0 h-full w-full object-cover transition-all duration-[1100ms] ease-out ${
+                  className={`absolute inset-0 h-full w-full object-contain transition-all duration-[1100ms] ease-out ${
                     i === index ? "scale-100 opacity-100" : "scale-105 opacity-0"
                   }`}
                 />
