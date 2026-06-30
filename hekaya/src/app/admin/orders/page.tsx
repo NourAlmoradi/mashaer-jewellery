@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronRight, Search, X, Check } from "lucide-react";
@@ -363,6 +364,40 @@ function StatusPill({
   onChange: (s: OrderStatus) => void;
   t: (k: never) => string;
 }) {
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(
+    null,
+  );
+
+  // The pill lives inside containers with overflow-hidden / overflow-x-auto,
+  // which clip an absolutely-positioned menu. Render the menu in a portal with
+  // fixed positioning so it escapes those clipping contexts.
+  useEffect(() => {
+    if (!open) return;
+    const MENU_W = 176; // w-44
+    const MENU_H = 168; // ~4 rows
+    const place = () => {
+      const btn = btnRef.current;
+      if (!btn) return;
+      const r = btn.getBoundingClientRect();
+      const rtl = document.documentElement.dir === "rtl";
+      let left = rtl ? r.right - MENU_W : r.left;
+      left = Math.max(8, Math.min(left, window.innerWidth - MENU_W - 8));
+      let top = r.bottom + 8; // mt-2
+      if (top + MENU_H > window.innerHeight - 8) {
+        top = Math.max(8, r.top - 8 - MENU_H); // flip above when no room below
+      }
+      setCoords({ top, left });
+    };
+    place();
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
+    return () => {
+      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("resize", place);
+    };
+  }, [open]);
+
   if (!editable) {
     return (
       <span
@@ -376,8 +411,9 @@ function StatusPill({
     );
   }
   return (
-    <div className="relative inline-block">
+    <>
       <button
+        ref={btnRef}
         onClick={onToggle}
         className={cn(
           "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1",
@@ -387,24 +423,34 @@ function StatusPill({
         {t(`status_${status}` as never)}
         <ChevronDown className="h-3 w-3" />
       </button>
-      {open && (
-        <div className="absolute z-50 mt-2 w-44 overflow-hidden rounded-md border border-white/10 bg-white text-[#1a1a1a] shadow-xl">
-          {ALL_STATUSES.map((s) => (
-            <button
-              key={s}
-              onClick={() => onChange(s)}
-              className={cn(
-                "flex w-full items-center justify-between px-3 py-2 text-sm hover:bg-[#f5efe2]",
-                s === status && "bg-[#f5efe2] font-semibold",
-              )}
+      {open &&
+        coords &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <>
+            <div className="fixed inset-0 z-[55]" onClick={onToggle} />
+            <div
+              className="fixed z-[56] w-44 overflow-hidden rounded-md border border-white/10 bg-white text-[#1a1a1a] shadow-xl"
+              style={{ top: coords.top, left: coords.left }}
             >
-              <span>{t(`status_${s}` as never)}</span>
-              {s === status && <Check className="h-4 w-4 text-[#c9a96e]" />}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+              {ALL_STATUSES.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => onChange(s)}
+                  className={cn(
+                    "flex w-full items-center justify-between px-3 py-2 text-sm hover:bg-[#f5efe2]",
+                    s === status && "bg-[#f5efe2] font-semibold",
+                  )}
+                >
+                  <span>{t(`status_${s}` as never)}</span>
+                  {s === status && <Check className="h-4 w-4 text-[#c9a96e]" />}
+                </button>
+              ))}
+            </div>
+          </>,
+          document.body,
+        )}
+    </>
   );
 }
 
