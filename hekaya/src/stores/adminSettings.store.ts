@@ -26,8 +26,8 @@ export type AdminSettingsState = {
   shipping: AdminShipping;
   loaded: boolean;
   load: () => Promise<void>;
-  setStore: (s: Partial<AdminStoreInfo>) => void;
-  setShipping: (sh: Partial<AdminShipping>) => void;
+  setStore: (s: Partial<AdminStoreInfo>) => Promise<void>;
+  setShipping: (sh: Partial<AdminShipping>) => Promise<void>;
 };
 
 const defaults: Pick<AdminSettingsState, "store" | "shipping"> = {
@@ -84,18 +84,18 @@ export const useAdminSettings = create<AdminSettingsState>()((set, get) => ({
       set({ loaded: true });
     }
   },
-  setStore: (s) =>
-    set((cur) => {
-      const store = { ...cur.store, ...s };
-      void persistSettings({ store, shipping: cur.shipping });
-      return { store };
-    }),
-  setShipping: (sh) =>
-    set((cur) => {
-      const shipping = { ...cur.shipping, ...sh };
-      void persistSettings({ store: cur.store, shipping });
-      return { shipping };
-    }),
+  // Update optimistically, then await the DB write so the caller can surface a
+  // real error (e.g. a rejected write) instead of a false "Saved".
+  setStore: async (s) => {
+    const store = { ...get().store, ...s };
+    set({ store });
+    await persistSettings({ store, shipping: get().shipping });
+  },
+  setShipping: async (sh) => {
+    const shipping = { ...get().shipping, ...sh };
+    set({ shipping });
+    await persistSettings({ store: get().store, shipping });
+  },
 }));
 
 // Public consumers (Footer, Contact, Checkout) read these values, so load the

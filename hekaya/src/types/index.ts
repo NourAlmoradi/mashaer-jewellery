@@ -12,6 +12,7 @@ export type Category = {
 
 export type Collection = {
   id: string;
+  slug?: string; // URL-safe key derived from the name; auto-filled on save
   name: Bilingual;
   description: Bilingual;
   tone: string; // hex colour used as a fallback when no image is set

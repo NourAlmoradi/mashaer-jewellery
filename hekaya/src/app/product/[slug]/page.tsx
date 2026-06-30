@@ -1,7 +1,7 @@
 import { cache } from "react";
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
-import { fetchProductBySlug, fetchProducts } from "@/lib/supabase/catalog";
+import { createPublicClient } from "@/lib/supabase/public";
+import { fetchProductBySlug } from "@/lib/supabase/catalog";
 import { formatPrice } from "@/lib/utils";
 import ProductPageClient from "./ProductPageClient";
 
@@ -9,22 +9,21 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
   "https://mashaerjewellery.com";
 
+// Render on demand. The root layout reads `cookies()` (for the locale), so this
+// route can never be fully static anyway — like every other page in the app it
+// is server-rendered per request. Forcing dynamic (instead of using
+// `generateStaticParams`) is what stops Next trying to statically prerender a
+// cookie-dependent tree, which threw `DYNAMIC_SERVER_USAGE` (a 500) for any
+// product that wasn't baked into the build.
+export const dynamic = "force-dynamic";
+
 // Shared per-request so `generateMetadata` and the page component hit the
-// database once instead of fetching the same product twice.
+// database once instead of fetching the same product twice. Uses the
+// cookie-free public client (no user session needed for public catalog data).
 const getProduct = cache(async (slug: string) => {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   return fetchProductBySlug(supabase, slug);
 });
-
-export async function generateStaticParams() {
-  try {
-    const supabase = await createClient();
-    const products = await fetchProducts(supabase);
-    return products.map((p) => ({ slug: p.slug }));
-  } catch {
-    return [];
-  }
-}
 
 export async function generateMetadata({
   params,

@@ -67,7 +67,7 @@ export default function AdminSettingsPage() {
 
 /* ============== STORE TAB ============== */
 function StoreTab() {
-  const { t } = useT();
+  const { t, locale } = useT();
   const store = useAdminSettings((s) => s.store);
   const setStore = useAdminSettings((s) => s.setStore);
   const [form, setForm] = useState<AdminStoreInfo>(store);
@@ -81,9 +81,17 @@ function StoreTab() {
   const update = <K extends keyof AdminStoreInfo>(k: K, v: AdminStoreInfo[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  const save = () => {
-    setStore(form);
-    toast.success(t("admin_settings_saved"));
+  const save = async () => {
+    try {
+      await setStore(form);
+      toast.success(t("admin_settings_saved"));
+    } catch {
+      toast.error(
+        locale === "ar"
+          ? "تعذّر الحفظ — تأكد من صلاحيات المدير"
+          : "Could not save — check admin permissions",
+      );
+    }
   };
 
   return (
@@ -123,7 +131,7 @@ function StoreTab() {
 
 /* ============== SHIPPING TAB ============== */
 function ShippingTab() {
-  const { t } = useT();
+  const { t, locale } = useT();
   const shipping = useAdminSettings((s) => s.shipping);
   const setShipping = useAdminSettings((s) => s.setShipping);
   const [form, setForm] = useState<AdminShipping>(shipping);
@@ -136,9 +144,17 @@ function ShippingTab() {
   const update = <K extends keyof AdminShipping>(k: K, v: AdminShipping[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  const save = () => {
-    setShipping(form);
-    toast.success(t("admin_settings_saved"));
+  const save = async () => {
+    try {
+      await setShipping(form);
+      toast.success(t("admin_settings_saved"));
+    } catch {
+      toast.error(
+        locale === "ar"
+          ? "تعذّر الحفظ — تأكد من صلاحيات المدير"
+          : "Could not save — check admin permissions",
+      );
+    }
   };
 
   const rows: { key: keyof AdminShipping; label: string }[] = [

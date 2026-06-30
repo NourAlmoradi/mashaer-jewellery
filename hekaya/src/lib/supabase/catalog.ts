@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Bilingual, Category, Collection, Product } from "@/types";
+import { slugify, generateToken } from "@/lib/utils";
 
 /**
  * Raw database row shapes (snake_case) for the catalog tables.
@@ -58,6 +59,7 @@ const num = (v: number | string | null | undefined): number | undefined =>
 export function mapCollection(row: CollectionRow): Collection {
   return {
     id: row.id,
+    slug: row.slug ?? undefined,
     name: row.name,
     description: row.description,
     tone: row.tone,
@@ -220,6 +222,14 @@ export async function setProductActive(
 /** Map an app Collection into a writable database row. */
 function collectionToRow(c: Collection) {
   return {
+    // Preserve an existing slug; otherwise derive one from the name so the
+    // schema's unique `slug` column is never left null. Arabic-only names
+    // slugify to "" — fall back to a short random key.
+    slug:
+      c.slug?.trim() ||
+      slugify(c.name.en) ||
+      slugify(c.name.ar) ||
+      `collection-${generateToken(6)}`,
     name: c.name,
     description: c.description,
     tone: c.tone,

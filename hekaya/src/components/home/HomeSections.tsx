@@ -88,7 +88,7 @@ export function Hero() {
   );
 
   useEffect(() => {
-    const id = window.setInterval(next, 6000);
+    const id = window.setInterval(next, 5000);
     return () => window.clearInterval(id);
   }, [next]);
 
@@ -265,11 +265,6 @@ export function Hero() {
                   className={`pointer-events-none absolute h-8 w-8 border-white/70 ${cls}`}
                 />
               ))}
-              {/* floating brand chip */}
-              <div className="absolute bottom-4 inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-ink)] shadow-sm backdrop-blur ltr:left-4 rtl:right-4">
-                <Logo color="dark" variant="mark" className="h-4 w-4" />
-                Mashaer
-              </div>
             </Link>
           </div>
         </div>

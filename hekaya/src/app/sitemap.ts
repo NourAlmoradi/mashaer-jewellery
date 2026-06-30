@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { fetchCollections, fetchProducts } from "@/lib/supabase/catalog";
 import type { Collection, Product } from "@/types";
 
@@ -7,13 +7,17 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
   "https://mashaerjewellery.com";
 
+// Regenerate at most daily so products added via the admin show up in the
+// sitemap without needing a redeploy.
+export const revalidate = 86400;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   let products: Product[] = [];
   let collections: Collection[] = [];
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     [products, collections] = await Promise.all([
       fetchProducts(supabase),
       fetchCollections(supabase),

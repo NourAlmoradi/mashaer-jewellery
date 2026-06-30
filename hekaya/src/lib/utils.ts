@@ -55,6 +55,22 @@ export function generateOrderId(): string {
   return `HK-${ts}-${rnd}`;
 }
 
+/**
+ * URL-safe slug from text: lowercase, runs of non-alphanumerics collapse to a
+ * single hyphen, accents stripped. Non-Latin scripts (e.g. Arabic) yield "" —
+ * callers should fall back to the other language or a random suffix.
+ */
+export function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "") // strip combining accents
+    .replace(/[^a-z0-9]+/g, "-") // anything else → hyphen
+    .replace(/^-+|-+$/g, "") // trim leading/trailing hyphens
+    .slice(0, 60);
+}
+
 export function generateToken(len = 8): string {
   // Ambiguity-free alphabet (no 0/o/1/l/i) for human-readable QR tokens.
   const chars = "abcdefghjkmnpqrstuvwxyz23456789";
