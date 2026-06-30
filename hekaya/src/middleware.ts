@@ -35,8 +35,13 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Run on everything except Next internals and static asset files.
+  // Run on everything except Next internals, static asset files, and the public
+  // gift-recipient surfaces. `memory`, `qr` and `api/memory` are designed for
+  // anonymous visitors and fetch their own data client-side — refreshing (and
+  // rotating) the auth token on those requests is unnecessary and can race the
+  // client's own refresh, wedging the shared Supabase auth lock so every later
+  // query hangs (the "stuck on loading" memory + account pages).
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|memory|qr|api/memory|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

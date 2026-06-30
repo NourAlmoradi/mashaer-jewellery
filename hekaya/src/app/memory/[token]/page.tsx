@@ -45,6 +45,7 @@ export default function MemoryPage({
   const [meta, setMeta] = useState<MemoryMeta | null>(null);
   const [memory, setMemory] = useState<PublicMemory | null>(null);
   const [loadingMemory, setLoadingMemory] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const [unlocked, setUnlocked] = useState(false);
   const [pinInput, setPinInput] = useState("");
@@ -66,30 +67,50 @@ export default function MemoryPage({
 
   useEffect(() => {
     let active = true;
+    // Watchdog: the whole tab shares ONE Supabase client and ONE auth-token
+    // lock. If a token refresh wedges that lock, every query hangs and the page
+    // would spin forever (this also stalls the account page). Never allow an
+    // infinite spinner — surface a retry instead.
+    const watchdog = setTimeout(() => {
+      if (active) {
+        setLoadError(true);
+        setLoadingMemory(false);
+      }
+    }, 10000);
     (async () => {
       const supabase = createClient();
       try {
+        // Public "does it exist?" read first. The PIN gate only needs this, so
+        // render as soon as it resolves — don't block the page on the owner read.
         const m = await getMemoryMeta(supabase, token);
         if (!active) return;
+        clearTimeout(watchdog);
         setMeta(m);
+        setLoadingMemory(false);
         if (m) {
-          // The order owner (or an admin) may read the content directly via
-          // RLS — skip the PIN gate for them. Everyone else must enter the PIN.
-          const owned = await fetchMemoryByToken(supabase, token);
-          if (!active) return;
-          if (owned) {
-            applyContent(owned);
-            setUnlocked(true);
-          }
+          // The order owner (or an admin) may read the content directly via RLS
+          // — skip the PIN gate for them. Best-effort: if this stalls or fails
+          // we just keep showing the PIN prompt rather than hanging the page.
+          fetchMemoryByToken(supabase, token)
+            .then((owned) => {
+              if (active && owned) {
+                applyContent(owned);
+                setUnlocked(true);
+              }
+            })
+            .catch(() => {});
         }
       } catch {
-        if (active) setMeta(null);
-      } finally {
-        if (active) setLoadingMemory(false);
+        if (active) {
+          clearTimeout(watchdog);
+          setLoadError(true);
+          setLoadingMemory(false);
+        }
       }
     })();
     return () => {
       active = false;
+      clearTimeout(watchdog);
     };
   }, [token]);
 
@@ -233,6 +254,34 @@ export default function MemoryPage({
         <Header />
         <div className="mt-16 flex justify-center">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-primary-dark)] border-t-transparent" />
+        </div>
+      </Wrapper>
+    );
+  }
+
+  // ── 0. The load failed/stalled → retry (never silently fall through to the
+  //     setup form, which a non-owner could use to overwrite an existing memory).
+  if (loadError) {
+    return (
+      <Wrapper>
+        <Header />
+        <div className="mx-auto mt-12 max-w-sm rounded-xl bg-white p-8 text-center shadow-md ring-1 ring-[var(--color-border)]">
+          <h2 className="font-display text-xl font-semibold">
+            {locale === "ar"
+              ? "تعذّر تحميل الذكرى"
+              : "Couldn't load this memory"}
+          </h2>
+          <p className="mt-2 text-sm text-[var(--color-ink-muted)]">
+            {locale === "ar"
+              ? "حدث خطأ مؤقت. حدّث الصفحة وحاول مرة أخرى."
+              : "Something went wrong. Please refresh and try again."}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="btn btn-gold btn-md mt-5 w-full"
+          >
+            {locale === "ar" ? "إعادة المحاولة" : "Retry"}
+          </button>
         </div>
       </Wrapper>
     );

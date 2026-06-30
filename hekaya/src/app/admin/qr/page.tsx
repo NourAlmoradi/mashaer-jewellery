@@ -65,17 +65,27 @@ export default function AdminQrPage() {
       return;
     }
     try {
-      if (memories[token]) {
+      // Always go through the dedicated reset RPC: it re-hashes the PIN AND
+      // clears the failed-attempt lockout. Branching on the cached `memories`
+      // map was unsafe — if it was stale for a memory that actually exists we
+      // fell through to save_memory, which NEVER changes the PIN (and blanks the
+      // title/message), leaving the recipient locked out on the old PIN.
+      try {
         await adminResetMemoryPin(createClient(), token, newPin);
-      } else {
-        // Pre-seed an empty memory with the new PIN (admin bypasses token check).
-        await dbSaveMemory(createClient(), {
-          token,
-          pin: newPin,
-          title: "",
-          message: "",
-          photos: [],
-        });
+      } catch (err) {
+        // Only seed a fresh memory when there is genuinely no row yet for this
+        // token (admin bypasses the token check). Re-throw any other failure.
+        if (/unknown memory token/i.test((err as Error)?.message ?? "")) {
+          await dbSaveMemory(createClient(), {
+            token,
+            pin: newPin,
+            title: "",
+            message: "",
+            photos: [],
+          });
+        } else {
+          throw err;
+        }
       }
       await reloadMemories();
       toast.success(t("admin_qr_reset_pin_done"));
