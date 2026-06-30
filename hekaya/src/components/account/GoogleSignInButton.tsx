@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
@@ -73,6 +73,15 @@ function loadGsiScript(): Promise<void> {
  */
 export function GoogleSignInButton({ ar }: { ar: boolean }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Mirror AuthForm: honor ?redirect=/checkout, internal paths only.
+  const redirectParam = searchParams.get("redirect");
+  const dest =
+    redirectParam &&
+    redirectParam.startsWith("/") &&
+    !redirectParam.startsWith("//")
+      ? redirectParam
+      : "/";
   const containerRef = useRef<HTMLDivElement>(null);
   const rawNonceRef = useRef("");
 
@@ -89,9 +98,9 @@ export function GoogleSignInButton({ ar }: { ar: boolean }) {
         return;
       }
       toast.success(ar ? "تم تسجيل الدخول" : "Signed in");
-      router.replace("/");
+      router.replace(dest);
     },
-    [ar, router],
+    [ar, router, dest],
   );
 
   useEffect(() => {

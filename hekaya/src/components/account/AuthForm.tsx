@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { User } from "lucide-react";
 import { useT } from "@/lib/useT";
@@ -17,6 +17,16 @@ export function AuthForm() {
   const { t, locale } = useT();
   const { signIn, signUp } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Where to land after auth — e.g. /account?redirect=/checkout sends the user
+  // straight back to checkout. Only allow internal paths.
+  const redirectParam = searchParams.get("redirect");
+  const dest =
+    redirectParam &&
+    redirectParam.startsWith("/") &&
+    !redirectParam.startsWith("//")
+      ? redirectParam
+      : "/";
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -36,7 +46,7 @@ export function AuthForm() {
           toast.error(err);
         } else {
           toast.success(ar ? "تم تسجيل الدخول" : "Signed in");
-          router.replace("/");
+          router.replace(dest);
         }
       } else if (mode === "forgot") {
         const { createClient } = await import("@/lib/supabase/client");
@@ -60,9 +70,9 @@ export function AuthForm() {
           toast.error(err);
         } else {
           // Email confirmation is disabled, so signup signs the user in
-          // immediately — send them straight to the home page.
+          // immediately — send them on to their original destination.
           toast.success(ar ? "تم إنشاء حسابك بنجاح" : "Account created");
-          router.replace("/");
+          router.replace(dest);
         }
       }
     } finally {

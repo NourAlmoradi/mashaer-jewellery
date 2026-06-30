@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Plus, Minus, Trash2, ShoppingBag } from "lucide-react";
+import { toast } from "sonner";
 import { useT } from "@/lib/useT";
 import { useCartStore, useCartSubtotal } from "@/stores/cart.store";
+import { useAuth } from "@/lib/supabase/useAuth";
 import { formatPrice } from "@/lib/utils";
 import {
   PlaceholderJewel,
@@ -14,6 +17,8 @@ import { useProducts } from "@/lib/useProducts";
 
 export function CartDrawer() {
   const { t, tx, locale, dir } = useT();
+  const router = useRouter();
+  const { user } = useAuth();
   const products = useProducts();
   const items = useCartStore((s) => s.items);
   const isOpen = useCartStore((s) => s.isOpen);
@@ -22,6 +27,23 @@ export function CartDrawer() {
   const updateQty = useCartStore((s) => s.updateQty);
   const subtotal = useCartSubtotal();
   const fromSide = dir === "rtl" ? "-100%" : "100%";
+
+  // Gate checkout behind auth: ask the customer to sign in / sign up the moment
+  // they press "إتمام الشراء", rather than letting them fill the whole checkout
+  // form and hit the wall at the final step.
+  const goToCheckout = () => {
+    setOpen(false);
+    if (!user) {
+      toast.error(
+        locale === "ar"
+          ? "يرجى تسجيل الدخول أو إنشاء حساب لإتمام الشراء"
+          : "Please sign in or create an account to checkout",
+      );
+      router.push("/account?redirect=/checkout");
+      return;
+    }
+    router.push("/checkout");
+  };
 
   return (
     <AnimatePresence>
@@ -188,13 +210,13 @@ export function CartDrawer() {
                   <p className="mt-1 text-xs text-[var(--color-ink-faint)]">
                     {t("cart_shipping_calc")}
                   </p>
-                  <Link
-                    href="/checkout"
-                    onClick={() => setOpen(false)}
+                  <button
+                    type="button"
+                    onClick={goToCheckout}
                     className="btn btn-gold btn-lg mt-4 w-full"
                   >
                     {t("cart_checkout")} →
-                  </Link>
+                  </button>
                   <button
                     onClick={() => setOpen(false)}
                     className="btn btn-ghost mt-2 w-full text-sm"
