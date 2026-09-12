@@ -544,14 +544,6 @@ export type Database = {
         Args: { p_pin: string; p_token: string }
         Returns: undefined
       }
-      check_memory_pin: {
-        Args: { p_pin: string; p_token: string }
-        Returns: {
-          attempts_left: number
-          minutes_left: number
-          status: string
-        }[]
-      }
       delete_collection_cascade: { Args: { p_id: string }; Returns: string[] }
       get_memory: {
         Args: { p_token: string }
@@ -611,10 +603,6 @@ export type Database = {
           token: string
           updated_at: string
         }[]
-      }
-      verify_memory_pin: {
-        Args: { p_pin: string; p_token: string }
-        Returns: boolean
       }
     }
     Enums: {

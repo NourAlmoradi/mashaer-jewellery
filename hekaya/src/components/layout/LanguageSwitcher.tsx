@@ -1,10 +1,10 @@
 "use client";
 
-import { useLocaleStore } from "@/stores/locale.store";
+import { useLocale } from "@/components/LocaleProvider";
 import { cn } from "@/lib/utils";
 
 export function LanguageSwitcher({ className }: { className?: string }) {
-  const { locale, setLocale } = useLocaleStore();
+  const { locale, setLocale } = useLocale();
   return (
     <div
       className={cn(

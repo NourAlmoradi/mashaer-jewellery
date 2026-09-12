@@ -10,17 +10,8 @@ const BUCKET = "memory-photos";
 const MIN_AGE_MS = 60 * 60 * 1000; // 1 hour
 
 /**
- * Admin-only: sweep the `memory-photos` bucket for orphaned files — every object
- * NOT referenced by a saved memory's `photos` array. This catches the two ways
- * files get stranded:
- *   1. A recipient uploads photos but never saves the memory (no row at all).
- *   2. A memory is edited to drop a photo — the row's array loses the URL but the
- *      old file is never deleted from storage.
- *
- * A single-memory delete already removes every file under its `<token>/` folder,
- * so this is the bulk complement for files whose token has a *surviving* memory.
- * Runs with the service role (the bucket has no client delete policy) after
- * proving the caller is a signed-in admin.
+ * Admin-only: delete every file in `memory-photos` no saved memory references.
+ * The catch-all for what `/api/memory/prune` misses. No scheduler.
  */
 export async function POST() {
   const supabase = await createClient();
@@ -39,10 +30,8 @@ export async function POST() {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  // 1. Collect every storage path still referenced by a saved memory. A photo URL
-  //    is getPublicUrl output: ".../memory-photos/<token>/<uuid>.jpg" → the path
-  //    is everything after "/memory-photos/". Anything else (e.g. a legacy data:
-  //    URL) has no storage file to protect, so it's simply skipped.
+  // The keep-list. A photo URL is getPublicUrl output, so the storage path is
+  // whatever follows "/memory-photos/"; anything else has no file to protect.
   const { data: mems, error: memErr } = await supabaseAdmin
     .from("memories")
     .select("photos");

@@ -3,19 +3,9 @@ import type { Bilingual, Category, Collection, Product } from "@/types";
 import { slugify, generateToken } from "@/lib/utils";
 
 /**
- * Raw database row shapes (snake_case) for the catalog tables.
- * These mirror the schema in hekaya/supabase/migrations/.
- *
- * WHY THE `as unknown as` CASTS BELOW:
- * `supabase gen types` types every `jsonb` column as `Json` — which is correct,
- * because Postgres genuinely cannot promise that `name` holds `{ar, en}` rather
- * than an array or a number. The app enforces that shape on write (productToRow
- * / collectionToRow), so narrowing on read is a deliberate assertion, not a
- * papered-over bug. TypeScript requires the `unknown` hop because `Json` and
- * `Bilingual` do not overlap.
- *
- * Everything the generator CAN check — table names, column names, RPC names and
- * argument names — is now enforced, which is the point of typing the client.
+ * Raw row shapes (snake_case) for the catalog tables. The `as unknown as`
+ * casts below narrow `jsonb` columns that the generator types as `Json`; the
+ * `{ar, en}` shape is enforced on write by productToRow / collectionToRow.
  */
 type CollectionRow = {
   id: string;
@@ -164,9 +154,8 @@ export async function fetchProductBySlug(
 }
 
 /**
- * Ensure a slug is unique in the `products` table, appending `-2`, `-3`, … on
- * conflict. `excludeId` skips the row being updated so a product never collides
- * with itself.
+ * Make a slug unique, appending `-2`, `-3`, … on conflict. `excludeId` skips
+ * the row being updated so a product never collides with itself.
  */
 async function uniqueProductSlug(
   supabase: Db,
@@ -297,5 +286,19 @@ export async function updateCollection(
     .from("collections")
     .update(collectionToRow(collection))
     .eq("id", collection.id);
+  if (error) throw error;
+}
+
+// Position only. `updateCollection` writes the whole row from a client copy,
+// so reordering through it would re-derive the slug and clobber other edits.
+export async function setCollectionSortOrder(
+  supabase: Db,
+  id: string,
+  sortOrder: number,
+): Promise<void> {
+  const { error } = await supabase
+    .from("collections")
+    .update({ sort_order: sortOrder })
+    .eq("id", id);
   if (error) throw error;
 }

@@ -9,18 +9,8 @@ import type { Locale } from "@/types";
 export const runtime = "nodejs"; // resend SDK needs Node, not Edge
 
 /**
- * Dispatch the three order emails (customer confirmation, memory links, admin
- * alert) for an order the caller owns.
- *
- * Hardened for H7. Previously this had no rate limit and no record of prior
- * sends, so a signed-in customer could POST their own order id in a loop and
- * generate unbounded mail — exhausting the Resend quota that real confirmations
- * depend on, and damaging sender reputation.
- *
- * Two independent guards now apply:
- *   1. Per-IP rate limit (cheap, catches the loop early).
- *   2. `orders.emails_sent_at`, claimed with a conditional UPDATE so that even
- *      concurrent requests for the same order produce exactly one send.
+ * Dispatch the order emails for an order the caller owns. Guarded twice against
+ * a replay loop: a per-IP rate limit, and the `emails_sent_at` claim below.
  */
 
 const RATE_RULE = { limit: 10, windowMs: 10 * 60 * 1000 };
@@ -65,10 +55,8 @@ export async function POST(req: Request) {
     );
   }
 
-  // Claim the send. The `is("emails_sent_at", null)` filter makes this a
-  // compare-and-set: whichever request updates the row first gets rows back,
-  // every other one gets an empty result and stops here. The service role is
-  // required because customers have no UPDATE policy on orders.
+  // Compare-and-set: only the first concurrent request gets rows back. Needs
+  // the service role — customers have no UPDATE policy on orders.
   const claimedAt = new Date().toISOString();
   const { data: claimed, error: claimError } = await supabaseAdmin
     .from("orders")
@@ -93,10 +81,9 @@ export async function POST(req: Request) {
 
   const result = await sendOrderEmails(order, locale);
 
-  // Release the claim if nothing actually went out, so a later retry (or an
-  // admin re-send) can succeed. A partial failure keeps the claim: re-sending
-  // every email to fix one is worse than the missing one.
-  if (!result.ok && result.failures.length === 0) {
+  // Release the claim only if nothing went out at all, so a retry can succeed.
+  // A partial failure keeps it: re-sending everything is worse than one gap.
+  if (result.failures.length === result.attempted) {
     await supabaseAdmin
       .from("orders")
       .update({ emails_sent_at: null })

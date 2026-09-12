@@ -38,6 +38,7 @@ export default function AdminCollections() {
   const collections = useCollections({ includeInactive: true });
   const allProducts = useProducts();
   const saveCollection = useCatalogStore((s) => s.saveCollection);
+  const reorderCollections = useCatalogStore((s) => s.reorderCollections);
   const deleteCollectionCascade = useCatalogStore(
     (s) => s.deleteCollectionCascade,
   );
@@ -54,22 +55,21 @@ export default function AdminCollections() {
   const [origImage, setOrigImage] = useState<string | undefined>(undefined);
   const [imgBusy, setImgBusy] = useState(false);
   const [migrating, setMigrating] = useState(false);
+  // Blocks the arrows while a reorder is in flight: a second click would
+  // compute its swap from the pre-refresh list and undo the first.
+  const [reordering, setReordering] = useState(false);
 
-  const sorted = useMemo(
-    () => [...collections].sort((a, b) => a.sortOrder - b.sortOrder),
-    [collections],
-  );
-
+  // `useCollections` already returns the list ordered by sortOrder.
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return sorted;
-    return sorted.filter(
+    if (!q) return collections;
+    return collections.filter(
       (c) =>
         c.name.en.toLowerCase().includes(q) ||
         c.name.ar.toLowerCase().includes(q) ||
         c.id.toLowerCase().includes(q),
     );
-  }, [sorted, query]);
+  }, [collections, query]);
 
   const productCount = (id: string) =>
     allProducts.filter((p) => p.collection === id).length;
@@ -81,7 +81,9 @@ export default function AdminCollections() {
       description: { ar: "", en: "" },
       tone: DEFAULT_TONE,
       isActive: true,
-      sortOrder: collections.length,
+      // One past the highest position in use — `collections.length` collides
+      // with an existing row after a delete.
+      sortOrder: collections.reduce((m, c) => Math.max(m, c.sortOrder), -1) + 1,
       createdAt: new Date().toISOString(),
     });
     setOrigImage(undefined);
@@ -208,12 +210,7 @@ export default function AdminCollections() {
   const linkedCount = (c: Collection) =>
     allProducts.filter((p) => p.collection === c.id).length;
 
-  /**
-   * Delete the collection and everything in it via a single transactional RPC.
-   * This replaced a client-side loop that deleted one product at a time — each
-   * one triggering a full catalogue refetch — and which left the collection
-   * half-emptied with no undo if the browser closed midway (M5).
-   */
+  // One transactional RPC, so the collection can't be left half-emptied.
   const confirmRemove = async () => {
     const c = pendingDelete;
     if (!c) return;
@@ -237,17 +234,21 @@ export default function AdminCollections() {
     }
   };
 
+  // Move a collection one slot up or down. `reorderCollections` renumbers the
+  // whole array 0..n-1, which also collapses any duplicate sortOrder values.
   const move = async (id: string, dir: -1 | 1) => {
-    const i = sorted.findIndex((c) => c.id === id);
+    const i = collections.findIndex((c) => c.id === id);
     const j = i + dir;
-    if (i < 0 || j < 0 || j >= sorted.length) return;
-    const a = sorted[i];
-    const b = sorted[j];
+    if (i < 0 || j < 0 || j >= collections.length) return;
+    const next = [...collections];
+    [next[i], next[j]] = [next[j], next[i]];
+    setReordering(true);
     try {
-      await saveCollection({ ...a, sortOrder: b.sortOrder }, false);
-      await saveCollection({ ...b, sortOrder: a.sortOrder }, false);
+      await reorderCollections(next.map((c) => c.id));
     } catch {
       toast.error(locale === "ar" ? "تعذّر التحديث" : "Could not update");
+    } finally {
+      setReordering(false);
     }
   };
 
@@ -390,7 +391,7 @@ export default function AdminCollections() {
                   <div className="inline-flex rounded-md ring-1 ring-white/10">
                     <button
                       onClick={() => move(c.id, -1)}
-                      disabled={i === 0 || query.trim() !== ""}
+                      disabled={i === 0 || reordering || query.trim() !== ""}
                       title={
                         query.trim() !== ""
                           ? locale === "ar"
@@ -405,7 +406,11 @@ export default function AdminCollections() {
                     </button>
                     <button
                       onClick={() => move(c.id, 1)}
-                      disabled={i === filtered.length - 1 || query.trim() !== ""}
+                      disabled={
+                        i === filtered.length - 1 ||
+                        reordering ||
+                        query.trim() !== ""
+                      }
                       title={
                         query.trim() !== ""
                           ? locale === "ar"

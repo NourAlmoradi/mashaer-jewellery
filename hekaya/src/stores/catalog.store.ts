@@ -11,6 +11,7 @@ import {
   setProductActive,
   createCollection,
   updateCollection,
+  setCollectionSortOrder,
 } from "@/lib/supabase/catalog";
 import { deleteImagesByUrl } from "@/lib/supabase/storage";
 import type { Category, Collection, Product } from "@/types";
@@ -33,17 +34,18 @@ type CatalogState = {
   setProductActive: (id: string, isActive: boolean) => Promise<void>;
   /** Create or update a collection in the database, then refresh. */
   saveCollection: (collection: Collection, isNew: boolean) => Promise<void>;
+  /**
+   * Persist a new order: `sort_order` becomes each id's index in `orderedIds`.
+   * Renumbering, not swapping, so rows sharing a `sort_order` still move.
+   */
+  reorderCollections: (orderedIds: string[]) => Promise<void>;
   /** Permanently delete a product from the database. */
   deleteProduct: (id: string) => Promise<void>;
   /** Permanently delete a collection from the database. */
   deleteCollection: (id: string) => Promise<void>;
   /**
-   * Delete a collection AND every product in it, in one transaction, then
-   * refresh once. Returns the number of products removed.
-   *
-   * Replaces a client-side loop that issued one delete plus one full catalogue
-   * refetch per product, and could leave the collection half-emptied if the
-   * browser closed midway (M5).
+   * Delete a collection and its products in one transaction, so it can't be
+   * left half-emptied. Returns the number of products removed.
    */
   deleteCollectionCascade: (id: string) => Promise<number>;
 };
@@ -108,6 +110,22 @@ export const useCatalogStore = create<CatalogState>()((set, get) => ({
     else await updateCollection(supabase, collection);
     await get().refresh();
   },
+  reorderCollections: async (orderedIds) => {
+    const supabase = createClient();
+    const byId = new Map(get().collections.map((c) => [c.id, c]));
+    const writes = orderedIds.flatMap((id, sortOrder) => {
+      const current = byId.get(id);
+      if (!current || current.sortOrder === sortOrder) return [];
+      return [setCollectionSortOrder(supabase, id, sortOrder)];
+    });
+    if (writes.length === 0) return;
+    // allSettled, not all: every write must finish before the refetch, or the
+    // grid repaints from a read that raced an in-flight write.
+    const results = await Promise.allSettled(writes);
+    await get().refresh();
+    const failed = results.find((r) => r.status === "rejected");
+    if (failed) throw failed.reason;
+  },
   deleteProduct: async (id) => {
     const supabase = createClient();
     const product = get().products.find((p) => p.id === id);
@@ -141,13 +159,9 @@ export const useCatalogStore = create<CatalogState>()((set, get) => ({
   },
 }));
 
-// Re-fetch the catalog when auth changes. Without this, an admin who signs in
-// after the public (active-only) catalog already loaded would keep seeing the
-// active-only list (RLS returns inactive rows only to admins). Signing out
-// drops back to the public view.
-// The callback runs while Supabase holds its auth lock, so any Supabase call
-// made directly here would deadlock until the lock times out. Defer with
-// setTimeout(0) so the work runs after the lock is released.
+// Re-fetch on auth change: RLS returns inactive rows only to admins, so a
+// cached public catalog would stay active-only after an admin signs in.
+// setTimeout(0) defers past the auth lock — calling Supabase here deadlocks.
 if (typeof window !== "undefined") {
   const supabase = createClient();
   supabase.auth.onAuthStateChange((event) => {

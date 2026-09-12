@@ -28,8 +28,9 @@ import { useOrders } from "@/lib/useOrders";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllMemories } from "@/lib/supabase/memories";
 import { formatPrice, formatDate, cn } from "@/lib/utils";
-import { ORDER_STATUSES, type OrderStatus } from "@/types";
+import { ORDER_STATUSES, ORDER_STATUS_PILL, type OrderStatus } from "@/types";
 
+// Chart-only hex fills — recharts needs literal colours, not classes.
 const STATUS_COLORS: Record<OrderStatus, string> = {
   pending: "#d4a437",
   paid: "#8b7cf6",
@@ -37,15 +38,6 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
   shipped: "#a78bfa",
   delivered: "#5e7c5e",
   cancelled: "#c45b5b",
-};
-
-const STATUS_PILL: Record<OrderStatus, string> = {
-  pending: "bg-amber-200/15 text-amber-300 ring-amber-300/30",
-  paid: "bg-violet-300/15 text-violet-300 ring-violet-300/30",
-  processing: "bg-blue-300/15 text-blue-300 ring-blue-300/30",
-  shipped: "bg-purple-300/15 text-purple-300 ring-purple-300/30",
-  delivered: "bg-emerald-300/15 text-emerald-300 ring-emerald-300/30",
-  cancelled: "bg-rose-300/15 text-rose-300 ring-rose-300/30",
 };
 
 export default function AdminDashboard() {
@@ -128,13 +120,8 @@ export default function AdminDashboard() {
     },
   ];
 
-  // Orders-by-status data (real counts).
-  //
-  // Built by iterating ORDER_STATUSES so it cannot drift from the enum again.
-  // The previous version hardcoded four buckets and omitted `paid` and
-  // `cancelled` — and since every order starts `pending` and the admin marks it
-  // `paid` by hand, PAID ORDERS VANISHED from the chart entirely, making the
-  // totals silently fail to add up (M3).
+  // Iterate ORDER_STATUSES so the buckets can't drift from the enum and drop
+  // a status silently.
   const statusData = useMemo(() => {
     const counts = new Map<OrderStatus, number>(
       ORDER_STATUSES.map((s) => [s, 0]),
@@ -410,7 +397,7 @@ export default function AdminDashboard() {
                       <span
                         className={cn(
                           "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1",
-                          STATUS_PILL[o.status],
+                          ORDER_STATUS_PILL[o.status],
                         )}
                       >
                         {t(`status_${o.status}` as never)}

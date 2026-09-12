@@ -7,9 +7,8 @@ import { useT } from "@/lib/useT";
 import { useAuth } from "@/lib/supabase/useAuth";
 
 /**
- * Shared wishlist toggle logic used by ProductCard and ProductDetail.
- * Returns the current membership flag and a memoised toggle handler
- * that also fires the add/remove toast.
+ * Shared by ProductCard and ProductDetail: the membership flag plus a memoised
+ * toggle that also fires the add/remove toast.
  */
 export function useWishlistToggle(productId: string) {
   const { t, locale } = useT();
@@ -23,7 +22,7 @@ export function useWishlistToggle(productId: string) {
     if (!loaded) void load();
   }, [loaded, load]);
 
-  const toggle = useCallback(() => {
+  const toggle = useCallback(async () => {
     // The wishlist is only persisted for signed-in users — the store silently
     // skips the DB write otherwise, so don't fake an "added" toast. Prompt
     // sign-in instead of losing the action on reload.
@@ -35,8 +34,14 @@ export function useWishlistToggle(productId: string) {
       );
       return;
     }
-    void toggleStore(productId);
-    toast(inWishlist ? t("wishlist_removed") : t("wishlist_added"));
+    // Toast only after the write lands. `inWishlist` is the pre-click value.
+    const removing = inWishlist;
+    try {
+      await toggleStore(productId);
+      toast(removing ? t("wishlist_removed") : t("wishlist_added"));
+    } catch {
+      toast.error(t("wishlist_failed"));
+    }
   }, [user, locale, toggleStore, productId, inWishlist, t]);
 
   return { inWishlist, toggle };

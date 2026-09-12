@@ -45,10 +45,7 @@ export type Product = {
   isBestseller?: boolean;
   isFeatured?: boolean;
   isActive: boolean;
-  // NOTE: there is deliberately no `stock` field. Every piece is made to order,
-  // so there is no inventory to track. A `stock` column previously existed here
-  // and in the database but no admin screen could edit it and no checkout path
-  // enforced it — see migration 0003.
+  // No `stock` field: every piece is made to order (see migration 0003).
   variations?: ProductVariation[];
   createdAt?: string;
   // Visual placeholder colour for shimmer cards (no real images yet)
@@ -92,12 +89,9 @@ export const ORDER_STATUSES: readonly OrderStatus[] = [
 ] as const;
 
 /**
- * Which statuses an order may move to from its current one.
- *
- * Mirrors the `guard_order_status` trigger in migration 0009 — the database is
- * the enforcement point; this map exists so the UI offers only valid options
- * instead of letting an admin pick a move the server will reject. `delivered`
- * and `cancelled` are terminal.
+ * Which statuses an order may move to. Mirrors the `guard_order_status`
+ * trigger (migration 0009), which is the real enforcement point; this only
+ * keeps the UI from offering a move the server will reject.
  */
 export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   pending: ["paid", "processing", "cancelled"],
@@ -106,6 +100,16 @@ export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   shipped: ["delivered", "cancelled"],
   delivered: [],
   cancelled: [],
+};
+
+/** Status pill classes for the admin surfaces; the storefront uses `badge-*`. */
+export const ORDER_STATUS_PILL: Record<OrderStatus, string> = {
+  pending: "bg-amber-200/15 text-amber-300 ring-amber-300/30",
+  paid: "bg-violet-300/15 text-violet-300 ring-violet-300/30",
+  processing: "bg-blue-300/15 text-blue-300 ring-blue-300/30",
+  shipped: "bg-purple-400/15 text-purple-300 ring-purple-400/30",
+  delivered: "bg-emerald-300/15 text-emerald-300 ring-emerald-300/30",
+  cancelled: "bg-rose-300/15 text-rose-300 ring-rose-300/30",
 };
 
 export type OrderItem = {

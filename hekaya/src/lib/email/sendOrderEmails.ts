@@ -8,29 +8,31 @@ import {
 import type { Locale, Order } from "@/types";
 
 /**
- * Send the three order emails (customer confirmation, memory links, admin
- * alert) for an already-fetched order.
- *
- * Called by /api/email/order, which owns the idempotency guard: it claims
- * `orders.emails_sent_at` with a conditional UPDATE before calling this, so a
- * replayed request cannot re-send (H7). Do not call this directly without a
- * comparable guard.
- *
- * Returns the list of failed sends (empty = all delivered). Never throws on a
- * single send failure; the caller decides what to do with the failures.
+ * Send the order emails. No idempotency guard of its own — /api/email/order
+ * claims `emails_sent_at` first. Returns `failures` with `attempted`: only the
+ * pair separates a partial failure from a total one. Never throws on one send.
  */
 export async function sendOrderEmails(
   order: Order,
   locale: Locale,
-): Promise<{ ok: boolean; failures: string[]; reason?: string }> {
-  if (!resend) return { ok: false, failures: [], reason: "no_key" };
+): Promise<{
+  ok: boolean;
+  attempted: number;
+  failures: string[];
+  reason?: string;
+}> {
+  if (!resend) {
+    return { ok: false, attempted: 0, failures: [], reason: "no_key" };
+  }
   const mailer = resend;
 
+  let attempted = 0;
   const failures: string[] = [];
   const send = async (
     kind: string,
     msg: { to: string; subject: string; html: string },
   ) => {
+    attempted += 1;
     const { error } = await mailer.emails.send({
       from: FROM,
       to: msg.to,
@@ -74,5 +76,5 @@ export async function sendOrderEmails(
     });
   }
 
-  return { ok: failures.length === 0, failures };
+  return { ok: failures.length === 0, attempted, failures };
 }

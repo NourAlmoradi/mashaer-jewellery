@@ -1,27 +1,7 @@
 -- =====================================================================
--- MASHAER JEWELLERY — schema upgrade + seed (UUID remap)
--- Run this ONCE in Supabase → SQL Editor → New query → Run.
---
--- Safe to re-run: every statement is idempotent (IF NOT EXISTS / ON CONFLICT),
--- and it NEVER touches your products — see section 4.
---
--- What this file is:
---   * an UPGRADE script for an existing database (functions, triggers, RLS
---     policies, the categories table, the memory + order RPCs), plus
---   * a minimal seed of categories and collections so the storefront renders.
---
--- What this file is NOT:
---   * It cannot build a database from nothing. It runs statements like
---     `alter table public.collections add column …` against tables it never
---     creates, so on an empty project it fails immediately. The base DDL for
---     products/orders/memories/profiles/etc. still exists ONLY inside the live
---     Supabase project. That is finding C4, and it is still open — the fix is
---     `supabase db dump` into supabase/migrations/0001_baseline.sql, which
---     needs Docker or pg_dump installed. See supabase/migrations/README.md.
---   * It does not seed products. Those are yours, managed in Admin → Products.
---
--- For an EXISTING database, prefer the numbered files in supabase/migrations/.
--- Add new changes there, not here.
+-- MASHAER JEWELLERY — schema upgrade + seed. Run in Supabase → SQL Editor.
+-- Idempotent. Seeds categories only; products and collections are owner-managed.
+-- Upgrades an EXISTING database; put new changes in migrations/, not here.
 -- =====================================================================
 
 begin;
@@ -61,17 +41,9 @@ do $$ begin
 end $$;
 
 -- ---------------------------------------------------------------------
--- 1b. CASCADE CLEANUP — deleting an account removes ALL of its data
---     and deleting an order removes its items + memories. This avoids
---     orphaned rows piling up unused storage.
---
---     auth.users ─┬─cascade─> profiles
---                 ├─cascade─> addresses
---                 ├─cascade─> wishlist
---                 └─cascade─> orders ─┬─cascade─> order_items
---                                     └─cascade─> memories
---
---     We DROP + re-ADD the two FKs that were originally "set null".
+-- 1b. CASCADE CLEANUP — a deleted account takes its profile, addresses,
+--     wishlist and orders (with items + memories) with it. The two FKs below
+--     were originally "set null", so they are dropped and re-added.
 -- ---------------------------------------------------------------------
 do $$ begin
   if exists (select 1 from pg_constraint where conname = 'orders_user_id_fkey') then
@@ -160,12 +132,9 @@ create policy "owner or admin reads memory" on public.memories
     )
   );
 
--- Public QR card: report that a memory EXISTS for this token, plus the linked
--- product (catalog data, not personal). It deliberately does NOT return the
--- title / message / photos — those are private and only handed out by
--- unlock_memory() after a correct PIN (or by RLS to the order owner / admin).
--- DROP first: an older deploy returned title/message/photos, and Postgres
--- can't change a function's OUT-column set via CREATE OR REPLACE.
+-- Public QR card: does a memory exist, and which product. Never the private
+-- title / message / photos — those need unlock_memory() or RLS.
+-- DROP first: CREATE OR REPLACE cannot change a function's OUT columns.
 drop function if exists public.get_memory(text);
 create or replace function public.get_memory(p_token text)
 returns table (
@@ -178,19 +147,9 @@ language sql security definer stable as $$
   from public.memories where token = p_token;
 $$;
 
--- Public QR card: return the FULL memory (title/message/photos) only after the
--- PIN checks out. This is the single PIN-gated read path; it enforces the
--- 5-try / 15-min lockout itself.
---
--- It RETURNS a status row instead of raising on a wrong/locked PIN. That is
--- deliberate: PostgREST wraps each RPC in one transaction, so a RAISE would
--- roll the whole call back — including the failed-attempt UPDATE we just made,
--- meaning the counter could never accumulate and the lockout would never fire.
--- Returning a row commits the counter and hands the client structured feedback
---   status = 'ok'     → content columns are populated
---   status = 'wrong'  → attempts_left = tries remaining before lockout
---   status = 'locked' → minutes_left  = minutes until the lock expires
--- The DROP is required because the OUT-column set changed (added status cols).
+-- The one PIN-gated read path, with its own 5-try / 15-min lockout. A wrong PIN
+-- RETURNS a status rather than raising: a RAISE would roll back the
+-- failed-attempt UPDATE with it. DROP: the OUT columns changed.
 drop function if exists public.unlock_memory(text, text);
 create or replace function public.unlock_memory(p_token text, p_pin text)
 returns table (
@@ -206,9 +165,11 @@ declare
   v_ok boolean;
   v_new int;
 begin
-  select pin_locked_until, failed_pin_attempts
+  -- Keep every `memories` column alias-qualified: the RETURNS TABLE names are
+  -- OUT variables here, so a bare `token` raises 42702 (ambiguous reference).
+  select m.pin_locked_until, m.failed_pin_attempts
     into v_locked, v_attempts
-  from public.memories where token = p_token;
+  from public.memories m where m.token = p_token;
 
   -- Unknown token: report as a wrong PIN (get_memory already governs existence).
   if not found then
@@ -231,19 +192,19 @@ begin
 
   -- Lock window has passed: clear the stale counter for a fresh set of tries.
   if v_locked is not null then
-    update public.memories
+    update public.memories m
       set failed_pin_attempts = 0, pin_locked_until = null
-      where token = p_token;
+      where m.token = p_token;
     v_attempts := 0;
   end if;
 
-  select pin_hash = crypt(p_pin, pin_hash) into v_ok
-  from public.memories where token = p_token;
+  select m.pin_hash = crypt(p_pin, m.pin_hash) into v_ok
+  from public.memories m where m.token = p_token;
 
   if v_ok then
-    update public.memories
+    update public.memories m
       set failed_pin_attempts = 0, pin_locked_until = null
-      where token = p_token;
+      where m.token = p_token;
     return query
       select 'ok'::text, 0, 0,
              m.token, m.order_id, m.product_id, m.product_label,
@@ -251,11 +212,11 @@ begin
       from public.memories m where m.token = p_token;
   else
     v_new := v_attempts + 1;
-    update public.memories
+    update public.memories m
       set failed_pin_attempts = v_new,
           pin_locked_until = case when v_new >= 5
                                   then now() + interval '15 minutes' end
-      where token = p_token;
+      where m.token = p_token;
     if v_new >= 5 then
       return query select 'locked'::text, 0, 15,
         null::text, null::text, null::uuid, null::text,
@@ -277,88 +238,15 @@ alter table public.memories
 alter table public.memories
   add column if not exists pin_locked_until timestamptz;
 
--- Verify a PIN server-side (pin_hash never leaves the database), recording the
--- attempt and enforcing the lockout — WITHOUT raising. Same reasoning as
--- unlock_memory above: a RAISE rolls back the failed-attempt UPDATE, so the
--- counter could never accumulate. Returns one status row:
---   status = 'ok'     → the PIN matched; the counter has been reset
---   status = 'wrong'  → attempts_left = tries remaining before lockout
---   status = 'locked' → minutes_left  = minutes until the lock expires
-create or replace function public.check_memory_pin(p_token text, p_pin text)
-returns table (status text, attempts_left int, minutes_left int)
-language plpgsql security definer as $$
-declare
-  v_locked timestamptz;
-  v_attempts int;
-  v_ok boolean;
-  v_new int;
-begin
-  select pin_locked_until, failed_pin_attempts
-    into v_locked, v_attempts
-  from public.memories where token = p_token;
+-- unlock_memory owns the PIN path now. These two were left callable over
+-- PostgREST as SECURITY DEFINER, and check_memory_pin WRITES
+-- failed_pin_attempts — five anonymous calls could lock out a recipient.
+drop function if exists public.verify_memory_pin(text, text);
+drop function if exists public.check_memory_pin(text, text);
 
-  if not found then
-    return query select 'wrong'::text, 0, 0;
-    return;
-  end if;
-
-  if v_locked is not null and v_locked > now() then
-    return query select 'locked'::text, 0,
-      greatest(1, ceil(extract(epoch from (v_locked - now())) / 60))::int;
-    return;
-  end if;
-
-  -- Lock window has passed: clear the stale counter so the user gets a fresh
-  -- set of 5 attempts instead of being re-locked on the very next miss.
-  if v_locked is not null then
-    update public.memories
-      set failed_pin_attempts = 0, pin_locked_until = null
-      where token = p_token;
-    v_attempts := 0;
-  end if;
-
-  select pin_hash = crypt(p_pin, pin_hash) into v_ok
-  from public.memories where token = p_token;
-
-  if v_ok then
-    update public.memories
-      set failed_pin_attempts = 0, pin_locked_until = null
-      where token = p_token;
-    return query select 'ok'::text, 0, 0;
-  else
-    v_new := coalesce(v_attempts, 0) + 1;
-    update public.memories
-      set failed_pin_attempts = v_new,
-          pin_locked_until = case when v_new >= 5
-                                  then now() + interval '15 minutes' end
-      where token = p_token;
-    if v_new >= 5 then
-      return query select 'locked'::text, 0, 15;
-    else
-      return query select 'wrong'::text, (5 - v_new), 0;
-    end if;
-  end if;
-end $$;
-
--- Boolean wrapper kept for compatibility. No longer raises on the locked
--- branch (which used to roll back its own counter-clearing update).
-create or replace function public.verify_memory_pin(p_token text, p_pin text)
-returns boolean
-language plpgsql security definer as $$
-declare
-  v_status text;
-begin
-  select c.status into v_status
-  from public.check_memory_pin(p_token, p_pin) c;
-  return v_status = 'ok';
-end $$;
-
--- Create/update a memory. The QR token is the capability: anyone holding a
--- token printed on a real order card can do the FIRST setup (and sets a PIN);
--- later edits require that PIN (admins bypass). Hashing stays server-side.
--- Returns a status row rather than raising on a wrong/locked PIN — same
--- transaction-rollback reasoning as unlock_memory. The DROP is required because
--- the return type changed from void.
+-- Create/update a memory. Writing is the buyer's or an admin's; the PIN is a
+-- READ credential for unlock_memory() only. Anyone else gets 'forbidden' as
+-- DATA, so the UI can name the right account. DROP: return type changed.
 drop function if exists public.save_memory(text, text, uuid, text, text, text, text, text[]);
 
 create or replace function public.save_memory(
@@ -373,16 +261,13 @@ declare
   v_idx int;
   v_prod_text text;
   v_label text;
-  v_check record;
 begin
   select exists(select 1 from public.memories where token = p_token)
     into v_exists;
 
   if v_exists then
-    -- Editing an existing memory requires the correct PIN, UNLESS the caller is
-    -- the order owner or an admin (they manage their own keepsakes freely). For
-    -- everyone else (a public token holder) check_memory_pin() also enforces
-    -- the failed-attempt lockout.
+    -- Editing is for the buyer or an admin. A correct PIN is NOT accepted here:
+    -- it only unlocks reading.
     if not (
       public.is_admin() or exists (
         select 1 from public.orders o
@@ -390,16 +275,8 @@ begin
         where m.token = p_token and o.user_id = auth.uid()
       )
     ) then
-      select * into v_check
-      from public.check_memory_pin(p_token, coalesce(p_pin, ''));
-
-      -- Return the failure as DATA. Raising here would roll back the
-      -- failed-attempt increment check_memory_pin just wrote — which is exactly
-      -- how the lockout was defeated on this path.
-      if v_check.status <> 'ok' then
-        return query select v_check.status, v_check.attempts_left, v_check.minutes_left;
-        return;
-      end if;
+      return query select 'forbidden'::text, null::int, null::int;
+      return;
     end if;
     update public.memories set
       product_id    = coalesce(p_product_id, product_id),
@@ -420,6 +297,18 @@ begin
     if v_order_id is null and not public.is_admin() then
       raise exception 'Unknown memory token';
     end if;
+
+    -- Claiming a blank token is the buyer's right alone. Without this check any
+    -- passer-by who read the QR could create the memory and choose its PIN.
+    if not public.is_admin() and not exists (
+      select 1 from public.orders o
+      where o.id = v_order_id and o.user_id = auth.uid()
+    ) then
+      return query select 'forbidden'::text, null::int, null::int;
+      return;
+    end if;
+
+    -- Still required: the PIN the recipient will use to READ the memory.
     if p_pin is null or p_pin !~ '^\d{4}$' then
       raise exception 'A 4-digit PIN is required';
     end if;
@@ -436,7 +325,11 @@ begin
        pin_hash, title, message, photos)
     values (
       p_token,
-      coalesce(p_order_id, v_order_id),
+      -- p_order_id comes from the request body, so only an admin may file a
+      -- memory against an order other than the one that minted the token —
+      -- v_order_id is the only order the guard above proved this caller owns.
+      case when public.is_admin() then coalesce(p_order_id, v_order_id)
+           else v_order_id end,
       coalesce(
         p_product_id,
         case when v_prod_text ~ '^[0-9a-fA-F-]{36}$'
@@ -477,31 +370,17 @@ begin
   end if;
 end $$;
 
--- Place an order atomically. SECURITY: the client sends ONLY the cart lines,
--- the address and the QR choice. Every price is validated against the live
--- catalog, subtotal/shipping/total are recomputed server-side, the status is
--- forced to 'pending' (no payment is captured yet), and the order id plus every
--- QR token are MINTED HERE — the browser never chooses a security-relevant
--- identifier (H10). Order + items are inserted in ONE transaction so a failure
--- can never leave a half-order.
---
--- Drop the old client-trusting signature first: Postgres OVERLOADS on argument
--- list, so without this an upgraded database would keep both versions and the
--- insecure one would stay callable.
+-- Place an order atomically. The client sends only the cart, address and QR
+-- choice; prices, totals, status, the order id and the tokens come from here.
+-- DROP: Postgres overloads on arguments, so the old signature would survive.
 drop function if exists public.place_order(
   text, text, text, jsonb, qr_choice, text[], text[], text[], jsonb, payment_method
 );
 
 -- ---------------------------------------------------------------------
--- mint_qr_token — cryptographically random, ambiguity-free QR token.
---
--- Alphabet matches generateToken() in src/lib/utils.ts: no 0/o/1/l/i, because
--- these get read off a printed card by hand.
---
--- Uses REJECTION SAMPLING rather than `byte % 31`. 256 is not divisible by 31,
--- so a plain modulo over-represents the first eight characters (this is finding
--- L8, which the client-side generator still has). 248 = 31 * 8, so any byte
--- from 248-255 is discarded and redrawn.
+-- mint_qr_token — alphabet matches generateToken() in src/lib/utils.ts: no
+-- 0/o/1/l/i, since these are read off a printed card. Rejection sampling above
+-- 248 (= 31 * 8) keeps the alphabet uniform, which `byte % 31` would not.
 -- ---------------------------------------------------------------------
 create or replace function public.mint_qr_token(p_len int default 8)
 returns text
@@ -521,10 +400,7 @@ begin
   return v_out;
 end $$;
 
--- ---------------------------------------------------------------------
--- place_order — the client now sends only the cart, the address, the QR choice
--- and its display locale. Ids and tokens are minted here.
--- ---------------------------------------------------------------------
+-- place_order — ids and tokens are minted here, never sent by the client.
 create or replace function public.place_order(
   p_customer_name text,
   p_email text,
@@ -630,10 +506,7 @@ begin
   end if;
   v_shipping := greatest(coalesce((v_rates->>v_rate_key)::numeric, 0), 0);
 
-  -- --------------------------------------------------------------
-  -- Mint the order id. Retry on the (vanishingly unlikely) collision
-  -- instead of surfacing a primary-key violation to the customer.
-  -- --------------------------------------------------------------
+  -- Retry on a collision rather than surfacing a PK violation to the customer.
   v_tries := 0;
   loop
     v_id := 'HK-' || upper(substr(encode(gen_random_bytes(6), 'hex'), 1, 8));
@@ -644,11 +517,8 @@ begin
     end if;
   end loop;
 
-  -- --------------------------------------------------------------
-  -- Mint QR tokens from the VALIDATED line items — never from client input.
-  -- per_order → exactly one token for the whole order.
-  -- per_piece → exactly one token per unit purchased.
-  -- --------------------------------------------------------------
+  -- From the VALIDATED line items, never client input: one token per order,
+  -- or one per unit purchased.
   if p_qr_choice = 'per_order' then
     v_tokens   := array[public.mint_qr_token()];
     v_labels   := array[case when v_locale = 'en' then 'All Items' else 'جميع المنتجات' end];
@@ -706,18 +576,9 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------
--- 1c. POLICY HARDENING — close a direct-insert bypass + drop dead policies
---
---  * orders / order_items: an earlier schema script granted clients a direct
---    INSERT policy (WITH CHECK auth.uid() = user_id). That let a signed-in
---    client insert an order row with an arbitrary total/status, sidestepping
---    place_order()'s price validation. place_order() is SECURITY DEFINER and
---    bypasses RLS, so checkout keeps working without these policies.
---  * memory-photos owner policies keyed on split_part(name,'/',1) = orders.id,
---    but files live under "<token>/<uuid>", so the first segment is the TOKEN,
---    never an order id — the policies could never match. Uploads/deletes use the
---    service role and reads use the public URL, so dropping them changes nothing
---    at runtime. The correct "admins delete memory photos" policy is kept.
+-- 1c. POLICY HARDENING — the client INSERT policy on orders/order_items allowed
+--     an arbitrary total, bypassing place_order() (SECURITY DEFINER, so
+--     checkout is unaffected). The memory-photos owner policies never matched.
 -- ---------------------------------------------------------------------
 drop policy if exists "users insert own orders"     on public.orders;
 drop policy if exists "insert items for own orders"  on public.order_items;
@@ -725,12 +586,9 @@ drop policy if exists "owner reads memory photos"    on storage.objects;
 drop policy if exists "owner uploads memory photos"  on storage.objects;
 drop policy if exists "owner deletes memory photos"  on storage.objects;
 
--- Memory photos are served by their public URL (getPublicUrl in the upload
--- route), which only resolves when the bucket itself is public. Codify that here
--- so a fresh or redeployed environment doesn't need a manual dashboard toggle to
--- make uploaded photos viewable — otherwise every memory image 404/403s until
--- someone flips the bucket by hand. The unguessable "<token>/<uuid>.jpg" path is
--- the only capability to a photo, so a public bucket exposes nothing browsable.
+-- Memory photos are served by public URL, which needs a public bucket; set it
+-- here so a fresh environment doesn't need a manual dashboard toggle. The
+-- unguessable "<token>/<uuid>" path is the only capability to a photo.
 insert into storage.buckets (id, name, public)
   values ('memory-photos', 'memory-photos', true)
   on conflict (id) do update set public = true;
@@ -759,61 +617,23 @@ on conflict (id) do update set
   description = excluded.description, sort_order = excluded.sort_order;
 
 -- ---------------------------------------------------------------------
--- 3. SEED — COLLECTIONS (new UUID ids, keyed by slug for remap)
+-- 3. COLLECTIONS — not seeded. Owner-managed in Admin → Collections, and the
+--    storefront renders fine with none. (Categories above ARE seeded: product
+--    rows reference their fixed text ids and no admin screen creates them.)
 -- ---------------------------------------------------------------------
-insert into public.collections (slug, name, description, tone, is_active, sort_order) values
-  ('everyday',
-   '{"ar":"اليومية","en":"Everyday"}'::jsonb,
-   '{"ar":"قطع رقيقة ترافقك يوميًا","en":"Pieces to wear every day"}'::jsonb,
-   '#e8dfcc', true, 0),
-  ('celebration',
-   '{"ar":"المناسبات","en":"Celebration"}'::jsonb,
-   '{"ar":"للحظات التي تستحق التألق","en":"For moments that deserve to shine"}'::jsonb,
-   '#f0e3d0', true, 1),
-  ('heirloom',
-   '{"ar":"للتوريث","en":"Heirloom"}'::jsonb,
-   '{"ar":"قطع تُورث جيلًا بعد جيل","en":"Made to be passed down"}'::jsonb,
-   '#dfd2ba', true, 2),
-  ('baby',
-   '{"ar":"البدايات","en":"Beginnings"}'::jsonb,
-   '{"ar":"أولى لحظات أطفالك","en":"Your child''s first treasures"}'::jsonb,
-   '#ecdfc8', true, 3)
-on conflict (slug) do update set
-  name = excluded.name, description = excluded.description,
-  tone = excluded.tone, is_active = excluded.is_active,
-  sort_order = excluded.sort_order;
 
 -- ---------------------------------------------------------------------
--- 4. PRODUCTS — deliberately NOT seeded
---
--- This script used to insert 8 demo products (Layan Bracelet, Noor Pendant, …)
--- with `on conflict (slug) do update set name = …, price = …`. That made
--- re-running it DESTRUCTIVE: it silently reset the name, description, price,
--- category, collection and material of any product sharing one of those slugs,
--- wiping edits made in the admin panel.
---
--- Products are real business data. They belong to the shop owner and are
--- managed in Admin → Products, not checked into source control. A schema script
--- has no business overwriting them.
---
--- The categories and collections above ARE still seeded, because products
--- reference them and the storefront needs at least one of each to render.
+-- 4. PRODUCTS — not seeded. Owner-managed in Admin → Products; seeding them
+--    would overwrite real edits every time this script runs.
 -- ---------------------------------------------------------------------
 
 
 -- ---------------------------------------------------------------------
 -- 5. SEED — admin settings single row
 -- ---------------------------------------------------------------------
--- Seed the shipping rates so checkout's server-side calculation always has
--- them. Existing edits are NOT overwritten: the update only fires while the row
--- still holds the empty placeholder.
---
--- Contact fields are seeded EMPTY on purpose. They used to hold sample values
--- ("hello@mashaerjewellery.com", "+971 50 000 0000"), which is how placeholder
--- contact details reached real customers — the floating WhatsApp button pointed
--- at a fake number on every page. The storefront now hides any contact channel
--- whose value is blank, so the owner must set these in Admin → Settings before
--- they appear. See migration 0002.
+-- The update fires only while the row still holds the placeholder, so real
+-- edits survive. Contact fields stay EMPTY — the storefront hides a blank
+-- channel, and a sample phone number would otherwise ship to customers.
 insert into public.admin_settings (id, data) values (1, '{
   "store": {
     "email": "",

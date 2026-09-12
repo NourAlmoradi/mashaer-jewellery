@@ -14,10 +14,7 @@ type CartState = {
   removeItem: (productId: string, variationId?: string) => void;
   updateQty: (productId: string, qty: number, variationId?: string) => void;
   clear: () => void;
-  /**
-   * Sync each line's persisted price to the live catalog price. Returns the
-   * number of lines whose price changed (0 = nothing stale).
-   */
+  /** Sync persisted line prices to the catalog. Returns how many changed. */
   reconcilePrices: (priceOf: (productId: string) => number | undefined) => number;
 };
 
@@ -77,14 +74,24 @@ export const useCartStore = create<CartState>()(
         return changed;
       },
     }),
-    { name: "mashaer-cart" },
+    {
+      name: "mashaer-cart",
+      version: 1,
+      // Contents only — `isOpen` is transient, or the drawer reopens itself on
+      // the next visit.
+      partialize: (s) => ({ items: s.items, qrChoice: s.qrChoice }),
+      migrate: (persisted) => {
+        const prev = persisted as Partial<CartState> | null;
+        return {
+          items: prev?.items ?? [],
+          qrChoice: prev?.qrChoice ?? "per_order",
+        };
+      },
+    },
   ),
 );
 
-/**
- * Derived selector hooks — subscribe only to `items` so consuming
- * components re-render solely when the relevant total changes.
- */
+/** Derived selectors — subscribe to `items` alone to limit re-renders. */
 export const useCartCount = () =>
   useCartStore((s) => s.items.reduce((sum, i) => sum + i.qty, 0));
 

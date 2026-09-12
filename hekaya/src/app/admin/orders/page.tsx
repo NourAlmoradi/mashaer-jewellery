@@ -13,6 +13,7 @@ import { formatDate, formatPrice, cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
   ORDER_STATUSES,
+  ORDER_STATUS_PILL,
   ORDER_STATUS_TRANSITIONS,
   type Order,
   type OrderStatus,
@@ -21,15 +22,6 @@ import {
 // Single source of truth lives in @/types (and is mirrored by the
 // guard_order_status trigger); this local copy used to drift.
 const ALL_STATUSES = ORDER_STATUSES;
-
-const STATUS_PILL: Record<OrderStatus, string> = {
-  pending: "bg-amber-200/15 text-amber-300 ring-amber-300/30",
-  paid: "bg-violet-300/15 text-violet-300 ring-violet-300/30",
-  processing: "bg-blue-300/15 text-blue-300 ring-blue-300/30",
-  shipped: "bg-purple-400/15 text-purple-300 ring-purple-400/30",
-  delivered: "bg-emerald-300/15 text-emerald-300 ring-emerald-300/30",
-  cancelled: "bg-rose-300/15 text-rose-300 ring-rose-300/30",
-};
 
 type Filter = "all" | OrderStatus;
 
@@ -433,7 +425,7 @@ function StatusPill({
       <span
         className={cn(
           "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1",
-          STATUS_PILL[status],
+          ORDER_STATUS_PILL[status],
         )}
       >
         {t(`status_${status}` as TKey)}
@@ -447,7 +439,7 @@ function StatusPill({
         onClick={onToggle}
         className={cn(
           "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1",
-          STATUS_PILL[status],
+          ORDER_STATUS_PILL[status],
         )}
       >
         {t(`status_${status}` as TKey)}

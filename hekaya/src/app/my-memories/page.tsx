@@ -40,7 +40,8 @@ export default function MyMemoriesPage() {
       return;
     }
     let active = true;
-    fetchMyMemories(createClient())
+    // Explicitly user-scoped: RLS alone would hand an admin every memory.
+    fetchMyMemories(createClient(), user.id)
       .then((m) => {
         if (active) setMemories(m);
       })
@@ -72,10 +73,8 @@ export default function MyMemoriesPage() {
     );
   }
 
-  // Signed out gets the sign-in form, matching account/page.tsx. Previously a
-  // signed-out visitor — including someone whose session had simply expired —
-  // saw "You haven't created any memories yet", indistinguishable from having
-  // none, and could reasonably conclude their keepsakes had been deleted (M18).
+  // Signed out gets the sign-in form, not the empty state — an expired session
+  // must never look like "your memories are gone".
   if (!user) {
     return <AuthForm onAuthenticated={() => setRedirecting(true)} />;
   }

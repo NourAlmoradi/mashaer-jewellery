@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { canWriteMemoryToken } from "@/lib/memoryAuth";
 import { clientIp, rateLimited } from "@/lib/rateLimit";
 
 export const runtime = "nodejs"; // needs Node Buffer + service role
@@ -18,11 +19,9 @@ const RATE_RULE = { limit: 20, windowMs: 10 * 60 * 1000 };
 type Body = { token?: string; dataUrl?: string };
 
 /**
- * Upload one memory photo to the (public) `memory-photos` bucket and return its
- * public URL. The memory page is used by gift recipients who may be anonymous,
- * so this runs with the service role — but it first validates that the token is
- * real (an existing memory, or a QR token minted on an order). The file is
- * stored under `<token>/<uuid>` so it can be cleaned up with the memory.
+ * Upload one memory photo and return its public URL. The bucket has no client
+ * policy, so writes use the service role and the route authorizes itself.
+ * Stored under `<token>/<uuid>` so it can be cleaned up with the memory.
  */
 export async function POST(req: Request) {
   if (rateLimited("memory-upload", clientIp(req), RATE_RULE)) {
@@ -42,24 +41,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 
-  // The token must correspond to a real memory or a minted QR token.
-  const { data: mem } = await supabaseAdmin
-    .from("memories")
-    .select("token")
-    .eq("token", token)
-    .maybeSingle();
-  let valid = !!mem;
-  if (!valid) {
-    const { data: ord } = await supabaseAdmin
-      .from("orders")
-      .select("id")
-      .contains("qr_tokens", [token])
-      .limit(1)
-      .maybeSingle();
-    valid = !!ord;
-  }
-  if (!valid) {
-    return NextResponse.json({ error: "unknown_token" }, { status: 403 });
+  // Also rejects an unknown token, which belongs to no order.
+  if (!(await canWriteMemoryToken(token))) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
   // Enforce the per-memory photo cap server-side (the 3-photo limit otherwise

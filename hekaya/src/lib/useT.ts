@@ -1,16 +1,15 @@
 "use client";
 
-import { useLocaleStore } from "@/stores/locale.store";
+import { useLocale } from "@/components/LocaleProvider";
 import { t as translate, type TKey } from "@/lib/i18n";
-import type { Bilingual, Locale } from "@/types";
+import type { Bilingual } from "@/types";
 
 export function useT() {
-  const locale = useLocaleStore((s) => s.locale);
-  const hydrated = useLocaleStore((s) => s.hydrated);
+  const { locale } = useLocale();
 
   const t = (key: TKey) => translate(key, locale);
   const tx = (b: Bilingual) => b[locale];
   const dir = locale === "ar" ? "rtl" : "ltr";
 
-  return { t, tx, locale: locale as Locale, dir, hydrated };
+  return { t, tx, locale, dir };
 }

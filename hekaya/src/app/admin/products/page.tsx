@@ -68,7 +68,7 @@ export default function AdminProducts() {
       description: { ar: "", en: "" },
       price: 0,
       categoryId: categories[0]?.id ?? "cat-rings",
-      collection: allCollections[0]?.id ?? "",
+      collection: "",
       images: [],
       placeholderTone: "gold",
       isActive: true,
@@ -561,6 +561,11 @@ export default function AdminProducts() {
                     }
                     className="w-full rounded-md border border-white/10 bg-[#0a0a0a] px-3 py-2.5 text-sm text-white focus:border-[#c9a96e]/40 focus:outline-none"
                   >
+                    {/* collection_id is nullable and productToRow maps "" to
+                        null, so "no collection" needs a real option. */}
+                    <option value="">
+                      {locale === "ar" ? "بدون مجموعة" : "No collection"}
+                    </option>
                     {allCollections.map((c) => (
                       <option key={c.id} value={c.id}>
                         {locale === "ar" ? c.name.ar : c.name.en}

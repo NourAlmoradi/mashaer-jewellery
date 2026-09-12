@@ -250,6 +250,10 @@ export const translations = {
   my_wishlist: { ar: "قائمة المفضلة", en: "Wishlist" },
   wishlist_added: { ar: "أضيف للمفضلة", en: "Saved to wishlist" },
   wishlist_removed: { ar: "أزيل من المفضلة", en: "Removed from wishlist" },
+  wishlist_failed: {
+    ar: "تعذّر تحديث المفضلة",
+    en: "Could not update wishlist",
+  },
 
   // Admin — sidebar / shell
   admin_title: { ar: "لوحة التحكم", en: "Admin Panel" },

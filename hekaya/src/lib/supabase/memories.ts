@@ -15,10 +15,8 @@ export type PublicMemory = {
 };
 
 /**
- * The public "does a memory exist?" shape returned by get_memory(). It carries
- * the linked product (catalog data) but NOT the private title/message/photos —
- * those only come back from unlockMemory() after a correct PIN, or from a
- * direct table read by the order owner / admin (RLS).
+ * What get_memory() returns: existence plus the linked product, never the
+ * private title/message/photos.
  */
 export type MemoryMeta = Omit<PublicMemory, "title" | "message" | "photos">;
 
@@ -73,11 +71,9 @@ export async function getMemoryMeta(
 }
 
 /**
- * The outcome of a PIN unlock attempt. `unlock_memory` returns this as data
- * (never throws for a wrong/locked PIN) so the failed-attempt counter it writes
- * actually commits — a raised exception would roll the whole RPC transaction
- * back. Genuine transport/unexpected errors still reject, so the caller can
- * tell "wrong PIN" apart from "the request failed".
+ * A wrong or locked PIN comes back as DATA, not an exception: raising would
+ * roll back the failed-attempt counter in the same RPC transaction. Real
+ * transport errors still reject.
  */
 export type UnlockResult =
   | { status: "ok"; memory: PublicMemory }
@@ -91,9 +87,8 @@ type UnlockRow = ContentRow & {
 };
 
 /**
- * Unlock the private content with a PIN (the only PIN-gated read). Resolves to
- * an {@link UnlockResult}; rejects only on a real network/unexpected error.
- * Tolerates an older deployment whose `unlock_memory` still RAISES text errors.
+ * Unlock the private content with a PIN — the only PIN-gated read. Rejects
+ * only on a real network error; tolerates an older RAISE-based deployment.
  */
 export async function unlockMemory(
   supabase: Db,
@@ -130,9 +125,8 @@ export async function unlockMemory(
 }
 
 /**
- * Direct table read of the full memory — succeeds only for the order owner or
- * an admin (RLS). Used to skip the PIN gate for the person who owns the order.
- * Returns null when the caller isn't allowed (so the PIN prompt is shown).
+ * Direct read of the full memory, which RLS allows only the owner or an admin.
+ * Null means "not allowed", and the caller falls back to the PIN prompt.
  */
 export async function fetchMemoryByToken(
   supabase: Db,
@@ -148,15 +142,11 @@ export async function fetchMemoryByToken(
   return data ? mapContent(data as ContentRow) : null;
 }
 
-/**
- * The outcome of a save attempt. Like {@link UnlockResult}, `save_memory`
- * reports a wrong or locked PIN as DATA rather than raising: PostgREST wraps
- * each RPC in one transaction, so an exception would roll back the
- * failed-attempt counter written moments earlier and the lockout could never
- * fire. Genuine transport/unexpected errors still reject.
- */
+/** Reports failure as DATA, for the same reason as {@link UnlockResult}. */
 export type SaveResult =
   | { status: "ok" }
+  /** The caller isn't the buyer or an admin. A PIN cannot lift this. */
+  | { status: "forbidden" }
   | { status: "wrong"; attemptsLeft: number | null }
   | { status: "locked"; minutesLeft: number };
 
@@ -180,11 +170,9 @@ export async function saveMemory(
     productLabel?: string | null;
   },
 ): Promise<SaveResult> {
-  // `supabase gen types` emits every function argument as non-nullable, but a
-  // Postgres argument always accepts NULL — and save_memory relies on that:
-  // p_order_id / p_product_id / p_product_label are derived from the order's
-  // token arrays when null, and p_pin is null for an owner/admin edit. The cast
-  // works around the generator, not around a real constraint.
+  // The generator emits every RPC argument as non-nullable, but save_memory
+  // derives p_order_id / p_product_id / p_product_label from NULL and takes a
+  // null p_pin for an owner edit. The cast works around that, not a constraint.
   const args = {
     p_token: input.token,
     p_order_id: input.orderId ?? null,
@@ -215,16 +203,56 @@ export async function saveMemory(
   // A legacy `returns void` function yields no row — that means it succeeded,
   // since any failure would have raised.
   if (!row?.status || row.status === "ok") return { status: "ok" };
+  if (row.status === "forbidden") return { status: "forbidden" };
   if (row.status === "locked") {
     return { status: "locked", minutesLeft: row.minutes_left ?? 15 };
   }
   return { status: "wrong", attemptsLeft: row.attempts_left ?? null };
 }
 
-/** All memories belonging to the signed-in user's orders (RLS-scoped). */
+/**
+ * May the caller edit this token's memory? Buyer or admin only; a PIN holder
+ * gets a read-only page. Drives the UI — `save_memory` re-checks server-side.
+ * Throws on a failed read: the caller must treat that as unknown, not "no".
+ */
+export async function canManageMemory(
+  supabase: Db,
+  token: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id")
+    .contains("qr_tokens", [token])
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return !!data;
+}
+
+/**
+ * The memories on `userId`'s own orders. The owner filter is in the query, not
+ * left to RLS, whose `is_admin() OR …` policy would hand an admin every row.
+ */
 export async function fetchMyMemories(
   supabase: Db,
+  userId: string,
 ): Promise<PublicMemory[]> {
+  const { data, error } = await supabase
+    .from("memories")
+    .select(
+      "token, order_id, product_id, product_label, title, message, photos, created_at, updated_at, orders!inner(user_id)",
+    )
+    .eq("orders.user_id", userId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data as unknown as ContentRow[]).map(mapContent);
+}
+
+/**
+ * Every memory in the shop, for the admin dashboards. No owner filter, so it
+ * must never back a "yours" view — use {@link fetchMyMemories} there.
+ */
+export async function fetchAllMemories(supabase: Db): Promise<PublicMemory[]> {
   const { data, error } = await supabase
     .from("memories")
     .select(
@@ -234,17 +262,6 @@ export async function fetchMyMemories(
   if (error) throw error;
   return (data as ContentRow[]).map(mapContent);
 }
-
-/**
- * Alias of {@link fetchMyMemories}, named for the admin call sites.
- *
- * There is no separate query: the SELECT policy on `memories` grants admins
- * every row and everyone else only the memories attached to their own orders,
- * so the SAME query returns the whole table for an admin. The alias exists
- * purely so `admin/qr` and `admin/page` read as what they mean; it is not a
- * different code path, and it confers no extra access on a non-admin (L4).
- */
-export const fetchAllMemories = fetchMyMemories;
 
 /** Admin-only: reset a memory's PIN without knowing the old one. */
 export async function adminResetMemoryPin(
@@ -260,11 +277,8 @@ export async function adminResetMemoryPin(
 }
 
 /**
- * Admin-only: fully delete a memory — the DB row plus every uploaded photo
- * (saved and orphaned) under `memory-photos/<token>/`. This goes through a
- * server route because the `memory-photos` bucket has no client delete policy,
- * so deleting the files has to run with the service role. Throws on failure so
- * the caller can surface an error instead of silently leaving photos behind.
+ * Admin-only: delete the row and every file under `memory-photos/<token>/`.
+ * Goes through a server route — the bucket has no client delete policy.
  */
 export async function adminDeleteMemory(token: string): Promise<void> {
   const res = await fetch("/api/admin/memory/delete", {
@@ -281,10 +295,8 @@ export async function adminDeleteMemory(token: string): Promise<void> {
 }
 
 /**
- * Admin-only: delete every photo in `memory-photos` that no saved memory still
- * references — uploads that were never saved, and files stranded when a memory
- * was edited to drop a photo. Returns how many files were scanned and removed.
- * Goes through a server route because sweeping storage needs the service role.
+ * Admin-only: delete every photo no saved memory references. Returns the
+ * scanned and removed counts. Server route — sweeping needs the service role.
  */
 export async function cleanOrphanMemoryPhotos(): Promise<{
   scanned: number;

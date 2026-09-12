@@ -21,6 +21,7 @@ import {
   getMemoryMeta,
   unlockMemory,
   fetchMemoryByToken,
+  canManageMemory,
   saveMemory as dbSaveMemory,
   type PublicMemory,
   type MemoryMeta,
@@ -51,6 +52,14 @@ export default function MemoryPage({
   const [pinInput, setPinInput] = useState("");
   const [unlockedPin, setUnlockedPin] = useState("");
   const [editing, setEditing] = useState(false);
+  // Writing belongs to the buyer or an admin; a PIN unlocks reading only.
+  // `permChecked` keeps the setup screen from flashing "not yours" at the
+  // owner while the check is in flight.
+  const [canEdit, setCanEdit] = useState(false);
+  const [permChecked, setPermChecked] = useState(false);
+  // The check failed, so ownership is unknown — must not render like a
+  // definitive `canEdit === false` from the database.
+  const [permFailed, setPermFailed] = useState(false);
 
   // Form state
   const [photos, setPhotos] = useState<string[]>([]);
@@ -73,10 +82,8 @@ export default function MemoryPage({
       return;
     }
     let active = true;
-    // Watchdog: the whole tab shares ONE Supabase client and ONE auth-token
-    // lock. If a token refresh wedges that lock, every query hangs and the page
-    // would spin forever (this also stalls the account page). Never allow an
-    // infinite spinner — surface a retry instead.
+    // Watchdog: a wedged auth-token lock hangs every query in the tab, so the
+    // page would spin forever. Surface a retry instead.
     const watchdog = setTimeout(() => {
       if (active) {
         setLoadError(true);
@@ -90,9 +97,30 @@ export default function MemoryPage({
         // render as soon as it resolves — don't block the page on the owner read.
         const m = await getMemoryMeta(supabase, token);
         if (!active) return;
-        clearTimeout(watchdog);
         setMeta(m);
         setLoadingMemory(false);
+        // An existing memory can already render, so the watchdog must not yank
+        // the visitor off a working PIN gate. Without one the setup screen
+        // waits on the check below, so leave the timer armed for a stall.
+        if (m) clearTimeout(watchdog);
+        // The database, not the client, decides ownership. Runs with no memory
+        // too: first-time setup is owner-only as well.
+        canManageMemory(supabase, token)
+          .then((ok) => {
+            if (!active) return;
+            clearTimeout(watchdog);
+            setCanEdit(ok);
+            setPermChecked(true);
+          })
+          .catch(() => {
+            if (!active) return;
+            clearTimeout(watchdog);
+            // "We couldn't tell" is not "you don't own this" — on the setup
+            // screen show the retry card rather than the not-yours message.
+            if (!m) setLoadError(true);
+            setPermFailed(true);
+            setPermChecked(true);
+          });
         if (m) {
           // The order owner (or an admin) may read the content directly via RLS
           // — skip the PIN gate for them. Best-effort: if this stalls or fails
@@ -123,8 +151,10 @@ export default function MemoryPage({
   // Deep link from "My Memories" → /memory/[token]?edit=1 opens the editor
   // straight away, but only once the content is actually unlocked.
   useEffect(() => {
-    if (unlocked && searchParams.get("edit") === "1") setEditing(true);
-  }, [unlocked, searchParams]);
+    if (unlocked && canEdit && searchParams.get("edit") === "1") {
+      setEditing(true);
+    }
+  }, [unlocked, canEdit, searchParams]);
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -237,6 +267,17 @@ export default function MemoryPage({
         photos,
       });
 
+      // Not the buyer — no PIN can lift this, so don't offer the PIN flow.
+      if (saved.status === "forbidden") {
+        setEditing(false);
+        toast.error(
+          locale === "ar"
+            ? "التعديل متاح لصاحب الطلب فقط — سجّل الدخول بالحساب الذي اشترى القطعة"
+            : "Only the account that placed the order can edit this memory",
+        );
+        return;
+      }
+
       // A wrong or locked PIN comes back as data, not an exception, so the
       // failed-attempt counter the server just wrote actually commits (H1).
       if (saved.status === "locked") {
@@ -261,7 +302,9 @@ export default function MemoryPage({
 
       // Re-read the saved content: owner/admin via RLS, otherwise via the PIN.
       let fresh = await fetchMemoryByToken(supabase, token);
-      if (!fresh) {
+      // An owner never types a PIN, so `pinToUse` is "" for them: sending that
+      // would burn one of the five attempts and could lock the memory.
+      if (!fresh && /^\d{4}$/.test(pinToUse)) {
         const res = await unlockMemory(supabase, token, pinToUse);
         if (res.status === "ok") fresh = res.memory;
       }
@@ -280,6 +323,14 @@ export default function MemoryPage({
       setEditing(false);
       setUnlocked(true);
       toast.success(t("memory_saved"));
+
+      // The row is committed, so unreferenced files in this token's folder are
+      // garbage. Silent and best-effort — the admin sweep is the safety net.
+      void fetch("/api/memory/prune", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token }),
+      }).catch(() => {});
     } catch {
       toast.error(
         locale === "ar"
@@ -370,8 +421,47 @@ export default function MemoryPage({
     );
   }
 
-  // ── 1. No memory yet → setup
+  // ── 1. No memory yet → setup, for the buyer only. Anyone else scanning a
+  //     blank QR is asked to sign in, so no passer-by can claim the piece.
   if (!meta) {
+    if (!permChecked) {
+      return (
+        <Wrapper>
+          <Header />
+          <div className="mt-16 flex justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--color-primary-dark)] border-t-transparent" />
+          </div>
+        </Wrapper>
+      );
+    }
+    if (!canEdit) {
+      return (
+        <Wrapper>
+          <Header />
+          <div className="mx-auto mt-12 max-w-sm rounded-xl bg-white p-8 text-center shadow-md ring-1 ring-[var(--color-border)]">
+            <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary-dark)]">
+              <Lock className="h-7 w-7" />
+            </div>
+            <h2 className="mt-4 font-display text-xl font-semibold">
+              {locale === "ar"
+                ? "لم تُجهَّز هذه الذكرى بعد"
+                : "This memory isn't ready yet"}
+            </h2>
+            <p className="mt-2 text-sm text-[var(--color-ink-muted)]">
+              {locale === "ar"
+                ? "صاحب الطلب وحده يستطيع تجهيزها. إن كانت لك، سجّل الدخول بالحساب الذي اشترى القطعة."
+                : "Only the account that placed the order can set it up. If that's you, sign in with it."}
+            </p>
+            <Link
+              href={`/account?redirect=/memory/${encodeURIComponent(token)}`}
+              className="btn btn-gold btn-md mt-5 w-full"
+            >
+              {locale === "ar" ? "تسجيل الدخول" : "Sign in"}
+            </Link>
+          </div>
+        </Wrapper>
+      );
+    }
     return (
       <Wrapper>
         <Header />
@@ -441,8 +531,9 @@ export default function MemoryPage({
     );
   }
 
-  // ── 3. Editing
-  if (editing) {
+  // ── 3. Editing — buyers and admins only. Losing the right mid-session (a
+  //     sign-out in another tab) falls through to the read-only view.
+  if (editing && canEdit) {
     return (
       <Wrapper>
         <Header />
@@ -451,7 +542,12 @@ export default function MemoryPage({
             {t("edit_memory")}
           </h1>
           <button
-            onClick={() => setEditing(false)}
+            onClick={() => {
+              // Cancel discards the whole draft, not just closes the editor:
+              // unsaved photo/title/message edits must not survive on screen.
+              setEditing(false);
+              if (memory) applyContent(memory);
+            }}
             className="btn btn-ghost btn-sm"
           >
             <X className="h-4 w-4" /> {t("back")}
@@ -500,7 +596,8 @@ export default function MemoryPage({
           </h1>
         </div>
 
-        {photos.length > 0 && <PhotoCarousel photos={photos} />}
+        {/* From `memory`, not the editor's draft: the view shows what is saved. */}
+        {memory.photos.length > 0 && <PhotoCarousel photos={memory.photos} />}
 
         <MessageCard
           message={memory.message}
@@ -508,14 +605,44 @@ export default function MemoryPage({
           productName={linkedProduct ? tx(linkedProduct.name) : undefined}
         />
 
-        <div className="mt-8 flex justify-center">
-          <button
-            onClick={() => setEditing(true)}
-            className="btn btn-outline-gold"
-          >
-            <Pencil className="h-4 w-4" /> {t("edit_memory")}
-          </button>
-        </div>
+        {/* Read-only for a PIN holder — the memory belongs to the buyer. */}
+        {canEdit && (
+          <div className="mt-8 flex justify-center">
+            <button
+              onClick={() => setEditing(true)}
+              className="btn btn-outline-gold"
+            >
+              <Pencil className="h-4 w-4" /> {t("edit_memory")}
+            </button>
+          </div>
+        )}
+        {/* Hidden when the check failed: we can't claim they aren't the buyer.
+            A reload re-runs it. */}
+        {!canEdit && !permFailed && (
+          <p className="mt-8 text-center text-xs text-[var(--color-ink-faint)]">
+            {locale === "ar" ? (
+              <>
+                التعديل متاح لصاحب الطلب فقط.{" "}
+                <Link
+                  href={`/account?redirect=/memory/${encodeURIComponent(token)}`}
+                  className="underline"
+                >
+                  تسجيل الدخول
+                </Link>
+              </>
+            ) : (
+              <>
+                Only the account that placed the order can edit this.{" "}
+                <Link
+                  href={`/account?redirect=/memory/${encodeURIComponent(token)}`}
+                  className="underline"
+                >
+                  Sign in
+                </Link>
+              </>
+            )}
+          </p>
+        )}
       </motion.article>
     </Wrapper>
   );

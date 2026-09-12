@@ -35,14 +35,20 @@ export const useWishlistStore = create<WishlistState>()((set, get) => ({
         set({ ids: [], loaded: true });
         return;
       }
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("wishlist")
         .select("product_id")
         .eq("user_id", session.user.id);
+      if (error) throw error;
       set({
         ids: (data ?? []).map((r) => r.product_id as string),
         loaded: true,
       });
+    } catch {
+      // Never reject into the `void load()` call sites, and never leave
+      // `loaded` false. Keep the previous ids: a failed read isn't an empty
+      // wishlist. Same shape as addresses.store.load.
+      set({ loaded: true });
     } finally {
       set({ loading: false });
     }
@@ -53,32 +59,43 @@ export const useWishlistStore = create<WishlistState>()((set, get) => ({
       data: { session },
     } = await supabase.auth.getSession();
     const user = session?.user;
-    const has = get().ids.includes(id);
+    const had = get().ids.includes(id);
     // Optimistic local update so the heart flips instantly.
     set((s) => ({
-      ids: has ? s.ids.filter((i) => i !== id) : [...s.ids, id],
+      ids: had ? s.ids.filter((i) => i !== id) : [...s.ids, id],
     }));
     if (!user) return; // wishlist persistence requires sign-in
-    if (has) {
-      await supabase
-        .from("wishlist")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("product_id", id);
-    } else {
-      await supabase
-        .from("wishlist")
-        .insert({ user_id: user.id, product_id: id });
-    }
+    // Supabase resolves with `{ error }` instead of rejecting, so the result
+    // has to be read: roll back and rethrow so the caller can report it.
+    const { error } = had
+      ? await supabase
+          .from("wishlist")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("product_id", id)
+      : await supabase
+          .from("wishlist")
+          .insert({ user_id: user.id, product_id: id });
+    // 23505 (unique violation) on an add means the row is already in the state
+    // this click asked for.
+    if (!error || (!had && error.code === "23505")) return;
+    set((s) => ({
+      // Restore the pre-click membership without duplicating an id an
+      // overlapping toggle may have put back.
+      ids: had
+        ? s.ids.includes(id)
+          ? s.ids
+          : [...s.ids, id]
+        : s.ids.filter((i) => i !== id),
+    }));
+    throw error;
   },
   has: (id) => get().ids.includes(id),
   clear: () => set({ ids: [], loaded: false }),
 }));
 
-// Keep the wishlist in sync with auth: reload on sign-in, clear on sign-out.
-// The callback runs while Supabase holds its auth lock, so any Supabase call
-// made directly here would deadlock until the lock times out. Defer with
-// setTimeout(0) so the work runs after the lock is released.
+// Reload on sign-in, clear on sign-out. setTimeout(0) defers past the auth
+// lock Supabase holds here — calling into Supabase inside it deadlocks.
 if (typeof window !== "undefined") {
   const supabase = createClient();
   supabase.auth.onAuthStateChange((event) => {

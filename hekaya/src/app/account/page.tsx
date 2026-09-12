@@ -44,10 +44,7 @@ const EMPTY_FORM: AddressInput = {
   postalCode: "",
 };
 
-// useSearchParams() must be inside a Suspense boundary. The root layout's
-// cookies() read currently forces dynamic rendering (so this doesn't fail
-// today), but wrapping it keeps the page correct if that ever changes — the
-// pattern /products and /policies already use.
+// useSearchParams() must sit inside a Suspense boundary, as on /products.
 export default function AccountPage() {
   return (
     <Suspense
@@ -69,10 +66,8 @@ function AccountPageInner() {
   const orders = useOrdersStore((s) => s.orders);
   const ordersLoaded = useOrdersStore((s) => s.loaded);
   const loadOrders = useOrdersStore((s) => s.load);
-  // The orders store is shared with the admin screens, and RLS returns EVERY
-  // order to an admin — so an admin viewing their own account saw the whole
-  // shop's orders listed as theirs. This page is the personal view; scope it to
-  // the signed-in user. The shop-wide view is /admin/orders.
+  // The orders store is shared with /admin/orders, where RLS gives an admin
+  // every order. This is the personal view, so scope it to the signed-in user.
   const myOrders = useMemo(
     () => orders.filter((o) => o.userId === user?.id),
     [orders, user?.id],
@@ -86,10 +81,8 @@ function AccountPageInner() {
   const openCart = useCartStore((s) => s.setOpen);
   const products = useProducts();
   const [tab, setTab] = useState<Tab>("overview");
-  // True from the moment sign-in succeeds until the post-login navigation
-  // lands. Supabase publishes the session before router.replace finishes
-  // fetching the destination, so without this the dashboard below would paint
-  // for a frame on the way to `/` — a visible account-page flash after login.
+  // Supabase publishes the session before router.replace lands, so without
+  // this the dashboard flashes for a frame on the way out.
   const [redirecting, setRedirecting] = useState(false);
 
   // Addresses (Supabase-backed)
@@ -120,7 +113,8 @@ function AccountPageInner() {
       setMemoryEntries([]);
       return;
     }
-    fetchMyMemories(createClient())
+    // Owner-scoped, like `myOrders` above. The shop-wide view is /admin/qr.
+    fetchMyMemories(createClient(), user.id)
       .then(setMemoryEntries)
       .catch(() => setMemoryEntries([]));
   }, [user]);
@@ -750,7 +744,13 @@ function AccountPageInner() {
                         </p>
                       </div>
                       <button
-                        onClick={() => wishlistToggle(p.id)}
+                        onClick={() => {
+                          // Fire-and-forget call site: the store rejects on a
+                          // failed write, so catch it here.
+                          wishlistToggle(p.id).catch(() =>
+                            toast.error(t("wishlist_failed")),
+                          );
+                        }}
                         className="shrink-0 grid h-8 w-8 place-items-center rounded-md text-rose-400 hover:bg-rose-50 transition"
                         aria-label="Remove from wishlist"
                       >

@@ -30,12 +30,14 @@ When a customer buys a kids' Jewellery piece, they can choose to add a **unique 
 ③ CONFIRM → Tokens are generated client-side at order placement; QR PNGs render
            on /order-confirmation/[id] (one card per token, gold colour)
 ④ SCAN    → Anyone scans → lands on /memory/[token]
-⑤ SETUP   → First-time visit shows the editor: 4-digit PIN + title + message + up to 3 photos
+⑤ SETUP   → First-time visit shows the editor TO THE BUYER ONLY: 4-digit PIN +
+           title + message + up to 3 photos. Anyone else is asked to sign in.
 ⑥ PIN     → Subsequent visits show the PIN gate; correct PIN reveals the memory
-⑦ EDIT    → After unlock, owner can re-enter the editor and update content / change PIN
+⑦ EDIT    → The buyer (or an admin) can re-enter the editor and update content.
+           A PIN holder cannot — see §5.
 ```
 
-> **Auth note:** the MVP does **not** enforce ownership — anyone with the token URL who knows the PIN can edit. Real ownership checks are a production-target item.
+> **Auth note:** ownership **is** enforced, in the database. `save_memory` accepts a write only from the account that placed the order (or an admin), and returns `forbidden` to everyone else. The PIN is a **read** credential: it opens `unlock_memory` and confers no write power.
 
 ---
 
@@ -143,17 +145,29 @@ Each uploaded image is read with `FileReader`, drawn onto a `<canvas>` scaled to
 
 ---
 
-## 5. Privacy & Access (MVP behaviour)
+## 5. Privacy & Access
 
-Memory pages are **PIN-gated**, not auth-gated:
+**Writing is auth-gated; reading is PIN-gated.** The two are separate powers:
+the PIN opens the memory for reading and grants no edit rights at all.
 
-| Who                                   | Access                                                              |
-| ------------------------------------- | ------------------------------------------------------------------- |
-| Anyone with the URL **before setup**  | Sees the editor and can claim the memory by setting a PIN + content |
-| Anyone with the URL **+ correct PIN** | Can view **and edit** (no separate "viewer" vs "owner" role in MVP) |
-| Anyone with the URL **but no PIN**    | Sees the PIN entry screen — cannot view or edit                     |
+| Who                                       | Access                                                        |
+| ----------------------------------------- | ------------------------------------------------------------- |
+| The account that **placed the order**     | First-time setup, view, and edit                              |
+| **Admin**                                 | View and edit any memory                                      |
+| Anyone with the URL **+ correct PIN**     | **View only** — read-only page, no edit button                 |
+| Anyone with the URL **but no PIN**        | PIN entry screen — cannot view or edit                        |
+| Anyone with the URL **before setup**      | Told to sign in as the buyer; **cannot claim the token**      |
 
-> **Production hardening planned:** server-side ownership check tied to the buying account, hashed PINs, rate-limiting on the unlock endpoint, and a separate read-only viewer mode.
+Enforced in `save_memory` (`supabase/seed.sql`), which checks
+`orders.user_id = auth.uid()` or `is_admin()` on both the create and the edit
+path, and returns `forbidden` as data — never an exception — so the UI can say
+"sign in with the account that placed this order" instead of a generic failure.
+`canManageMemory` mirrors the same rule in the client, but only to decide what
+to render; it can hide a button and can never permit a write.
+
+> **Done since the MVP:** server-side ownership tied to the buying account, bcrypt-hashed PINs (`crypt`/`gen_salt`, the hash never leaves the database), and a read-only viewer mode for PIN holders.
+>
+> **Still outstanding:** the 5-try / 15-minute lockout in `unlock_memory` is the only brake on PIN guessing — there is no per-IP rate limit on that RPC, because PostgREST is called directly from the browser.
 
 ---
 
@@ -196,7 +210,7 @@ Upload → POST /api/upload (server validates type + size + count)
 
 | Scenario                          | MVP behaviour                                                             |
 | --------------------------------- | ------------------------------------------------------------------------- |
-| Memory not set up yet             | Editor shown immediately so the visitor can claim with a new PIN          |
+| Memory not set up yet             | Buyer gets the setup form; anyone else is told to sign in as the buyer     |
 | Owner deleted account             | N/A (no auth) — token survives until localStorage is cleared              |
 | Product returned                  | Token & memory remain                                                     |
 | Upload fails / quota exceeded     | `safeStorage` drops photos & retries once; metadata still persists        |
