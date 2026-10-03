@@ -26,6 +26,109 @@ export const translations = {
   nav_search: { ar: "بحث", en: "Search" },
   nav_menu: { ar: "القائمة", en: "Menu" },
 
+  // Homepage
+  home_hero_eyebrow: {
+    ar: "مجوهرات للصغار، بمعنى أكبر",
+    en: "Little treasures. Lasting meaning.",
+  },
+  home_hero1_title_a: { ar: "قطعة صغيرة.", en: "A small treasure." },
+  home_hero1_title_b: { ar: "كبيرة المعنى.", en: "A world of meaning." },
+  home_hero1_desc: {
+    ar: "مجوهرات رقيقة للصغار، ترافق لحظاتهم الأولى وتحمل مشاعر من أهداها.",
+    en: "Delicate jewellery for little ones, part of their first milestones and your most thoughtful gifts.",
+  },
+  home_hero2_title_a: { ar: "هدية تحمل", en: "A gift with" },
+  home_hero2_title_b: { ar: "قطعةً من قلبك.", en: "a little of your heart." },
+  home_hero2_desc: {
+    ar: "أضيفي إلى القطعة المؤهلة صورًا ورسالة شخصية عبر بطاقة الذكرى الرقمية، لتصبح الهدية أقرب إلى القلب.",
+    en: "Add photos and a personal message to an eligible piece through its digital memory card, for an even more meaningful gift.",
+  },
+  home_hero3_title_a: { ar: "لأوّل فرحة.", en: "For every first." },
+  home_hero3_title_b: { ar: "ولكل ما بعدها.", en: "And all that follows." },
+  home_hero3_desc: {
+    ar: "تفاصيل رقيقة تليق بالصغار، وباللحظات التي نحب أن نتذكرها.",
+    en: "Delicate details for little ones and the moments you love to remember.",
+  },
+  home_shop: { ar: "اكتشفي المجوهرات", en: "Explore Jewellery" },
+  home_about: { ar: "تعرّفي على مشاعر", en: "Meet Mashaer" },
+  home_discover_memory: { ar: "اكتشفي الذكرى الرقمية", en: "Discover the Memory" },
+  home_slide1_label: { ar: "المجوهرات", en: "Jewellery" },
+  home_slide2_label: { ar: "فن الإهداء", en: "The Art of Giving" },
+  home_slide3_label: { ar: "لحظاتهم الأولى", en: "First Milestones" },
+  home_slider_navigation: { ar: "مشاهد مشاعر", en: "Mashaer highlights" },
+  home_hero_image1_alt: {
+    ar: "شعار مجوهرات مشاعر الذهبي على خلفية وردية هادئة",
+    en: "Gold Mashaer Jewellery logo on a soft blush background",
+  },
+  home_hero_image2_alt: {
+    ar: "مجموعة قلادات ذهبية رقيقة على قماش الكتان",
+    en: "A delicate gold necklace collection on linen",
+  },
+  home_hero_image3_alt: {
+    ar: "طفلة ترتدي قلادة بتصميم فراشة",
+    en: "A child wearing a butterfly necklace",
+  },
+  home_qr_image_alt: {
+    ar: "تغليف هدايا مشاعر مع بطاقة الذكرى الرقمية",
+    en: "Mashaer gift packaging with a digital memory card",
+  },
+  home_quality_title: { ar: "عناية في التفاصيل", en: "Thoughtful Details" },
+  home_quality_desc: {
+    ar: "قطع رقيقة تجمع جمال التصميم وقيمة الهدية.",
+    en: "Delicate pieces that bring beauty and meaning to your gift.",
+  },
+  home_memory_title: { ar: "ذكرى ترافق الهدية", en: "A Memory with Your Gift" },
+  home_memory_desc: {
+    ar: "صورك ورسالتك، مع كل قطعة مؤهلة للذكرى الرقمية.",
+    en: "Your photos and message, with every piece eligible for a digital memory.",
+  },
+  home_collections_eyebrow: { ar: "عالم مشاعر", en: "The World of Mashaer" },
+  home_collections_title: { ar: "مجموعاتنا", en: "The Collections" },
+  home_collections_desc: {
+    ar: "اختاري ما يشبهها، وما يليق باللحظة.",
+    en: "Find the piece that feels like them, for a moment that matters.",
+  },
+  home_featured_eyebrow: { ar: "اختيارات مشاعر", en: "The Mashaer Edit" },
+  home_featured_title: { ar: "قطع تستحق أن تُهدى", en: "Made for Meaningful Gifts" },
+  home_featured_desc: {
+    ar: "تفاصيل رقيقة، لهدية تعبّر عن الكثير.",
+    en: "Delicate details. Thoughtful gifts.",
+  },
+  home_qr_eyebrow: { ar: "الذكرى الرقمية", en: "The Digital Memory" },
+  home_qr_title: { ar: "قطعة تُهدى. وذكرى تُحفظ.", en: "A piece to give. A memory to keep." },
+  home_qr_desc: {
+    ar: "مع القطع المؤهلة، تتيح لك بطاقة الذكرى إضافة صور ورسالة شخصية، لتروي الهدية حكايتك بطريقتك.",
+    en: "With eligible pieces, a memory card lets you add photos and a personal message, so your gift tells your story.",
+  },
+  home_qr_step1_title: { ar: "امسحي البطاقة", en: "Scan the Card" },
+  home_qr_step1_desc: {
+    ar: "ابدئي من رمز QR المرفق بالقطعة المؤهلة.",
+    en: "Start with the QR card included with your eligible piece.",
+  },
+  home_qr_step2_title: { ar: "أضيفي لحظتك", en: "Add Your Moment" },
+  home_qr_step2_desc: { ar: "اختاري صورك واكتبي رسالة من القلب.", en: "Choose your photos and write a message from the heart." },
+  home_qr_step3_title: { ar: "احفظي الذكرى", en: "Keep the Memory" },
+  home_qr_step3_desc: { ar: "ارجعي إليها عبر البطاقة ورمزك الخاص.", en: "Return to it through the card and your private PIN." },
+  home_qr_cta: { ar: "تعرّفي على التجربة", en: "Discover the Experience" },
+  home_qr_card_title: { ar: "مساحة لرسالتك", en: "A Place for Your Words" },
+  home_qr_card_desc: {
+    ar: "صورك وكلماتك، في ذكرى ترافق الهدية.",
+    en: "Your photos and words, in a memory that stays with the gift.",
+  },
+  home_qr_card_label: { ar: "بطاقة الذكرى", en: "The memory card" },
+  home_story_eyebrow: { ar: "حكاية مشاعر", en: "The Mashaer Story" },
+  home_story_title: { ar: "تبدأ بقطعة. وتبقى حكاية.", en: "A little piece. A lasting story." },
+  home_story_text: {
+    ar: "في مشاعر، نرى في مجوهرات الصغار أكثر من زينة. نراها هدية تحمل محبة، وترافق لحظة نحب أن نتذكرها.",
+    en: "At Mashaer, children's jewellery carries more than beauty. It holds the love behind a gift and the memory of a moment worth keeping.",
+  },
+  home_value1: { ar: "هدايا بمعنى", en: "Meaningful Gifts" },
+  home_value2: { ar: "تفاصيل رقيقة", en: "Delicate Details" },
+  home_value3: { ar: "ذكريات قريبة", en: "Cherished Memories" },
+  home_cta_eyebrow: { ar: "من القلب", en: "From the Heart" },
+  home_cta_title: { ar: "اختاري ما يعبّر عن مشاعرك.", en: "Find a little piece of your heart." },
+  home_cta_desc: { ar: "هدية صغيرة، تحمل الكثير من الحب.", en: "A little gift with so much love." },
+
   // Hero
   hero_eyebrow: {
     ar: "مجوهرات الأطفال الفاخرة",
@@ -628,6 +731,18 @@ export const translations = {
   about_hero_sub: {
     ar: "نصمم قطعًا تحمل المعنى، تحفظ اللحظة، وتنتقل بين الأجيال — ليست مجرد زينة بل ذاكرة تُلبس.",
     en: "We craft pieces that hold meaning, preserve a moment, and move from one generation to the next — not ornament, but memory you can wear.",
+  },
+  about_film_caption: {
+    ar: "من أول لحظة، إلى حكاية العمر.",
+    en: "From the first moment to a lifetime story.",
+  },
+  about_film_play: { ar: "تشغيل القصة", en: "Play the story" },
+  about_film_pause: { ar: "إيقاف القصة مؤقتًا", en: "Pause the story" },
+  about_film_mute: { ar: "كتم الصوت", en: "Mute sound" },
+  about_film_unmute: { ar: "تشغيل الصوت", en: "Turn sound on" },
+  about_mission_title: {
+    ar: "نصوغ ما لا تكفي الكلمات لقوله.",
+    en: "We craft what words cannot hold.",
   },
   about_values_eyebrow: { ar: "ما يقودنا", en: "What Guides Us" },
   about_values_title: { ar: "قيمنا", en: "Our Values" },

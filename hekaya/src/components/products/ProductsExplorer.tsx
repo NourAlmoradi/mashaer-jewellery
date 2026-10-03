@@ -19,6 +19,7 @@ export function ProductsExplorer() {
   const router = useRouter();
   const initialCollection = params.get("collection") || "";
   const initialCategory = params.get("category") || "";
+  const searchQuery = params.get("q")?.trim().toLocaleLowerCase() || "";
 
   const [collection, setCollection] = useState(initialCollection);
   const [category, setCategory] = useState(initialCategory);
@@ -29,6 +30,18 @@ export function ProductsExplorer() {
     let list = products.filter((p) => p.isActive);
     if (collection) list = list.filter((p) => p.collection === collection);
     if (category) list = list.filter((p) => p.categoryId === category);
+    if (searchQuery) {
+      list = list.filter((p) =>
+        [
+          p.name.ar,
+          p.name.en,
+          p.shortDescription?.ar,
+          p.shortDescription?.en,
+          p.description?.ar,
+          p.description?.en,
+        ].some((value) => value?.toLocaleLowerCase().includes(searchQuery)),
+      );
+    }
     switch (sort) {
       case "low":
         list = [...list].sort((a, b) => a.price - b.price);
@@ -43,7 +56,7 @@ export function ProductsExplorer() {
         break;
     }
     return list;
-  }, [products, collection, category, sort]);
+  }, [products, collection, category, searchQuery, sort]);
 
   const clearAll = () => {
     setCollection("");
@@ -114,7 +127,7 @@ export function ProductsExplorer() {
             ))}
           </FilterGroup>
 
-          {(collection || category) && (
+          {(collection || category || searchQuery) && (
             <button
               onClick={clearAll}
               className="mt-4 text-sm font-medium text-[var(--color-primary-dark)] underline-offset-4 hover:underline"

@@ -1,13 +1,100 @@
 "use client";
 
-import { Heart, Star, Shield, QrCode } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  Heart,
+  Pause,
+  Play,
+  QrCode,
+  Shield,
+  Star,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { useT } from "@/lib/useT";
-import { Eyebrow } from "@/components/ui/Eyebrow";
-import { FinalCtaBand } from "@/components/ui/FinalCtaBand";
 import { Reveal } from "@/components/ui/Reveal";
+import styles from "./About.module.css";
 
 export default function AboutPage() {
   const { t } = useT();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const manuallyPausedRef = useRef(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    let visibleEnough = false;
+    const playWhenAllowed = () => {
+      if (
+        visibleEnough &&
+        !document.hidden &&
+        !reduceMotion &&
+        !manuallyPausedRef.current &&
+        !video.ended
+      ) {
+        void video.play().catch(() => setIsPlaying(false));
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        visibleEnough =
+          entry.isIntersecting && entry.intersectionRatio >= 0.35;
+        if (visibleEnough) {
+          playWhenAllowed();
+        } else if (!video.paused) {
+          video.pause();
+        }
+      },
+      { threshold: 0.35 },
+    );
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        video.pause();
+      } else {
+        playWhenAllowed();
+      }
+    };
+
+    observer.observe(video);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  const togglePlayback = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.paused || video.ended) {
+      if (video.ended) video.currentTime = 0;
+      manuallyPausedRef.current = false;
+      await video.play().catch(() => setIsPlaying(false));
+      return;
+    }
+
+    manuallyPausedRef.current = true;
+    video.pause();
+  };
+
+  const toggleSound = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !video.muted;
+    setIsMuted(video.muted);
+  };
 
   const values = [
     { Icon: Heart, title: t("value_crafted"), desc: t("value_crafted_d") },
@@ -17,84 +104,135 @@ export default function AboutPage() {
   ];
 
   return (
-    <>
-      {/* Dark hero — matches About screenshot 1 */}
-      <section className="relative overflow-hidden bg-[#1a1508] py-24 sm:py-32">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-30"
-          style={{
-            background:
-              "radial-gradient(circle at 50% 0%, rgba(212,176,106,0.45), transparent 65%), radial-gradient(circle at 50% 100%, rgba(184,147,90,0.25), transparent 60%)",
-          }}
-        />
-        <div className="container-h relative text-center">
-          <Reveal>
-            <Eyebrow tone="light">{t("about_eyebrow")}</Eyebrow>
-            <h1 className="mt-6 font-display text-5xl font-semibold leading-tight sm:text-6xl lg:text-7xl">
-              <span className="block text-white">{t("about_hero_l1")}</span>
-              <span className="mt-1 block bg-gradient-to-r from-[#e6c98a] via-[#d4b06a] to-[#b8935a] bg-clip-text text-transparent">
-                {t("about_hero_l2")}
-              </span>
+    <div className={styles.page}>
+      <section className={styles.hero} aria-labelledby="about-title">
+        <div className={styles.heroGlow} aria-hidden />
+        <div className={styles.heroInner}>
+          <Reveal className={styles.heroCopy}>
+            <p className={styles.kicker}>
+              <span aria-hidden>01</span>
+              {t("about_eyebrow")}
+            </p>
+            <h1 id="about-title" className={styles.heroTitle}>
+              <span>{t("about_hero_l1")}</span>
+              <em>{t("about_hero_l2")}</em>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/70 sm:text-lg">
-              {t("about_hero_sub")}
-            </p>
+            <p className={styles.heroLead}>{t("about_hero_sub")}</p>
+            <Link href="/products" className={styles.heroLink}>
+              {t("cta_ready_btn")}
+              <ArrowLeft className={styles.arrow} aria-hidden />
+            </Link>
+          </Reveal>
+
+          <Reveal variant="scale" delay={0.08} className={styles.filmColumn}>
+            <div className={styles.filmFrame}>
+              <video
+                ref={videoRef}
+                className={styles.film}
+                poster="/media/mashaer-story-poster.webp"
+                preload="metadata"
+                playsInline
+                muted={isMuted}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                onEnded={() => setIsPlaying(false)}
+                aria-label={t("about_film_caption")}
+              >
+                <source src="/media/mashaer-story.mp4" type="video/mp4" />
+                {t("about_film_caption")}
+              </video>
+
+              <div className={styles.filmControls}>
+                <button
+                  type="button"
+                  className={styles.filmControl}
+                  onClick={togglePlayback}
+                  aria-label={
+                    isPlaying ? t("about_film_pause") : t("about_film_play")
+                  }
+                >
+                  {isPlaying ? <Pause aria-hidden /> : <Play aria-hidden />}
+                </button>
+                <button
+                  type="button"
+                  className={styles.filmControl}
+                  onClick={toggleSound}
+                  aria-label={
+                    isMuted ? t("about_film_unmute") : t("about_film_mute")
+                  }
+                >
+                  {isMuted ? <VolumeX aria-hidden /> : <Volume2 aria-hidden />}
+                </button>
+              </div>
+            </div>
+            <div className={styles.filmNote}>
+              <span aria-hidden />
+              <p>{t("about_film_caption")}</p>
+            </div>
           </Reveal>
         </div>
       </section>
 
-      {/* Mission narrative */}
-      <section className="section-pad">
-        <div className="container-h mx-auto max-w-3xl text-center">
-          <Reveal>
-            <Eyebrow>{t("about_mission_eyebrow")}</Eyebrow>
-            <p className="mt-6 font-display text-2xl leading-relaxed text-[var(--color-ink-soft)] sm:text-3xl">
-              {t("about_intro")}
+      <section className={styles.manifesto} aria-labelledby="about-mission-title">
+        <div className={styles.manifestoInner}>
+          <Reveal className={styles.manifestoHeading}>
+            <p className={styles.sectionKicker}>
+              <span aria-hidden>02</span>
+              {t("about_mission_eyebrow")}
             </p>
+            <h2 id="about-mission-title" className={styles.sectionTitle}>
+              {t("about_mission_title")}
+            </h2>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <p className={styles.manifestoCopy}>{t("about_intro")}</p>
           </Reveal>
         </div>
       </section>
 
-      {/* Our Values — light cream bg, 4 cards (matches screenshot 2) */}
-      <section className="section-pad bg-[var(--color-bg-secondary)]">
-        <div className="container-h">
-          <div className="mb-12 text-center">
-            <Eyebrow>{t("about_values_eyebrow")}</Eyebrow>
-            <h2 className="mt-3 font-display text-4xl font-semibold sm:text-5xl">
+      <section className={styles.values} aria-labelledby="about-values-title">
+        <div className={styles.valuesInner}>
+          <Reveal className={styles.valuesHeader}>
+            <p className={styles.sectionKicker}>
+              <span aria-hidden>03</span>
+              {t("about_values_eyebrow")}
+            </p>
+            <h2 id="about-values-title" className={styles.valuesTitle}>
               {t("about_values_title")}
             </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {values.map((v, i) => (
+          </Reveal>
+
+          <div className={styles.valuesGrid}>
+            {values.map((value, index) => (
               <Reveal
-                key={v.title}
-                delay={i * 0.06}
-                className="rounded-lg bg-white p-7 ring-1 ring-[var(--color-border)] transition hover:shadow-md"
+                key={value.title}
+                delay={index * 0.05}
+                className={styles.value}
               >
-                <div className="grid h-12 w-12 place-items-center rounded-md ring-1 ring-[var(--color-primary)]/40">
-                  <v.Icon className="h-5 w-5 text-[var(--color-primary)]" />
+                <div className={styles.valueTop}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <value.Icon aria-hidden />
                 </div>
-                <h3 className="mt-5 font-display text-xl font-semibold">
-                  {v.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink-muted)]">
-                  {v.desc}
-                </p>
+                <h3>{value.title}</h3>
+                <p>{value.desc}</p>
               </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA band (matches screenshot 3) */}
-      <FinalCtaBand
-        eyebrow={t("cta_about_eyebrow")}
-        title={t("cta_about_title")}
-        subtitle={t("cta_about_sub")}
-        ctaLabel={t("cta_ready_btn")}
-        ctaHref="/products"
-      />
-    </>
+      <section className={styles.cta} aria-labelledby="about-cta-title">
+        <div className={styles.ctaGlow} aria-hidden />
+        <Reveal className={styles.ctaInner}>
+          <p className={styles.ctaKicker}>{t("cta_about_eyebrow")}</p>
+          <h2 id="about-cta-title">{t("cta_about_title")}</h2>
+          <p>{t("cta_about_sub")}</p>
+          <Link href="/products" className={styles.ctaLink}>
+            {t("cta_ready_btn")}
+            <ArrowLeft className={styles.arrow} aria-hidden />
+          </Link>
+        </Reveal>
+      </section>
+    </div>
   );
 }

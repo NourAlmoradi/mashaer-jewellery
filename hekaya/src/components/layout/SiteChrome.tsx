@@ -20,7 +20,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <Header />
+      <Header overlay={pathname === "/"} />
       <main className="min-h-[60vh]">{children}</main>
       <Footer />
       <CartDrawer />

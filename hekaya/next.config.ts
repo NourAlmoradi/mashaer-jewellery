@@ -52,25 +52,29 @@ const csp = [
   "frame-src https://accounts.google.com",
   "frame-ancestors 'none'",
   "form-action 'self'",
-  // No plugins, and no <base> hijacking of relative URLs.
-  "upgrade-insecure-requests",
+  // No plugins, and no <base> hijacking of relative URLs. Relative assets
+  // already inherit HTTPS in production; forcing an upgrade here breaks LAN
+  // previews because the local Next.js server intentionally serves HTTP.
 ].join("; ");
 
 const nextConfig: NextConfig = {
   // Tell Next.js that THIS project folder is the workspace root,
   // silencing the "multiple lockfiles" warning.
   outputFileTracingRoot: path.join(__dirname),
-  images: supabaseHost
-    ? {
-        remotePatterns: [
-          {
-            protocol: "https",
-            hostname: supabaseHost,
-            pathname: "/storage/v1/object/public/**",
-          },
-        ],
-      }
-    : undefined,
+  images: {
+    qualities: [70, 75, 82, 90, 92],
+    ...(supabaseHost
+      ? {
+          remotePatterns: [
+            {
+              protocol: "https",
+              hostname: supabaseHost,
+              pathname: "/storage/v1/object/public/**",
+            },
+          ],
+        }
+      : {}),
+  },
   async headers() {
     return [
       {
