@@ -306,7 +306,7 @@ export default function AdminOrders() {
                 />
                 <FieldDark
                   label={t("status")}
-                  value={t(`status_${selected.status}` as TKey)}
+                  value={t(`status_${selected.status}`)}
                 />
               </div>
 
@@ -378,8 +378,8 @@ function StatusPill({
   open: boolean;
   onToggle: () => void;
   onChange: (s: OrderStatus) => void;
-  // Typed with the real key union rather than `never` — the old signature made
-  // every call site need an `as never` cast and rejected genuine keys.
+  // Keys like `status_${s}` go in uncast so the compiler checks each one exists;
+  // `as TKey` or `as never` would let a missing key through.
   t: (k: TKey) => string;
 }) {
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -428,7 +428,7 @@ function StatusPill({
           ORDER_STATUS_PILL[status],
         )}
       >
-        {t(`status_${status}` as TKey)}
+        {t(`status_${status}`)}
       </span>
     );
   }
@@ -442,7 +442,7 @@ function StatusPill({
           ORDER_STATUS_PILL[status],
         )}
       >
-        {t(`status_${status}` as TKey)}
+        {t(`status_${status}`)}
         <ChevronDown className="h-3 w-3" />
       </button>
       {open &&
@@ -471,7 +471,7 @@ function StatusPill({
                     s === status && "bg-[#f5efe2] font-semibold",
                   )}
                 >
-                  <span>{t(`status_${s}` as TKey)}</span>
+                  <span>{t(`status_${s}`)}</span>
                   {s === status && <Check className="h-4 w-4 text-[#c9a96e]" />}
                 </button>
               ))}

@@ -130,7 +130,7 @@ export default function AdminDashboard() {
       counts.set(o.status, (counts.get(o.status) ?? 0) + 1);
     }
     return ORDER_STATUSES.map((s) => ({
-      name: t(`status_${s}` as never),
+      name: t(`status_${s}`),
       value: counts.get(s) ?? 0,
       fill: STATUS_COLORS[s],
     }));
@@ -400,7 +400,7 @@ export default function AdminDashboard() {
                           ORDER_STATUS_PILL[o.status],
                         )}
                       >
-                        {t(`status_${o.status}` as never)}
+                        {t(`status_${o.status}`)}
                       </span>
                     </td>
                   </tr>

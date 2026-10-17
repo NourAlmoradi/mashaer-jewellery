@@ -343,7 +343,7 @@ function AccountPageInner() {
                       </div>
                       <div className="mt-3 flex items-center gap-3 sm:mt-0">
                         <span className={cn("badge", statusBadge(o.status))}>
-                          {t(`status_${o.status}` as never)}
+                          {t(`status_${o.status}`)}
                         </span>
                         <span className="font-semibold">
                           {formatPrice(o.total, locale)}
@@ -403,7 +403,7 @@ function AccountPageInner() {
                 </div>
                 <div className="mt-3 flex items-center gap-3 sm:mt-0">
                   <span className={cn("badge", statusBadge(o.status))}>
-                    {t(`status_${o.status}` as never)}
+                    {t(`status_${o.status}`)}
                   </span>
                   <span className="font-semibold">
                     {formatPrice(o.total, locale)}
