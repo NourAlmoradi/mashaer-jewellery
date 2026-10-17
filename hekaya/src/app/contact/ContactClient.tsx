@@ -15,6 +15,7 @@ import { useT } from "@/lib/useT";
 import { useAdminSettings } from "@/stores/adminSettings.store";
 import { whatsappUrl, cn } from "@/lib/utils";
 import { toast } from "sonner";
+import Link from "next/link";
 
 const MAX_MESSAGE = 500;
 
@@ -63,6 +64,11 @@ export default function ContactPage() {
         </h1>
         <p className="mt-3 text-[var(--color-ink-muted)]">{t("contact_sub")}</p>
       </div>
+
+      <Link href="/bespoke" className="mx-auto mt-8 flex max-w-2xl items-center justify-between gap-5 border border-[var(--color-primary)]/30 bg-[var(--color-primary-soft)] px-6 py-5">
+        <div><p className="text-sm font-medium">{locale === "ar" ? "لديك فكرة لقطعة تخصّك؟" : "Have an idea for a piece of your own?"}</p><p className="mt-1 text-xs leading-6 text-[var(--color-ink-muted)]">{locale === "ar" ? "شاركنا فكرتك وصورك في طلب خاص إلى فريق مشاعر." : "Share your idea and images in a private request to the Mashaer team."}</p></div>
+        <span className="shrink-0 text-sm text-[var(--color-primary-dark)]" aria-hidden>{locale === "ar" ? "←" : "→"}</span>
+      </Link>
 
       <div className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_400px]">
         <motion.form

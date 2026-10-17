@@ -130,6 +130,7 @@ const PrivacyAr = () => (
       نحن نحترم خصوصيتك. بياناتك تُستخدم فقط لإتمام طلبك وتقديم تجربة شخصية.
     </p>
     <p>صور وذكريات QR لا تظهر إلا لمن يعرف رمز PIN.</p>
+    <p>أفكار وصور طلبات التصميم الخاص متاحة لفريق مشاعر المخوّل فقط، لمراجعة الطلب والتواصل بشأن التصميم والسعر والتنفيذ. لا تُنشر في المتجر ولا تُعرض للعملاء الآخرين.</p>
   </>
 );
 const PrivacyEn = () => (
@@ -142,6 +143,7 @@ const PrivacyEn = () => (
     <p>
       QR Memory photos and messages are visible only to those who know your PIN.
     </p>
+    <p>Custom design ideas and reference images are accessible only to authorised Mashaer staff to review your request and discuss design, pricing and production. They are not published in the store or shown to other customers.</p>
   </>
 );
 const TermsAr = () => (

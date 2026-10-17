@@ -7,6 +7,7 @@ import {
   StoryStrip,
   HomeFinalCta,
 } from "@/components/home/HomeSections";
+import { BespokeBridge, BespokeInvite } from "@/components/bespoke/BespokeInvite";
 
 export default function HomePage() {
   return (
@@ -15,6 +16,8 @@ export default function HomePage() {
       <TrustBadges />
       <CollectionShowcase />
       <FeaturedProducts />
+      <BespokeInvite />
+      <BespokeBridge />
       <QRBanner />
       <StoryStrip />
       <HomeFinalCta />

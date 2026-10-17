@@ -12,16 +12,18 @@ function buildPetals(
   spread: number,
   angleOffset = 0,
 ) {
+  // Rounded: Node and the browser can disagree on the last digit of sin/cos, which breaks hydration.
+  const at = (r: number, a: number, trig: (x: number) => number) => Math.round((200 + trig(a) * r) * 100) / 100;
   return Array.from({ length: count }).map((_, i) => {
     const angle = (i * Math.PI * 2) / count + angleOffset;
-    const x1 = 200 + Math.cos(angle) * inner;
-    const y1 = 200 + Math.sin(angle) * inner;
-    const x2 = 200 + Math.cos(angle) * outer;
-    const y2 = 200 + Math.sin(angle) * outer;
-    const cx1 = 200 + Math.cos(angle - spread) * ctrl;
-    const cy1 = 200 + Math.sin(angle - spread) * ctrl;
-    const cx2 = 200 + Math.cos(angle + spread) * ctrl;
-    const cy2 = 200 + Math.sin(angle + spread) * ctrl;
+    const x1 = at(inner, angle, Math.cos);
+    const y1 = at(inner, angle, Math.sin);
+    const x2 = at(outer, angle, Math.cos);
+    const y2 = at(outer, angle, Math.sin);
+    const cx1 = at(ctrl, angle - spread, Math.cos);
+    const cy1 = at(ctrl, angle - spread, Math.sin);
+    const cx2 = at(ctrl, angle + spread, Math.cos);
+    const cy2 = at(ctrl, angle + spread, Math.sin);
     return `M${x1} ${y1} C ${cx1} ${cy1}, ${x2} ${y2}, ${x2} ${y2} C ${cx2} ${cy2}, ${x1} ${y1}, ${x1} ${y1} Z`;
   });
 }
@@ -37,10 +39,12 @@ export function FloralPattern({
   className,
   color = "#c9a96e",
   opacity = 0.08,
+  stem = true,
 }: {
   className?: string;
   color?: string;
   opacity?: number;
+  stem?: boolean;
 }) {
   return (
     <svg
@@ -56,11 +60,15 @@ export function FloralPattern({
       strokeLinejoin="round"
     >
       <g opacity={opacity}>
-        {/* Stem */}
-        <path d="M200 360 C 205 300, 195 250, 200 200" />
-        {/* Leaves on stem */}
-        <path d="M200 320 C 175 318, 160 308, 158 290 C 178 292, 195 304, 200 320 Z" />
-        <path d="M200 280 C 225 278, 240 268, 242 250 C 222 252, 205 264, 200 280 Z" />
+        {stem && (
+          <>
+            {/* Stem */}
+            <path d="M200 360 C 205 300, 195 250, 200 200" />
+            {/* Leaves on stem */}
+            <path d="M200 320 C 175 318, 160 308, 158 290 C 178 292, 195 304, 200 320 Z" />
+            <path d="M200 280 C 225 278, 240 268, 242 250 C 222 252, 205 264, 200 280 Z" />
+          </>
+        )}
 
         {/* Chrysanthemum-style petals — outer ring */}
         {OUTER_PETALS.map((d, i) => (

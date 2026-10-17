@@ -251,6 +251,13 @@ export function ProductDetail({ product }: { product: Product }) {
           </div>
 
           {/* QR Memory callout */}
+          <Link
+            href={`/bespoke?product=${encodeURIComponent(product.slug)}#private-request`}
+            className="mt-5 flex items-center justify-between gap-3 border-b border-[var(--color-border)] pb-4 text-xs text-[var(--color-primary-dark)] transition hover:text-[var(--color-ink)]"
+          >
+            <span>{locale === "ar" ? "تحب قطعة مستوحاة منها، بلمستك؟" : "Love this piece? Make the idea your own."}</span>
+            <span aria-hidden>{locale === "ar" ? "←" : "→"}</span>
+          </Link>
           {product.isQrEligible && (
             <div className="mt-6 rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-primary-soft)] p-5">
               <div className="flex items-start gap-3">

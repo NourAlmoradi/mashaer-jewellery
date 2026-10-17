@@ -13,6 +13,8 @@ export type PrepareImageOptions = {
   quality?: number;
   /** Reject inputs larger than this many bytes before any work. */
   maxInputBytes?: number;
+  /** Re-encode even small JPEGs to remove camera metadata from private references. */
+  stripMetadata?: boolean;
 };
 
 /** Distinguishable validation failure so callers can show a precise message. */
@@ -52,6 +54,7 @@ export async function prepareImage(
     maxDim = 1600,
     quality = 0.92,
     maxInputBytes = DEFAULT_MAX_INPUT,
+    stripMetadata = false,
   } = opts;
 
   if (!file.type.startsWith("image/")) throw new ImageError("not-image");
@@ -63,7 +66,7 @@ export async function prepareImage(
 
   // Already small enough and already a JPEG → keep the original bytes untouched
   // so there is zero additional quality loss.
-  if (scale === 1 && (file.type === "image/jpeg" || file.type === "image/jpg")) {
+  if (!stripMetadata && scale === 1 && (file.type === "image/jpeg" || file.type === "image/jpg")) {
     return file;
   }
 

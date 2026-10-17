@@ -16,6 +16,7 @@ export const translations = {
   // Nav
   nav_home: { ar: "الرئيسية", en: "Home" },
   nav_shop: { ar: "المتجر", en: "Shop" },
+  nav_bespoke: { ar: "صمّم قطعتك", en: "Create Your Own" },
   nav_collections: { ar: "المجموعات", en: "Collections" },
   nav_qr: { ar: "ذكرى QR", en: "QR Memory" },
   nav_about: { ar: "عن مشاعر", en: "About" },

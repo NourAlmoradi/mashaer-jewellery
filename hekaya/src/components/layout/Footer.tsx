@@ -43,7 +43,7 @@ const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-export function Footer() {
+export function Footer({ compact = false }: { compact?: boolean }) {
   const { t } = useT();
   const whatsapp = useAdminSettings((s) => s.store.whatsapp);
   const instagram = useAdminSettings((s) => s.store.instagram);
@@ -63,9 +63,9 @@ export function Footer() {
     : "https://facebook.com";
   return (
     <footer className="mt-1 bg-[var(--color-bg-dark)] text-white/80">
-      <div className="container-h grid grid-cols-1 gap-12 py-16 md:grid-cols-2 lg:grid-cols-4">
+      <div className={compact ? "container-h grid grid-cols-2 gap-x-6 gap-y-8 py-10 lg:grid-cols-4 lg:gap-12 lg:py-16 [&_li_a]:inline-flex [&_li_a]:min-h-10 [&_li_a]:items-center" : "container-h grid grid-cols-1 gap-12 py-16 md:grid-cols-2 lg:grid-cols-4"}>
         {/* Brand */}
-        <div className="space-y-4">
+        <div className={compact ? "col-span-2 space-y-4 lg:col-span-1" : "space-y-4"}>
           <Logo color="light" />
           <p className="max-w-xs text-sm leading-relaxed text-white/60">
             {t("footer_about_d")}
@@ -88,6 +88,7 @@ export function Footer() {
         {/* Shop */}
         <FooterCol title={t("footer_shop")}>
           <FLink href="/products">{t("nav_shop")}</FLink>
+          <FLink href="/bespoke">{t("nav_bespoke")}</FLink>
           <FLink href="/collections">{t("nav_collections")}</FLink>
           <FLink href="/qr">{t("nav_qr")}</FLink>
           <FLink href="/about">{t("nav_about")}</FLink>
@@ -103,7 +104,7 @@ export function Footer() {
         </FooterCol>
 
         {/* Newsletter / Contact */}
-        <div className="space-y-4">
+        <div className={compact ? "col-span-2 space-y-4 lg:col-span-1" : "space-y-4"}>
           <h4 className="font-display text-lg font-semibold text-white">
             {t("footer_newsletter")}
           </h4>
@@ -203,10 +204,12 @@ function NewsletterForm() {
   return (
     <form
       onSubmit={submit}
-      className="flex w-full overflow-hidden rounded-full border border-white/15 bg-white/5"
+      className="flex w-full overflow-hidden rounded-full border border-white/15 bg-white/5 focus-within:border-[var(--color-primary)]"
     >
       <input
         type="email"
+        aria-label={t("email")}
+        autoComplete="email"
         required
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -216,7 +219,7 @@ function NewsletterForm() {
       <button
         type="submit"
         disabled={sending}
-        className="shrink-0 whitespace-nowrap bg-[var(--color-primary)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[var(--color-primary-dark)] disabled:opacity-60 sm:px-6"
+        className="shrink-0 whitespace-nowrap bg-[var(--color-primary)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#352819] transition hover:bg-[var(--color-primary-dark)] disabled:opacity-60 sm:px-6"
       >
         {sending ? t("loading") : t("subscribe")}
       </button>

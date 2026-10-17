@@ -40,6 +40,7 @@ export function MobileMenu({
   const links: { href: string; key: Parameters<typeof t>[0] }[] = [
     { href: "/", key: "nav_home" },
     { href: "/products", key: "nav_shop" },
+    { href: "/bespoke", key: "nav_bespoke" },
     { href: "/collections", key: "nav_collections" },
     { href: "/qr", key: "nav_qr" },
     { href: "/about", key: "nav_about" },

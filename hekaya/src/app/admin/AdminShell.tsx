@@ -16,6 +16,7 @@ import {
   X,
   ChevronLeft,
   LogOut,
+  PencilLine,
 } from "lucide-react";
 import { Monogram } from "@/components/ui/Logo";
 import { useT } from "@/lib/useT";
@@ -75,6 +76,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       label: locale === "ar" ? "العملاء" : "Customers",
       Icon: Users,
       match: (p: string) => p.startsWith("/admin/customers"),
+    },
+    {
+      href: "/admin/custom-requests",
+      label: locale === "ar" ? "طلبات التصميم الخاص" : "Custom Requests",
+      Icon: PencilLine,
+      match: (p: string) => p.startsWith("/admin/custom-requests"),
     },
     {
       href: "/admin/qr",

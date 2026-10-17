@@ -22,9 +22,9 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
     <>
       <Header overlay={pathname === "/"} />
       <main className="min-h-[60vh]">{children}</main>
-      <Footer />
+      <Footer compact={pathname === "/bespoke"} />
       <CartDrawer />
-      <FloatingActions />
+      {pathname !== "/bespoke" && <FloatingActions />}
     </>
   );
 }
