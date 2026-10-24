@@ -102,6 +102,10 @@ export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   cancelled: [],
 };
 
+/** Cancelled orders still count as orders, never as revenue. */
+export const countsTowardRevenue = (status: OrderStatus) =>
+  status !== "cancelled";
+
 /** Status pill classes for the admin surfaces; the storefront uses `badge-*`. */
 export const ORDER_STATUS_PILL: Record<OrderStatus, string> = {
   pending: "bg-amber-200/15 text-amber-300 ring-amber-300/30",

@@ -7,7 +7,7 @@ import { useOrders } from "@/lib/useOrders";
 import { createClient } from "@/lib/supabase/client";
 import { fetchProfiles, type Profile } from "@/lib/supabase/profiles";
 import { formatPrice, formatDate, cn } from "@/lib/utils";
-import type { Order } from "@/types";
+import { countsTowardRevenue, type Order } from "@/types";
 
 type Customer = {
   /** Account id when known; otherwise the lowercased email (legacy rows). */
@@ -65,11 +65,12 @@ function aggregateCustomers(orders: Order[], profiles: Profile[]): Customer[] {
     const key = o.userId || email;
     if (!key) continue;
     const status = o.status || "pending";
+    const spent = countsTowardRevenue(status) ? o.total : 0;
     const existing = map.get(key);
 
     if (existing) {
       existing.orderCount += 1;
-      existing.totalSpent += o.total;
+      existing.totalSpent += spent;
       existing.ordersByStatus[status] =
         (existing.ordersByStatus[status] ?? 0) + 1;
       // Keep the most-recent contact info as the canonical record.
@@ -91,7 +92,7 @@ function aggregateCustomers(orders: Order[], profiles: Profile[]): Customer[] {
         emirate: o.shippingAddress?.emirate || "",
         orderCount: 1,
         lastOrderAt: o.createdAt,
-        totalSpent: o.total,
+        totalSpent: spent,
         ordersByStatus: { [status]: 1 },
         registered: false,
         registeredAt: null,
@@ -133,7 +134,11 @@ export default function AdminCustomers() {
   }, [customers, query]);
 
   const totalRevenue = customers.reduce((s, c) => s + c.totalSpent, 0);
-  const avgOrderValue = orders.length === 0 ? 0 : totalRevenue / orders.length;
+  const revenueOrderCount = orders.filter((o) =>
+    countsTowardRevenue(o.status || "pending"),
+  ).length;
+  const avgOrderValue =
+    revenueOrderCount === 0 ? 0 : totalRevenue / revenueOrderCount;
 
   return (
     <>

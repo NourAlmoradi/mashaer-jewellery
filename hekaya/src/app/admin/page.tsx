@@ -28,7 +28,12 @@ import { useOrders } from "@/lib/useOrders";
 import { createClient } from "@/lib/supabase/client";
 import { fetchAllMemories } from "@/lib/supabase/memories";
 import { formatPrice, formatDate, cn } from "@/lib/utils";
-import { ORDER_STATUSES, ORDER_STATUS_PILL, type OrderStatus } from "@/types";
+import {
+  ORDER_STATUSES,
+  ORDER_STATUS_PILL,
+  countsTowardRevenue,
+  type OrderStatus,
+} from "@/types";
 
 // Chart-only hex fills — recharts needs literal colours, not classes.
 const STATUS_COLORS: Record<OrderStatus, string> = {
@@ -51,7 +56,9 @@ export default function AdminDashboard() {
       .catch(() => setActiveQr(0));
   }, []);
 
-  const totalRevenue = allOrders.reduce((s, o) => s + o.total, 0);
+  const totalRevenue = allOrders
+    .filter((o) => countsTowardRevenue(o.status))
+    .reduce((s, o) => s + o.total, 0);
   const totalOrders = allOrders.length;
   // Distinct order emails across ALL time — i.e. total customers who have
   // ordered, not new ones. The tile was labelled "New Customers" (M3).
@@ -74,13 +81,14 @@ export default function AdminDashboard() {
     for (const o of allOrders) {
       const d = new Date(o.createdAt);
       const email = (o.email || "").toLowerCase();
+      const revenue = countsTowardRevenue(o.status) ? o.total : 0;
       if (d >= startOfMonth) {
         curOrders++;
-        curRevenue += o.total;
+        curRevenue += revenue;
         if (email) curCustomers.add(email);
       } else if (d >= startOfPrev) {
         prevOrders++;
-        prevRevenue += o.total;
+        prevRevenue += revenue;
         if (email) prevCustomers.add(email);
       }
     }
@@ -182,7 +190,7 @@ export default function AdminDashboard() {
     for (const o of allOrders) {
       const d = new Date(o.createdAt);
       const b = byKey.get(`${d.getFullYear()}-${d.getMonth()}`);
-      if (b) b.revenue += o.total;
+      if (b && countsTowardRevenue(o.status)) b.revenue += o.total;
     }
     return buckets;
   }, [allOrders, locale]);
